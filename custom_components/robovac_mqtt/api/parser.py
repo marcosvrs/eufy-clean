@@ -484,24 +484,7 @@ def _parse_scene_info(value: Any) -> list[dict[str, Any]]:
         return []
 
 
-def _deduplicate_rooms(rooms: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    """Ensure all room names are strictly unique to prevent downstream Matter bridges from crashing."""
-    name_counts: dict[str, int] = {}
-    for room in rooms:
-        name = (room.get("name") or "").strip()
-        if not name:
-            name = f"Room {room.get('id', 'Unknown')}"
 
-        count = name_counts.get(name, 0)
-        if count > 0:
-            room["name"] = f"{name} ({count + 1})"
-        else:
-            room["name"] = name
-        # Always increment against the *original* name so the next duplicate
-        # gets the correct suffix (e.g. three "Kitchen" rooms → Kitchen,
-        # Kitchen (2), Kitchen (3) and never a collision).
-        name_counts[name] = count + 1
-    return rooms
 
 
 def _parse_map_data(value: Any) -> dict[str, Any] | None:

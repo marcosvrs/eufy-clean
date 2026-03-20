@@ -7,6 +7,7 @@ import string
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME, Platform
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers import device_registry as dr
 
 from .api.cloud import EufyLogin
 from .const import DOMAIN
@@ -71,6 +72,21 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         # unless critical failure?
         # But if no devices, nothing to do.
 
+    # Check for orphaned devices and log warnings
+    device_registry = dr.async_get(hass)
+    devices = dr.async_entries_for_config_entry(device_registry, entry.entry_id)
+    for device_entry in devices:
+        for identifier in device_entry.identifiers:
+            if identifier[0] == DOMAIN:
+                if identifier[1] not in [c.device_id for c in coordinators]:
+                    _LOGGER.warning(
+                        "Device %s (%s) is registered but was not returned by the Eufy API. "
+                        "It will be shown as unavailable. You can manually remove it if it was deleted from your account.",
+                        device_entry.name_by_user or device_entry.name,
+                        identifier[1],
+                    )
+                break
+
     hass.data.setdefault(DOMAIN, {})
     hass.data[DOMAIN][entry.entry_id] = {"coordinators": coordinators}
 
@@ -95,6 +111,13 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         hass.data[DOMAIN].pop(entry.entry_id)
 
     return unload_ok
+
+
+async def async_remove_config_entry_device(
+    hass: HomeAssistant, config_entry: ConfigEntry, device_entry: dr.DeviceEntry
+) -> bool:
+    """Remove a config entry device."""
+    return True
 
 
 async def update_listener(hass: HomeAssistant, entry: ConfigEntry):

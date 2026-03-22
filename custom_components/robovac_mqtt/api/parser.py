@@ -255,6 +255,7 @@ def _process_other_dps(
 
             elif key == DPS_MAP["CLEAN_SPEED"]:
                 changes["fan_speed"] = _map_clean_speed(value)
+                _track_field(state, changes, "fan_speed")
 
             elif key == DPS_MAP["ERROR_CODE"]:
                 error_proto = decode(ErrorCode, value)

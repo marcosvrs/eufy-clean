@@ -215,7 +215,7 @@ class EufyCleanClient:
             _LOGGER.info("Connected to MQTT Broker!")
             if self._loop:
                 self._loop.call_soon_threadsafe(self._connected_event.set)
-            # Subscribe
+            # Subscribe to specific device topic
             if self.device_id:
                 topic = f"cmd/eufy_home/{self.device_model}/{self.device_id}/res"
                 _LOGGER.debug("Subscribing to %s", topic)

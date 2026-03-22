@@ -217,11 +217,6 @@ class EufyCleanClient:
                 topic = f"cmd/eufy_home/{self.device_model}/{self.device_id}/res"
                 _LOGGER.debug("Subscribing to %s", topic)
                 client.subscribe(topic)
-
-                # Short topic: cmd/eufy_home/{sn}/res (common for newer AE/Omni models)
-                short_topic = f"cmd/eufy_home/{self.device_id}/res"
-                _LOGGER.debug("Subscribing to %s (short)", short_topic)
-                client.subscribe(short_topic)
         else:
             _LOGGER.error("Failed to connect to MQTT, return code %d", rc)
 

@@ -108,6 +108,7 @@ EUFY_CLEAN_C_SERIES = [
 
 EUFY_CLEAN_S_SERIES = ["T2119", "T2080"]
 
+
 class TriggerSource(int, Enum):
     UNKNOWN = 0
     APP = 1
@@ -224,6 +225,7 @@ EUFY_CLEAN_NOVEL_CLEAN_SPEED = [
     EUFY_CLEAN_CLEAN_SPEED.TURBO,
     EUFY_CLEAN_CLEAN_SPEED.MAX,
 ]
+
 
 class EUFY_CLEAN_CONTROL(int, Enum):
     START_AUTO_CLEAN = 0
@@ -461,10 +463,12 @@ EUFY_CLEAN_ERROR_CODES = {
 # Mapping for Custom Room Parameters
 
 CLEAN_TYPE_MAP = {
+    # Keys are normalized to lowercase; underscores accepted as space aliases.
     "vacuum": CleanType.SWEEP_ONLY,
     "mop": CleanType.MOP_ONLY,
     "vacuum_mop": CleanType.SWEEP_AND_MOP,
     "vacuum and mop": CleanType.SWEEP_AND_MOP,
+    "vacuum_and_mop": CleanType.SWEEP_AND_MOP,
     "sweep_and_mop": CleanType.SWEEP_AND_MOP,
     "mopping_after_sweeping": CleanType.SWEEP_THEN_MOP,
     "mopping after sweeping": CleanType.SWEEP_THEN_MOP,

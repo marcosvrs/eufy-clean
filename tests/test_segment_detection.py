@@ -1,9 +1,10 @@
-# pylint: disable=redefined-outer-name
-import pytest
 """Tests for segment change detection functionality."""
+
+# pylint: disable=redefined-outer-name
 
 import asyncio
 from unittest.mock import AsyncMock, MagicMock, patch
+
 import pytest
 
 from homeassistant.helpers.issue_registry import IssueSeverity
@@ -256,20 +257,127 @@ async def test_storage_load_on_coordinator_init(mock_coordinator, mock_config_en
 async def test_storage_save_on_segment_store(mock_coordinator, mock_config_entry):
     """Test that storing segments calls coordinator storage method."""
     entity = RoboVacMQTTEntity(mock_coordinator, mock_config_entry)
-    
+
     segments = [
         Segment(id="1", name="Living Room", group=None),
         Segment(id="2", name="Kitchen", group=None),
     ]
-    
+
     # Mock the coordinator's storage method
     mock_coordinator.async_save_segments = AsyncMock()
-    
+
     # Call the storage method
     entity._store_last_seen_segments(segments)
-    
+
     # Verify coordinator storage was called with correct data
     mock_coordinator.async_save_segments.assert_called_once_with([
         {"id": "1", "name": "Living Room", "group": None},
         {"id": "2", "name": "Kitchen", "group": None},
     ])
+
+
+@pytest.mark.asyncio
+async def test_segment_change_detection_end_to_end():
+    """Test the complete segment change detection flow end-to-end.
+
+    Covers: first-time baseline, explicit store, no change, name change,
+    room removed, room added — in a single sequential flow.
+    """
+    coordinator = MagicMock()
+    coordinator.device_id = "test_id"
+    coordinator.device_name = "Test Vac"
+    coordinator.data = VacuumState()
+    coordinator.hass = MagicMock()
+    coordinator.hass.config_entries.async_update_entry = MagicMock()
+    coordinator.hass.async_create_task = MagicMock(
+        side_effect=lambda coro: asyncio.create_task(coro)
+    )
+    coordinator.last_seen_segments = None
+    coordinator.async_save_segments = AsyncMock()
+
+    def _save_segments(segments):
+        coordinator.last_seen_segments = segments
+
+    coordinator.async_save_segments.side_effect = _save_segments
+
+    # Initially no rooms
+    coordinator.data.rooms = []
+    entity = RoboVacMQTTEntity(coordinator, config_entry=MagicMock())
+    assert entity.last_seen_segments is None
+
+    # Simulate rooms appearing for the first time
+    coordinator.data.rooms = [
+        {"id": 1, "name": "Living Room"},
+        {"id": 2, "name": "Kitchen"},
+    ]
+
+    # First-time detection: baseline stored silently, no issue raised
+    with patch.object(entity, "async_create_segments_issue") as mock_create_issue:
+        entity._check_for_segment_changes()
+        await asyncio.sleep(0)
+        mock_create_issue.assert_not_called()
+
+    assert entity.last_seen_segments is not None
+    assert len(entity.last_seen_segments) == 2
+
+    # No change — should not raise
+    with patch.object(entity, "async_create_segments_issue") as mock_create_issue:
+        entity._check_for_segment_changes()
+        await asyncio.sleep(0)
+        mock_create_issue.assert_not_called()
+
+    # Name change — should raise
+    coordinator.data.rooms = [
+        {"id": 1, "name": "Living Room Updated"},
+        {"id": 2, "name": "Kitchen"},
+    ]
+    with patch.object(entity, "async_create_segments_issue") as mock_create_issue:
+        entity._check_for_segment_changes()
+        mock_create_issue.assert_called_once()
+
+    # Room removed — should raise
+    coordinator.data.rooms = [{"id": 2, "name": "Kitchen"}]
+    with patch.object(entity, "async_create_segments_issue") as mock_create_issue:
+        entity._check_for_segment_changes()
+        mock_create_issue.assert_called_once()
+
+    # Room added — should raise
+    coordinator.data.rooms = [
+        {"id": 2, "name": "Kitchen"},
+        {"id": 3, "name": "Bedroom"},
+    ]
+    with patch.object(entity, "async_create_segments_issue") as mock_create_issue:
+        entity._check_for_segment_changes()
+        mock_create_issue.assert_called_once()
+
+
+@pytest.mark.asyncio
+async def test_backward_compatibility_no_config_entry():
+    """Test that entity works without config entry (backward compatibility)."""
+    coordinator = MagicMock()
+    coordinator.device_id = "test_id"
+    coordinator.device_name = "Test Vac"
+    coordinator.data = VacuumState(rooms=[{"id": 1, "name": "Kitchen"}])
+    coordinator.hass = MagicMock()
+    coordinator.last_seen_segments = None
+    coordinator.async_save_segments = AsyncMock()
+
+    # Create entity without config entry
+    entity = RoboVacMQTTEntity(coordinator)
+
+    assert entity.last_seen_segments is None
+
+    # Should not create issues when no config entry
+    with patch("custom_components.robovac_mqtt.vacuum.async_create_issue") as mock_create:
+        entity.async_create_segments_issue()
+        mock_create.assert_not_called()
+
+    # Should not detect changes when no config entry
+    with patch.object(entity, "async_create_segments_issue") as mock_create:
+        entity._check_for_segment_changes()
+        await asyncio.sleep(0)
+        mock_create.assert_not_called()
+
+    # But basic functionality should still work
+    assert len(entity._get_room_segments()) == 1
+    assert entity._get_room_segments()[0].name == "Kitchen"

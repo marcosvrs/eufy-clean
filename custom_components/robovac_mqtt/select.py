@@ -47,7 +47,6 @@ def _optimistically_update_state(coordinator: EufyCleanCoordinator, **changes: A
         changes,
     )
     new_data = replace(coordinator.data, **changes)
-    coordinator.data = new_data
     coordinator.async_set_updated_data(new_data)
 
 

@@ -161,10 +161,10 @@ def _process_work_status(
             mode_val = work_status.mode.value
             changes["work_mode"] = WORK_MODE_NAMES.get(mode_val, "unknown")
             _track_field(state, changes, "work_mode")
-        elif state.work_mode == "unknown" and changes["activity"] == "cleaning":
+        elif state.work_mode == "unknown" and changes.get("activity") == "cleaning":
             # If we don't know the mode yet but we are cleaning, default to Auto
             changes["work_mode"] = "Auto"
-        elif changes["activity"] not in ("cleaning", "returning"):
+        elif changes.get("activity") not in ("cleaning", "returning"):
             # If we are not cleaning or returning, reset to unknown
             # This handles the case where a previous run's mode might stick around
             if state.work_mode != "unknown":
@@ -496,6 +496,33 @@ def _parse_scene_info(value: Any) -> list[dict[str, Any]]:
         return []
 
 
+def _deduplicate_room_names(rooms: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Ensure room names are unique by appending a suffix to duplicates.
+
+    e.g. two rooms named "Kitchen" become "Kitchen" and "Kitchen (2)".
+    """
+    name_counts: dict[str, int] = {}
+    for room in rooms:
+        name = room["name"]
+        name_counts[name] = name_counts.get(name, 0) + 1
+
+    # Only process names that actually have duplicates
+    duplicated_names = {n for n, c in name_counts.items() if c > 1}
+    if not duplicated_names:
+        return rooms
+
+    seen: dict[str, int] = {}
+    result: list[dict[str, Any]] = []
+    for room in rooms:
+        name = room["name"]
+        if name in duplicated_names:
+            seen[name] = seen.get(name, 0) + 1
+            if seen[name] > 1:
+                room = {**room, "name": f"{name} ({seen[name]})"}
+        result.append(room)
+    return result
+
+
 def _parse_map_data(value: Any) -> dict[str, Any] | None:
     """Parse Map Data (Universal or RoomParams) from DPS."""
     # UniversalDataResponse
@@ -508,7 +535,7 @@ def _parse_map_data(value: Any) -> dict[str, Any] | None:
             for r in universal_data.cur_map_room.data:
                 name = (r.name or "").strip() or f"Room {r.id}"
                 rooms.append({"id": r.id, "name": name})
-            return {"map_id": universal_data.cur_map_room.map_id, "rooms": rooms}
+            return {"map_id": universal_data.cur_map_room.map_id, "rooms": _deduplicate_room_names(rooms)}
     except Exception as e:
         _LOGGER.debug("UniversalDataResponse parse failed: %s", e)
 
@@ -522,7 +549,7 @@ def _parse_map_data(value: Any) -> dict[str, Any] | None:
             for r in room_params.rooms:
                 name = (r.name or "").strip() or f"Room {r.id}"
                 rooms.append({"id": r.id, "name": name})
-            return {"map_id": room_params.map_id, "rooms": rooms}
+            return {"map_id": room_params.map_id, "rooms": _deduplicate_room_names(rooms)}
     except Exception as e:
         _LOGGER.debug("RoomParams parse failed: %s", e)
 

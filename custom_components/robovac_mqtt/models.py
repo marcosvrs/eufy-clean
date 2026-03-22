@@ -75,7 +75,7 @@ class VacuumState:
     preferences: CleaningPreferences = field(default_factory=CleaningPreferences)
     cleaning_mode: str = "Vacuum"  # Matter-compatible cleaning mode preference
     mop_water_level: str = "Medium"  # Global mop water level from DPS 154
-    
+
     # Additional DPS 154 fields for enhanced functionality
     cleaning_intensity: str = "Normal"  # Clean extent from DPS 154
     carpet_strategy: str = "Auto Raise"  # Clean carpet strategy from DPS 154

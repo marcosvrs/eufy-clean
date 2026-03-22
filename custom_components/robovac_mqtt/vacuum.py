@@ -62,11 +62,15 @@ def _rooms_to_attributes(rooms: list[dict[str, Any]] | None) -> list[dict[str, A
     if not rooms:
         return []
 
-    return [
-        {"id": int(room["id"]) if str(room["id"]).isdigit() else room["id"], "name": room.get("name") or f"Room {room['id']}"}
-        for room in rooms
-        if "id" in room
-    ]
+    result: list[dict[str, Any]] = []
+    for room in rooms:
+        if "id" not in room:
+            continue
+        raw_id = room["id"]
+        room_id = int(raw_id) if str(raw_id).isdigit() else raw_id
+        name = room.get("name") or f"Room {raw_id}"
+        result.append({"id": room_id, "name": name})
+    return result
 
 
 def _segment_name_map(segments: list[Segment]) -> dict[str, str]:
@@ -341,9 +345,8 @@ class RoboVacMQTTEntity(CoordinatorEntity[EufyCleanCoordinator], StateVacuumEnti
         activity = self.coordinator.data.activity
         if activity in _ACTIVITY_MAP:
             return _ACTIVITY_MAP[activity]
-        if self.coordinator.data.error_code:
-            return VacuumActivity.ERROR
         return None
+
     @property
     def fan_speed(self) -> str | None:
         """Return the fan speed of the vacuum."""

@@ -537,3 +537,36 @@ def test_work_mode_names_mapping(mock_decode):
     assert WORK_MODE_NAMES[1] == "Room"
     assert WORK_MODE_NAMES[3] == "Spot"
     assert WORK_MODE_NAMES[8] == "Scene"
+
+
+# ── Room Name Deduplication Test ──────────────────────────────────────
+
+
+def test_deduplicate_room_names():
+    """Test that duplicate room names get a numbered suffix."""
+    from custom_components.robovac_mqtt.api.parser import _deduplicate_room_names
+
+    rooms = [
+        {"id": 1, "name": "Kitchen"},
+        {"id": 2, "name": "Kitchen"},
+        {"id": 3, "name": "Bedroom"},
+        {"id": 4, "name": "Kitchen"},
+    ]
+    result = _deduplicate_room_names(rooms)
+
+    assert result[0] == {"id": 1, "name": "Kitchen"}
+    assert result[1] == {"id": 2, "name": "Kitchen (2)"}
+    assert result[2] == {"id": 3, "name": "Bedroom"}
+    assert result[3] == {"id": 4, "name": "Kitchen (3)"}
+
+
+def test_deduplicate_room_names_no_duplicates():
+    """Test that unique room names are unchanged."""
+    from custom_components.robovac_mqtt.api.parser import _deduplicate_room_names
+
+    rooms = [
+        {"id": 1, "name": "Kitchen"},
+        {"id": 2, "name": "Bedroom"},
+    ]
+    result = _deduplicate_room_names(rooms)
+    assert result == rooms

@@ -446,7 +446,7 @@ class CleaningModeSelectEntity(_StateBackedSelectEntity):
     _command_name = "set_cleaning_mode"
     _command_arg_name = "clean_mode"
     _state_field = "cleaning_mode"
-    _available_field = "cleaning_mode"
+    _available_field = None
     _log_label = "Cleaning mode"
 
     def __init__(self, coordinator: EufyCleanCoordinator) -> None:
@@ -472,7 +472,7 @@ class WaterLevelSelectEntity(_StateBackedSelectEntity):
     _command_name = "set_water_level"
     _command_arg_name = "water_level"
     _state_field = "mop_water_level"
-    _available_field = "mop_water_level"
+    _available_field = None
     _log_label = "Water level"
 
     def __init__(self, coordinator: EufyCleanCoordinator) -> None:
@@ -497,7 +497,7 @@ class MopIntensitySelectEntity(_StateBackedSelectEntity):
     _command_name = "set_water_level"
     _command_arg_name = "water_level"
     _state_field = "mop_water_level"
-    _available_field = "mop_water_level"
+    _available_field = None
     _log_label = "Mop intensity"
 
     def __init__(self, coordinator: EufyCleanCoordinator) -> None:
@@ -523,7 +523,7 @@ class CleaningIntensitySelectEntity(_StateBackedSelectEntity):
     _command_name = "set_cleaning_intensity"
     _command_arg_name = "cleaning_intensity"
     _state_field = "cleaning_intensity"
-    _available_field = "cleaning_intensity"
+    _available_field = None
     _log_label = "Cleaning intensity"
 
     def __init__(self, coordinator: EufyCleanCoordinator) -> None:

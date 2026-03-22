@@ -1,5 +1,8 @@
 build
 out
+venv
+.python-version
+.kiro
 .git
 node_modules
 # build
@@ -13,3 +16,5 @@ node_modules
 *.env
 config/
 .idea/
+.claude/
+RELEASE_NOTES.md

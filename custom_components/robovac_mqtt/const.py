@@ -109,18 +109,97 @@ EUFY_CLEAN_C_SERIES = [
 EUFY_CLEAN_S_SERIES = ["T2119", "T2080"]
 
 
-class EUFY_CLEAN_GET_STATE(str, Enum):
-    sleeping = "stopped"
-    standby = "docked"
-    recharge = "docked"
-    running = "cleaning"
-    cleaning = "cleaning"
-    spot = "spot_cleaning"
-    completed = "docked"
-    charging = "charging"
-    sleep = "stopped"
-    go_home = "docked"
-    fault = "stopped"
+class TriggerSource(int, Enum):
+    UNKNOWN = 0
+    APP = 1
+    KEY = 2
+    TIMING = 3
+    ROBOT = 4
+    REMOTE_CTRL = 5
+
+
+TRIGGER_SOURCE_NAMES = {
+    TriggerSource.UNKNOWN: "unknown",
+    TriggerSource.APP: "app",
+    TriggerSource.KEY: "button",
+    TriggerSource.TIMING: "schedule",
+    TriggerSource.ROBOT: "robot",
+    TriggerSource.REMOTE_CTRL: "remote_control",
+}
+
+
+class CleaningMode(int, Enum):
+    SWEEP_ONLY = 0
+    MOP_ONLY = 1
+    SWEEP_AND_MOP = 2
+    SWEEP_THEN_MOP = 3
+
+
+class MopWaterLevel(int, Enum):
+    LOW = 0
+    MIDDLE = 1
+    HIGH = 2
+
+
+# Reverse mappings for parser - convert proto values to human-readable names
+CLEANING_MODE_NAMES = {
+    CleaningMode.SWEEP_ONLY: "Vacuum",
+    CleaningMode.MOP_ONLY: "Mop",
+    CleaningMode.SWEEP_AND_MOP: "Vacuum and mop",
+    CleaningMode.SWEEP_THEN_MOP: "Mopping after sweeping",
+}
+
+MOP_WATER_LEVEL_NAMES = {
+    MopWaterLevel.LOW: "Low",
+    MopWaterLevel.MIDDLE: "Medium",
+    MopWaterLevel.HIGH: "High",
+}
+
+
+# Additional DPS 154 mappings for enhanced functionality
+CLEANING_INTENSITY_NAMES = {
+    0: "Normal",
+    1: "Narrow",
+    2: "Quick",
+}
+
+# Derived from the enum-based dicts above to avoid duplication
+EUFY_CLEAN_CLEANING_MODES = list(CLEANING_MODE_NAMES.values())
+EUFY_CLEAN_WATER_LEVELS = list(MOP_WATER_LEVEL_NAMES.values())
+EUFY_CLEAN_CLEANING_INTENSITIES = list(CLEANING_INTENSITY_NAMES.values())
+
+CARPET_STRATEGY_NAMES = {
+    0: "Auto Raise",
+    1: "Avoid",
+    2: "Ignore",
+}
+
+CORNER_CLEANING_NAMES = {
+    0: "Normal",
+    1: "Deep",
+}
+
+FAN_SUCTION_NAMES = {
+    0: "Quiet",
+    1: "Standard",
+    2: "Turbo",
+    3: "Max",
+    4: "Boost_IQ",
+}
+
+
+WORK_MODE_NAMES = {
+    0: "Auto",
+    1: "Room",
+    2: "Zone",
+    3: "Spot",
+    4: "Fast Mapping",
+    5: "Global Cruise",
+    6: "Zones Cruise",
+    7: "Point Cruise",
+    8: "Scene",
+    9: "Smart Follow",
+}
 
 
 class EUFY_CLEAN_VACUUMCLEANER_STATE(str, Enum):
@@ -145,55 +224,8 @@ EUFY_CLEAN_NOVEL_CLEAN_SPEED = [
     EUFY_CLEAN_CLEAN_SPEED.STANDARD,
     EUFY_CLEAN_CLEAN_SPEED.TURBO,
     EUFY_CLEAN_CLEAN_SPEED.MAX,
-]
-
-EUFY_CLEAN_LEGACY_CLEAN_SPEED = [
-    EUFY_CLEAN_CLEAN_SPEED.NO_SUCTION,
     EUFY_CLEAN_CLEAN_SPEED.BOOST_IQ,
 ]
-
-
-class EUFY_CLEAN_GET_CLEAN_SPEED(str, Enum):
-    no_suction = "No Suction"
-    standard = "Standard"
-    quiet = "Quiet"
-    turbo = "Turbo"
-    boost_iq = "Boost IQ"
-    max = "Max"
-
-
-class EUFY_CLEAN_WORK_STATUS(str, Enum):
-    # Cleaning
-    RUNNING = "Running"
-    # In the dock, charging
-    CHARGING = "Charging"
-    # Not in the dock, paused
-    STAND_BY = "standby"
-    # Not in the dock - goes into this state after being paused for a while
-    SLEEPING = "Sleeping"
-    # Going home because battery is depleted
-    RECHARGE_NEEDED = "Recharge"
-    RECHARGE = "Recharge"
-    # In the dock, full charged
-    COMPLETED = "Completed"
-    STANDBY = "Standby"
-    SLEEP = "Sleep"
-    FAULT = "Fault"
-    FAST_MAPPING = "Fast Mapping"
-    CLEANING = "Cleaning"
-    REMOTE_CTRL = "Remote Ctrl"
-    GO_HOME = "Go Home"
-    CRUISIING = "Cruising"
-
-
-class EUFY_CLEAN_WORK_MODE(str, Enum):
-    AUTO = "auto"
-    NO_SWEEP = "Nosweep"
-    SMALL_ROOM = "SmallRoom"
-    ROOM = "room"
-    ZONE = "zone"
-    EDGE = "Edge"
-    SPOT = "Spot"
 
 
 class EUFY_CLEAN_CONTROL(int, Enum):
@@ -432,17 +464,25 @@ EUFY_CLEAN_ERROR_CODES = {
 # Mapping for Custom Room Parameters
 
 CLEAN_TYPE_MAP = {
+    # Keys are normalized to lowercase with spaces (underscores converted to spaces
+    # by _normalize_clean_mode in commands.py).
     "vacuum": CleanType.SWEEP_ONLY,
     "mop": CleanType.MOP_ONLY,
-    "vacuum_mop": CleanType.SWEEP_AND_MOP,
-    "vacuum_and_mop": CleanType.SWEEP_AND_MOP,
-    "sweep_and_mop": CleanType.SWEEP_AND_MOP,
+    "vacuum mop": CleanType.SWEEP_AND_MOP,
+    "vacuum and mop": CleanType.SWEEP_AND_MOP,
+    "sweep and mop": CleanType.SWEEP_AND_MOP,
+    "mopping after sweeping": CleanType.SWEEP_THEN_MOP,
 }
 
 CLEAN_EXTENT_MAP = {
+    # Legacy keys
     "fast": CleanExtent.QUICK,
     "standard": CleanExtent.NORMAL,
     "deep": CleanExtent.NARROW,
+    # New standardized keys matching UI and Matter vocabulary
+    "quick": CleanExtent.QUICK,
+    "normal": CleanExtent.NORMAL,
+    "narrow": CleanExtent.NARROW,
 }
 
 MOP_CORNER_MAP = {

@@ -148,13 +148,13 @@ async def test_scene_select_entity(mock_coordinator):
     entity.async_write_ha_state = MagicMock()
 
     assert entity.name == "Scene"
-    assert entity.options == ["Scene 1", "Scene 2"]
+    assert entity.options == ["Scene 1 (ID: 1)", "Scene 2 (ID: 2)"]
     assert entity.current_option is None
 
     with patch("custom_components.robovac_mqtt.select.build_command") as mock_build:
         mock_build.return_value = {"cmd": "scene_cmd"}
 
-        await entity.async_select_option("Scene 2")
+        await entity.async_select_option("Scene 2 (ID: 2)")
 
         mock_build.assert_called_with("scene_clean", scene_id=2)
         mock_coordinator.async_send_command.assert_called_with({"cmd": "scene_cmd"})
@@ -174,15 +174,13 @@ async def test_room_select_entity(mock_coordinator):
     entity.async_write_ha_state = MagicMock()
 
     assert entity.name == "Clean Room"
-    # Matches format "Name"
-    assert "Kitchen" in entity.options
-    assert "Living Room" in entity.options
+    assert entity.options == ["Kitchen (ID: 10)", "Living Room (ID: 12)"]
     assert entity.current_option is None
 
     with patch("custom_components.robovac_mqtt.select.build_command") as mock_build:
         mock_build.return_value = {"cmd": "room_cmd"}
 
-        await entity.async_select_option("Kitchen")
+        await entity.async_select_option("Kitchen (ID: 10)")
 
         mock_build.assert_called_with(
             "room_clean", room_ids=[10], map_id=5
@@ -347,8 +345,8 @@ def test_dock_select_unavailable_no_cfg(mock_coordinator):
     assert entity.available is False
 
 
-def test_scene_select_current_option_dedup(mock_coordinator):
-    """Test current_option returns deduplicated name for duplicate scene names."""
+def test_scene_select_current_option_with_id(mock_coordinator):
+    """Test current_option includes ID even for duplicate scene names."""
     mock_coordinator.data.scenes = [
         {"id": 1, "name": "Clean"},
         {"id": 2, "name": "Clean"},
@@ -357,8 +355,7 @@ def test_scene_select_current_option_dedup(mock_coordinator):
     mock_coordinator.data.current_scene_name = "Clean"
 
     entity = SceneSelectEntity(mock_coordinator)
-    # The second "Clean" should be returned as "Clean (2)" to match options
-    assert entity.current_option == "Clean (2)"
+    assert entity.current_option == "Clean (ID: 2)"
 
 
 # ── Select Entity Availability Tests ─────────────────────────────────

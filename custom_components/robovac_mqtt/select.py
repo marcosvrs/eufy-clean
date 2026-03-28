@@ -23,9 +23,13 @@ from .const import (
     EUFY_CLEAN_WATER_LEVELS,
 )
 from .coordinator import EufyCleanCoordinator
-from .utils import deduplicate_names
 
 _LOGGER = logging.getLogger(__name__)
+
+
+def _format_option_label(item: dict[str, Any], default_name: str) -> str:
+    """Format a select option label as '<name> (ID: <id>)'."""
+    return f"{item.get('name') or default_name} (ID: {item['id']})"
 
 
 _MOP_INTENSITY_TO_WATER_LEVEL = {
@@ -254,43 +258,35 @@ class SceneSelectEntity(CoordinatorEntity[EufyCleanCoordinator], SelectEntity):
     @property
     def options(self) -> list[str]:
         """Return available scenes."""
-        names = [s["name"] for s in self.coordinator.data.scenes if "name" in s]
-        return deduplicate_names(names)
+        return [_format_option_label(s, "Scene") for s in self.coordinator.data.scenes]
 
     @property
     def current_option(self) -> str | None:
         """Return the currently active scene."""
         current_id = self.coordinator.data.current_scene_id
         if current_id > 0:
-            named_scenes = [s for s in self.coordinator.data.scenes if "name" in s]
-            for idx, scene in enumerate(named_scenes):
+            for scene in self.coordinator.data.scenes:
                 if scene["id"] == current_id:
-                    options = self.options
-                    if idx < len(options):
-                        return options[idx]
-                    return None
+                    return _format_option_label(scene, "Scene")
 
             # Fallback to reported name if available (even if not in options list)
             if self.coordinator.data.current_scene_name:
-                return self.coordinator.data.current_scene_name
+                return f"{self.coordinator.data.current_scene_name} (ID: {current_id})"
 
         return None
 
     async def async_select_option(self, option: str) -> None:
         """Trigger the selected scene."""
-        # Match by index in the deduplicated options list to handle duplicate names
-        try:
-            idx = self.options.index(option)
-        except ValueError:
+        scenes = self.coordinator.data.scenes
+        scene = next(
+            (s for s in scenes if _format_option_label(s, "Scene") == option),
+            None,
+        )
+        if not scene:
             _LOGGER.error("Scene '%s' not found", option)
             return
 
-        named_scenes = [s for s in self.coordinator.data.scenes if "name" in s]
-        if idx >= len(named_scenes):
-            _LOGGER.error("Scene '%s' index out of range", option)
-            return
-
-        scene_id = named_scenes[idx]["id"]
+        scene_id = scene["id"]
         _LOGGER.info("Triggering scene '%s' (ID: %s)", option, scene_id)
 
         command = build_command("scene_clean", scene_id=scene_id)
@@ -316,8 +312,7 @@ class RoomSelectEntity(CoordinatorEntity[EufyCleanCoordinator], SelectEntity):
     @property
     def options(self) -> list[str]:
         """Return available rooms."""
-        names = [r["name"] for r in self.coordinator.data.rooms if "name" in r]
-        return deduplicate_names(names)
+        return [_format_option_label(r, "Room") for r in self.coordinator.data.rooms]
 
     @property
     def current_option(self) -> str | None:
@@ -326,19 +321,16 @@ class RoomSelectEntity(CoordinatorEntity[EufyCleanCoordinator], SelectEntity):
 
     async def async_select_option(self, option: str) -> None:
         """Trigger cleaning of the selected room."""
-        # Match by index in the deduplicated options list to handle duplicate names
-        try:
-            idx = self.options.index(option)
-        except ValueError:
+        rooms = self.coordinator.data.rooms
+        room = next(
+            (r for r in rooms if _format_option_label(r, "Room") == option),
+            None,
+        )
+        if not room:
             _LOGGER.error("Room '%s' not found", option)
             return
 
-        named_rooms = [r for r in self.coordinator.data.rooms if "name" in r]
-        if idx >= len(named_rooms):
-            _LOGGER.error("Room '%s' index out of range", option)
-            return
-
-        room_id = named_rooms[idx]["id"]
+        room_id = room["id"]
         # Use discovered map_id if available, otherwise fallback to 1
         map_id = self.coordinator.data.map_id or 1
         _LOGGER.info(

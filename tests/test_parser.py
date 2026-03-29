@@ -3,16 +3,15 @@ room name parsing, deduplication, and related const lookups."""
 
 from unittest.mock import MagicMock, patch
 
-import pytest
-
 from custom_components.robovac_mqtt.api.parser import (
+    _deduplicate_room_names,
+    _map_task_status,
     _map_work_status,
     _parse_map_data,
     _process_cleaning_parameters,
-    _deduplicate_room_names,
 )
+from custom_components.robovac_mqtt.const import WORK_MODE_NAMES
 from custom_components.robovac_mqtt.models import VacuumState
-
 
 # ── Helpers ──────────────────────────────────────────────────────────
 
@@ -136,6 +135,59 @@ def test_map_work_status_state_15_paused():
     """Test WorkStatus state 15 maps to paused."""
     ws = _make_work_status(15)
     assert _map_work_status(ws) == "paused"
+
+
+def test_map_work_status_cleaning_paused():
+    """State 5 with cleaning.state=PAUSED (no go_wash) should map to paused."""
+    ws = MagicMock()
+    ws.state = 5
+    ws.HasField.side_effect = lambda f: f == "cleaning"
+    ws.cleaning.state = 1  # PAUSED
+    assert _map_work_status(ws) == "paused"
+
+
+def test_map_work_status_cleaning_paused_with_go_wash_ignored():
+    """State 5 with cleaning.state=PAUSED AND go_wash present should NOT map to paused.
+
+    When go_wash is active (even NAVIGATION mode), the robot is heading to/at
+    the dock for a mop wash. The existing flapping-prevention logic handles
+    this scenario; we must not override it with "paused".
+    """
+    ws = MagicMock()
+    ws.state = 5
+    ws.HasField.side_effect = lambda f: f in {"cleaning", "go_wash"}
+    ws.cleaning.state = 1  # PAUSED
+    ws.go_wash.mode = 0  # NAVIGATION
+    assert _map_work_status(ws) == "cleaning"
+
+
+def test_map_work_status_cleaning_doing():
+    """State 5 with cleaning.state=DOING should still map to cleaning."""
+    ws = MagicMock()
+    ws.state = 5
+    ws.HasField.side_effect = lambda f: f == "cleaning"
+    ws.cleaning.state = 0  # DOING
+    assert _map_work_status(ws) == "cleaning"
+
+
+def test_map_work_status_emptying_dust():
+    """Test WorkStatus state 3 with station.dust_collection_system.state=EMPTYING."""
+    ws = MagicMock()
+    ws.state = 3
+    ws.HasField.side_effect = lambda f: f == "station"
+    ws.station.dust_collection_system.state = 0  # EMPTYING
+    assert _map_work_status(ws) == "docked"
+
+
+def test_map_task_status_emptying_dust():
+    """Test task status when emptying dust at dock."""
+    ws = MagicMock()
+    ws.state = 3
+    ws.HasField.side_effect = lambda f: f in {"station", "dust_collection_system"}
+    ws.station.HasField.side_effect = lambda f: f == "dust_collection_system"
+    ws.station.dust_collection_system.state = 0  # EMPTYING
+    # is_resumable is False
+    assert _map_task_status(ws, "Idle") == "Emptying Dust"
 
 
 # ── _process_cleaning_parameters Tests ───────────────────────────────
@@ -338,12 +390,11 @@ def test_process_cleaning_params_fallback_to_request(mock_decode):
         nonlocal call_count
         call_count += 1
         if call_count == 1:
-            raise Exception("not a response")
-        else:
-            mock_request = MagicMock()
-            mock_request.HasField.side_effect = lambda f: f == "clean_param"
-            mock_request.clean_param = clean_param
-            return mock_request
+            raise ValueError("not a response")
+        mock_request = MagicMock()
+        mock_request.HasField.side_effect = lambda f: f == "clean_param"
+        mock_request.clean_param = clean_param
+        return mock_request
 
     mock_decode.side_effect = side_effect
 
@@ -422,8 +473,6 @@ def test_deduplicate_room_names_no_duplicates():
 
 def test_work_mode_names_mapping():
     """Test that work mode values are correctly mapped to names."""
-    from custom_components.robovac_mqtt.const import WORK_MODE_NAMES
-
     assert WORK_MODE_NAMES[0] == "Auto"
     assert WORK_MODE_NAMES[1] == "Room"
     assert WORK_MODE_NAMES[3] == "Spot"

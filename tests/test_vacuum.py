@@ -67,9 +67,9 @@ def test_vacuum_attributes(mock_coordinator, mock_config_entry):
     mock_coordinator.data.error_code = 0
     mock_coordinator.data.task_status = "Cleaning"
     mock_coordinator.data.work_mode = "Room"
- 
+
     attrs = entity.extra_state_attributes
- 
+
     assert attrs["task_status"] == "Cleaning"
     assert attrs["work_mode"] == "Room"
 

@@ -6,16 +6,15 @@ import asyncio
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-
 from homeassistant.helpers.issue_registry import IssueSeverity
 
+from custom_components.robovac_mqtt.models import VacuumState
 from custom_components.robovac_mqtt.vacuum import (
     RoboVacMQTTEntity,
     Segment,
-    _serialize_segments,
     _deserialize_segments,
+    _serialize_segments,
 )
-from custom_components.robovac_mqtt.models import VacuumState
 
 
 def test_serialize_deserialize_segments():
@@ -56,12 +55,18 @@ def mock_coordinator():
     coordinator.hass = MagicMock()
 
     coordinator.hass.config_entries.async_update_entry = MagicMock()
-    coordinator.hass.async_create_task = MagicMock(side_effect=lambda coro: asyncio.create_task(coro))
+
+    def _create_task(coro):
+        return asyncio.create_task(coro)
+
+    coordinator.hass.async_create_task = MagicMock(side_effect=_create_task)
 
     coordinator.last_seen_segments = None
     coordinator.async_save_segments = AsyncMock()
+
     def _save_segments(segments):
         coordinator.last_seen_segments = segments
+
     coordinator.async_save_segments.side_effect = _save_segments
 
     return coordinator
@@ -77,7 +82,9 @@ def mock_config_entry():
 
 @pytest.mark.asyncio
 @patch("custom_components.robovac_mqtt.vacuum.async_dispatcher_connect")
-async def test_vacuum_entity_with_segment_detection(mock_connect, mock_coordinator, mock_config_entry):
+async def test_vacuum_entity_with_segment_detection(
+    mock_connect, mock_coordinator, mock_config_entry
+):
     """Test vacuum entity initialization with segment detection."""
     entity = RoboVacMQTTEntity(mock_coordinator, mock_config_entry)
 
@@ -88,8 +95,11 @@ async def test_vacuum_entity_with_segment_detection(mock_connect, mock_coordinat
     # Verify dispatcher connection is set up
     assert mock_connect.called
     assert mock_connect.call_args[0][0] == mock_coordinator.hass
-    assert mock_connect.call_args[0][1] == f"robovac_mqtt_{mock_coordinator.device_id}_rooms_updated"
-    assert mock_connect.call_args[0][2] == entity._check_for_segment_changes
+    assert (
+        mock_connect.call_args[0][1]
+        == f"robovac_mqtt_{mock_coordinator.device_id}_rooms_updated"
+    )
+    assert mock_connect.call_args[0][2] is entity._check_for_segment_changes
 
 
 def test_last_seen_segments_property(mock_coordinator, mock_config_entry):
@@ -120,8 +130,10 @@ def test_last_seen_segments_none_when_not_stored(mock_coordinator, mock_config_e
     assert entity.last_seen_segments is None
 
 
-@patch('custom_components.robovac_mqtt.vacuum.async_create_issue')
-def test_async_create_segments_issue(mock_create_issue, mock_coordinator, mock_config_entry):
+@patch("custom_components.robovac_mqtt.vacuum.async_create_issue")
+def test_async_create_segments_issue(
+    mock_create_issue, mock_coordinator, mock_config_entry
+):
     """Test creating segments issue."""
     entity = RoboVacMQTTEntity(mock_coordinator, mock_config_entry)
 
@@ -140,8 +152,10 @@ def test_async_create_segments_issue(mock_create_issue, mock_coordinator, mock_c
 
 
 @pytest.mark.asyncio
-@patch('custom_components.robovac_mqtt.vacuum.async_delete_issue')
-async def test_store_last_seen_segments(mock_delete_issue, mock_coordinator, mock_config_entry):
+@patch("custom_components.robovac_mqtt.vacuum.async_delete_issue")
+async def test_store_last_seen_segments(
+    mock_delete_issue, mock_coordinator, mock_config_entry
+):
     """Test storing last seen segments."""
     entity = RoboVacMQTTEntity(mock_coordinator, mock_config_entry)
 
@@ -154,10 +168,12 @@ async def test_store_last_seen_segments(mock_delete_issue, mock_coordinator, moc
     await asyncio.sleep(0)
 
     # Verify coordinator.async_save_segments was called
-    mock_coordinator.async_save_segments.assert_called_once_with([
-        {"id": "1", "name": "Living Room", "group": None},
-        {"id": "2", "name": "Kitchen", "group": None},
-    ])
+    mock_coordinator.async_save_segments.assert_called_once_with(
+        [
+            {"id": "1", "name": "Living Room", "group": None},
+            {"id": "2", "name": "Kitchen", "group": None},
+        ]
+    )
 
     # Verify issue deletion was called
     mock_delete_issue.assert_called_once_with(
@@ -168,20 +184,24 @@ async def test_store_last_seen_segments(mock_delete_issue, mock_coordinator, moc
 
 
 @pytest.mark.asyncio
-async def test_check_for_segment_changes_no_previous(mock_coordinator, mock_config_entry):
+async def test_check_for_segment_changes_no_previous(
+    mock_coordinator, mock_config_entry
+):
     """Test segment change detection when no previous segments stored."""
     mock_coordinator.last_seen_segments = None  # No last_seen_segments
 
     entity = RoboVacMQTTEntity(mock_coordinator, mock_config_entry)
 
     # Should not create issue when no previous segments
-    with patch.object(entity, 'async_create_segments_issue') as mock_create:
+    with patch.object(entity, "async_create_segments_issue") as mock_create:
         entity._check_for_segment_changes()
         mock_create.assert_not_called()
 
 
 @pytest.mark.asyncio
-async def test_check_for_segment_changes_with_changes(mock_coordinator, mock_config_entry):
+async def test_check_for_segment_changes_with_changes(
+    mock_coordinator, mock_config_entry
+):
     """Test segment change detection when changes are detected."""
     # Setup previous segments
     previous_segments = [
@@ -199,17 +219,19 @@ async def test_check_for_segment_changes_with_changes(mock_coordinator, mock_con
     # Now set new rooms to trigger change
     mock_coordinator.data.rooms = [
         {"id": 1, "name": "Living Room"},  # Same ID, different name
-        {"id": 3, "name": "Bedroom"},      # New room
+        {"id": 3, "name": "Bedroom"},  # New room
     ]
 
-    with patch.object(entity, 'async_create_segments_issue') as mock_create:
+    with patch.object(entity, "async_create_segments_issue") as mock_create:
         entity._check_for_segment_changes()
         await asyncio.sleep(0)
         mock_create.assert_called_once()
 
 
 @pytest.mark.asyncio
-async def test_check_for_segment_changes_no_changes(mock_coordinator, mock_config_entry):
+async def test_check_for_segment_changes_no_changes(
+    mock_coordinator, mock_config_entry
+):
     """Test segment change detection when no changes are detected."""
     # Setup previous segments
     previous_segments = [
@@ -226,7 +248,7 @@ async def test_check_for_segment_changes_no_changes(mock_coordinator, mock_confi
 
     entity = RoboVacMQTTEntity(mock_coordinator, mock_config_entry)
 
-    with patch.object(entity, 'async_create_segments_issue') as mock_create:
+    with patch.object(entity, "async_create_segments_issue") as mock_create:
         entity._check_for_segment_changes()
         mock_create.assert_not_called()
 
@@ -239,13 +261,15 @@ async def test_storage_load_on_coordinator_init(mock_coordinator, mock_config_en
         {"id": "1", "name": "Living Room", "group": None},
         {"id": "2", "name": "Kitchen", "group": None},
     ]
-    
-    with patch.object(mock_coordinator, 'async_load_storage') as mock_load:
-        mock_load.return_value = None  # async_load_storage sets coordinator.last_seen_segments
+
+    with patch.object(mock_coordinator, "async_load_storage") as mock_load:
+        mock_load.return_value = (
+            None  # async_load_storage sets coordinator.last_seen_segments
+        )
         mock_coordinator.last_seen_segments = stored_segments
-        
+
         entity = RoboVacMQTTEntity(mock_coordinator, mock_config_entry)
-        
+
         # Verify entity can access the loaded segments
         last_seen = entity.last_seen_segments
         assert len(last_seen) == 2
@@ -270,10 +294,12 @@ async def test_storage_save_on_segment_store(mock_coordinator, mock_config_entry
     entity._store_last_seen_segments(segments)
 
     # Verify coordinator storage was called with correct data
-    mock_coordinator.async_save_segments.assert_called_once_with([
-        {"id": "1", "name": "Living Room", "group": None},
-        {"id": "2", "name": "Kitchen", "group": None},
-    ])
+    mock_coordinator.async_save_segments.assert_called_once_with(
+        [
+            {"id": "1", "name": "Living Room", "group": None},
+            {"id": "2", "name": "Kitchen", "group": None},
+        ]
+    )
 
 
 @pytest.mark.asyncio
@@ -289,9 +315,11 @@ async def test_segment_change_detection_end_to_end():
     coordinator.data = VacuumState()
     coordinator.hass = MagicMock()
     coordinator.hass.config_entries.async_update_entry = MagicMock()
-    coordinator.hass.async_create_task = MagicMock(
-        side_effect=lambda coro: asyncio.create_task(coro)
-    )
+
+    def _create_task(coro):
+        return asyncio.create_task(coro)
+
+    coordinator.hass.async_create_task = MagicMock(side_effect=_create_task)
     coordinator.last_seen_segments = None
     coordinator.async_save_segments = AsyncMock()
 
@@ -368,7 +396,9 @@ async def test_backward_compatibility_no_config_entry():
     assert entity.last_seen_segments is None
 
     # Should not create issues when no config entry
-    with patch("custom_components.robovac_mqtt.vacuum.async_create_issue") as mock_create:
+    with patch(
+        "custom_components.robovac_mqtt.vacuum.async_create_issue"
+    ) as mock_create:
         entity.async_create_segments_issue()
         mock_create.assert_not_called()
 

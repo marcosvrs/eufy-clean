@@ -96,9 +96,7 @@ def build_set_cleaning_intensity_command(cleaning_intensity: str) -> dict[str, s
     """Build command to set global cleaning intensity."""
     extent_val = CLEAN_EXTENT_MAP.get(cleaning_intensity.lower())
     if extent_val is None:
-        _LOGGER.warning(
-            "Invalid cleaning_intensity '%s' ignored", cleaning_intensity
-        )
+        _LOGGER.warning("Invalid cleaning_intensity '%s' ignored", cleaning_intensity)
         return {}
 
     req = CleanParamRequest(

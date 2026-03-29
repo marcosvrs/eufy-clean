@@ -5,7 +5,6 @@ from typing import Any, TypeVar
 
 from google.protobuf.message import Message
 
-
 # This code comes from here: https://github.com/CodeFoodPixels/robovac/issues/68#issuecomment-2119573501  # noqa: E501
 
 T = TypeVar("T", bound=Message)

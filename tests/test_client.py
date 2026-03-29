@@ -3,11 +3,13 @@
 import asyncio
 import os
 import tempfile
-from unittest.mock import MagicMock, AsyncMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from custom_components.robovac_mqtt.api.client import EufyCleanClient, get_blocking_mqtt_client
+from custom_components.robovac_mqtt.api.client import (
+    EufyCleanClient,
+)
 
 
 def _make_client() -> EufyCleanClient:
@@ -49,7 +51,9 @@ def test_on_disconnect_thread_safe_event():
 
     client._on_disconnect(MagicMock(), None, 0)
 
-    mock_loop.call_soon_threadsafe.assert_called_once_with(client._connected_event.clear)
+    mock_loop.call_soon_threadsafe.assert_called_once_with(
+        client._connected_event.clear
+    )
 
 
 def test_on_connect_failure_no_event():

@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 import copy
-from dataclasses import replace
 import logging
 from collections.abc import Callable
+from dataclasses import replace
 from typing import Any
 
 from homeassistant.components.select import SelectEntity
@@ -18,8 +18,8 @@ from .const import (
     DOMAIN,
     DRY_DURATION_MAP,
     EUFY_CLEAN_CLEANING_INTENSITIES,
-    EUFY_CLEAN_NOVEL_CLEAN_SPEED,
     EUFY_CLEAN_CLEANING_MODES,
+    EUFY_CLEAN_NOVEL_CLEAN_SPEED,
     EUFY_CLEAN_WATER_LEVELS,
 )
 from .coordinator import EufyCleanCoordinator
@@ -42,9 +42,11 @@ _WATER_LEVEL_TO_MOP_INTENSITY = {
 }
 
 
-def _optimistically_update_state(coordinator: EufyCleanCoordinator, **changes: Any) -> None:
+def _optimistically_update_state(
+    coordinator: EufyCleanCoordinator, **changes: Any
+) -> None:
     """Optimistically update the coordinator state and notify listeners.
-    
+
     If the device command fails silently, the UI will show the wrong state
     until the next DPS update from the device.
     """
@@ -349,6 +351,7 @@ class RoomSelectEntity(CoordinatorEntity[EufyCleanCoordinator], SelectEntity):
 _SUCTION_LEVELS = [speed.value for speed in EUFY_CLEAN_NOVEL_CLEAN_SPEED]
 
 
+# pylint: disable=no-self-use
 class _StateBackedSelectEntity(CoordinatorEntity[EufyCleanCoordinator], SelectEntity):
     """Base class for selects backed by coordinator state and a device command."""
 
@@ -358,7 +361,9 @@ class _StateBackedSelectEntity(CoordinatorEntity[EufyCleanCoordinator], SelectEn
     _available_field: str | None = None
     _log_label: str
 
-    def __init__(self, coordinator: EufyCleanCoordinator, unique_id_suffix: str) -> None:
+    def __init__(
+        self, coordinator: EufyCleanCoordinator, unique_id_suffix: str
+    ) -> None:
         """Initialize the state-backed select entity."""
         super().__init__(coordinator)
         self._attr_unique_id = f"{coordinator.device_id}_{unique_id_suffix}"
@@ -474,7 +479,7 @@ class WaterLevelSelectEntity(_StateBackedSelectEntity):
 
 class MopIntensitySelectEntity(_StateBackedSelectEntity):
     """Select entity for mop water level, modeled as Matter MopIntensity.
-    
+
     In Matter, MopIntensity defines values like 'Quiet', 'Standard', 'Max'.
     Eufy water levels ('Low', 'Medium', 'High') are mapped to these names
     to align with standard Matter enums, even though 'Quiet' is not a
@@ -498,6 +503,8 @@ class MopIntensitySelectEntity(_StateBackedSelectEntity):
 
     def _state_to_option(self, value: str | None) -> str | None:
         """Map the device water level to the Matter-facing intensity option."""
+        if value is None:
+            return None
         return _WATER_LEVEL_TO_MOP_INTENSITY.get(value)
 
     def _option_to_state(self, option: str) -> str:

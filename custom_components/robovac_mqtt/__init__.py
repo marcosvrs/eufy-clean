@@ -48,10 +48,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     # Get Devices and create coordinators
     # eufy_login.mqtt_devices populated by init/getDevices
     # mqtt_devices is a list of dicts with device info
-    devices = eufy_login.mqtt_devices
-    is_multi_device = len(devices) > 1
+    mqtt_devices = eufy_login.mqtt_devices
+    is_multi_device = len(mqtt_devices) > 1
 
-    for device_info in devices:
+    for device_info in mqtt_devices:
         device_id = device_info.get("deviceId")
         if not device_id:
             continue
@@ -71,10 +71,16 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             # to avoid overwriting newer data or assigning to wrong device.
             if last_seen := entry.data.get("last_seen_segments"):
                 if is_multi_device:
-                    _LOGGER.info("Skipping migration of last seen segments for %s due to multi-device setup", device_id)
+                    _LOGGER.info(
+                        "Skipping migration of last seen segments for %s due to multi-device setup",
+                        device_id,
+                    )
                 elif not coordinator.last_seen_segments:
                     await coordinator.async_save_segments(last_seen)
-                    _LOGGER.info("Migrated last seen segments for %s to persistent storage", device_id)
+                    _LOGGER.info(
+                        "Migrated last seen segments for %s to persistent storage",
+                        device_id,
+                    )
 
             coordinators.append(coordinator)
         except Exception as e:
@@ -89,9 +95,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     # Check for orphaned devices and log warnings
     current_device_ids = {c.device_id for c in coordinators}
     device_registry = dr.async_get(hass)
-    devices = dr.async_entries_for_config_entry(device_registry, entry.entry_id)
+    registry_devices = dr.async_entries_for_config_entry(
+        device_registry, entry.entry_id
+    )
 
-    for device_entry in devices:
+    for device_entry in registry_devices:
         # Extract our domain's device ID from identifiers set
         eufy_id = next(
             (id[1] for id in device_entry.identifiers if id[0] == DOMAIN), None
@@ -114,7 +122,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         new_data = dict(entry.data)
         new_data.pop("last_seen_segments")
         hass.config_entries.async_update_entry(entry, data=new_data)
-        _LOGGER.info("Removed legacy last_seen_segments from config entry %s", entry.entry_id)
+        _LOGGER.info(
+            "Removed legacy last_seen_segments from config entry %s", entry.entry_id
+        )
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 

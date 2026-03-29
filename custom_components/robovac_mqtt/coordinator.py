@@ -7,9 +7,9 @@ from typing import Any
 
 from homeassistant.core import CALLBACK_TYPE, HomeAssistant, callback
 from homeassistant.helpers.device_registry import DeviceInfo
+from homeassistant.helpers.dispatcher import async_dispatcher_send
 from homeassistant.helpers.event import async_call_later
 from homeassistant.helpers.storage import Store
-from homeassistant.helpers.dispatcher import async_dispatcher_send
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
 from .api.client import EufyCleanClient
@@ -194,9 +194,7 @@ class EufyCleanCoordinator(DataUpdateCoordinator[VacuumState]):
     def _async_commit_segment_changes(self, _now: Any) -> None:
         """Commit segment changes."""
         self._segment_update_cancel = None
-        async_dispatcher_send(
-            self.hass, f"{DOMAIN}_{self.device_id}_rooms_updated"
-        )
+        async_dispatcher_send(self.hass, f"{DOMAIN}_{self.device_id}_rooms_updated")
 
     def async_shutdown_timers(self) -> None:
         """Cancel active debounce timers (call before teardown)."""

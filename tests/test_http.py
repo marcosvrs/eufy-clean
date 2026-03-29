@@ -6,7 +6,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from custom_components.robovac_mqtt.api.http import EufyHTTPClient, _REQUEST_TIMEOUT
+from custom_components.robovac_mqtt.api.http import _REQUEST_TIMEOUT, EufyHTTPClient
 
 
 def _make_client() -> EufyHTTPClient:

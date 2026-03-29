@@ -6,8 +6,6 @@ from typing import Any
 
 import aiohttp
 
-_REQUEST_TIMEOUT = aiohttp.ClientTimeout(total=30)
-
 from ..const import (
     EUFY_API_DEVICE_LIST,
     EUFY_API_DEVICE_V2,
@@ -15,6 +13,8 @@ from ..const import (
     EUFY_API_MQTT_INFO,
     EUFY_API_USER_INFO,
 )
+
+_REQUEST_TIMEOUT = aiohttp.ClientTimeout(total=30)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -128,8 +128,8 @@ class EufyHTTPClient:
                     "os-version": "Android",
                     "model-type": "PHONE",
                     "app-name": "eufy_home",
-                    "x-auth-token": self.user_info["user_center_token"],  # type: ignore
-                    "gtoken": self.user_info["gtoken"],  # type: ignore
+                    "x-auth-token": self.user_info["user_center_token"],
+                    "gtoken": self.user_info["gtoken"],
                     "content-type": "application/json; charset=UTF-8",
                 },
                 json={"attribute": 3},
@@ -155,7 +155,7 @@ class EufyHTTPClient:
                     "content-type": "application/x-www-form-urlencoded; charset=UTF-8",
                     "user-agent": "EufyHome-Android-3.1.3-753",
                     "category": "Home",
-                    "token": self.session["access_token"],  # type: ignore
+                    "token": self.session["access_token"],
                     "openudid": self.openudid,
                     "clienttype": "2",
                 },
@@ -181,8 +181,8 @@ class EufyHTTPClient:
                     "os-version": "Android",
                     "model-type": "PHONE",
                     "app-name": "eufy_home",
-                    "x-auth-token": self.user_info["user_center_token"],  # type: ignore
-                    "gtoken": self.user_info["gtoken"],  # type: ignore
+                    "x-auth-token": self.user_info["user_center_token"],
+                    "gtoken": self.user_info["gtoken"],
                 },
             ) as response:
                 if response.status == 200:

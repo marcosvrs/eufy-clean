@@ -10,8 +10,8 @@ from homeassistant.const import EntityCategory
 from custom_components.robovac_mqtt.coordinator import EufyCleanCoordinator
 from custom_components.robovac_mqtt.models import VacuumState
 from custom_components.robovac_mqtt.select import (
-    CleaningModeSelectEntity,
     CleaningIntensitySelectEntity,
+    CleaningModeSelectEntity,
     DockSelectEntity,
     MopIntensitySelectEntity,
     RoomSelectEntity,
@@ -182,9 +182,7 @@ async def test_room_select_entity(mock_coordinator):
 
         await entity.async_select_option("Kitchen (ID: 10)")
 
-        mock_build.assert_called_with(
-            "room_clean", room_ids=[10], map_id=5
-        )
+        mock_build.assert_called_with("room_clean", room_ids=[10], map_id=5)
         mock_coordinator.async_send_command.assert_called_with({"cmd": "room_cmd"})
 
 
@@ -255,7 +253,7 @@ async def test_cleaning_intensity_select_entity(mock_coordinator):
 def test_mop_intensity_select_entity_entity_category(mock_coordinator):
     """Test MopIntensitySelectEntity has CONFIG entity category."""
     entity = MopIntensitySelectEntity(mock_coordinator)
-    
+
     assert entity.entity_category == EntityCategory.CONFIG
     assert entity.name == "Mop Intensity"
     assert entity.options == ["Quiet", "Automatic", "Max"]
@@ -264,12 +262,12 @@ def test_mop_intensity_select_entity_entity_category(mock_coordinator):
 def test_mop_intensity_select_entity_mapping(mock_coordinator):
     """Test MopIntensitySelectEntity option to state mapping."""
     entity = MopIntensitySelectEntity(mock_coordinator)
-    
+
     # Test option to state mapping
     assert entity._option_to_state("Quiet") == "Low"
     assert entity._option_to_state("Automatic") == "Medium"
     assert entity._option_to_state("Max") == "High"
-    
+
     # Test state to option mapping
     assert entity._state_to_option("Low") == "Quiet"
     assert entity._state_to_option("Medium") == "Automatic"
@@ -302,24 +300,32 @@ async def test_mop_intensity_select_entity_async(mock_coordinator):
 @pytest.mark.asyncio
 async def test_dock_select_deepcopy_no_mutation(mock_coordinator):
     """Test that async_select_option does not mutate coordinator.data.dock_auto_cfg."""
-    original_cfg = {
-        "wash": {"wash_freq": {"mode": "ByPartition"}}
-    }
+    original_cfg = {"wash": {"wash_freq": {"mode": "ByPartition"}}}
     mock_coordinator.data.dock_auto_cfg = original_cfg
 
     def getter(cfg):
-        return "ByRoom" if cfg.get("wash", {}).get("wash_freq", {}).get("mode") == "ByPartition" else "ByTime"
+        return (
+            "ByRoom"
+            if cfg.get("wash", {}).get("wash_freq", {}).get("mode") == "ByPartition"
+            else "ByTime"
+        )
 
     def setter(cfg, val):
         if "wash" not in cfg:
             cfg["wash"] = {}
         if "wash_freq" not in cfg["wash"]:
             cfg["wash"]["wash_freq"] = {}
-        cfg["wash"]["wash_freq"]["mode"] = "ByPartition" if val == "ByRoom" else "ByTime"
+        cfg["wash"]["wash_freq"]["mode"] = (
+            "ByPartition" if val == "ByRoom" else "ByTime"
+        )
 
     entity = DockSelectEntity(
-        mock_coordinator, "wash_frequency_mode", "Wash Frequency Mode",
-        ["ByRoom", "ByTime"], getter, setter,
+        mock_coordinator,
+        "wash_frequency_mode",
+        "Wash Frequency Mode",
+        ["ByRoom", "ByTime"],
+        getter,
+        setter,
     )
     entity.hass = MagicMock()
     entity.async_write_ha_state = MagicMock()
@@ -338,8 +344,12 @@ def test_dock_select_unavailable_no_cfg(mock_coordinator):
     mock_coordinator.last_update_success = True
 
     entity = DockSelectEntity(
-        mock_coordinator, "test_select", "Test Select",
-        ["A", "B"], lambda cfg: "A", lambda cfg, val: None,
+        mock_coordinator,
+        "test_select",
+        "Test Select",
+        ["A", "B"],
+        lambda cfg: "A",
+        lambda cfg, val: None,
     )
 
     assert entity.available is False
@@ -377,5 +387,3 @@ def test_suction_level_available_with_fan_speed(mock_coordinator):
 
     entity = SuctionLevelSelectEntity(mock_coordinator)
     assert entity.available is True
-
-

@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
 import logging
-from typing import Any
+from dataclasses import dataclass
+from typing import TYPE_CHECKING, Any
 
 from homeassistant.components.vacuum import (
     StateVacuumEntity,
@@ -20,20 +20,24 @@ from homeassistant.helpers.issue_registry import (
 )
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-try:
-    from homeassistant.components.vacuum import Segment
-except ImportError:
-    # Fallback for HA < 2026.3
-    @dataclass
-    class Segment:
-        """Fallback Segment dataclass (matches HA 2026.3 signature)."""
-        id: str
-        name: str
-        group: str | None = None
-
 from .api.commands import build_command
 from .const import DOMAIN, EUFY_CLEAN_NOVEL_CLEAN_SPEED
 from .coordinator import EufyCleanCoordinator
+
+if TYPE_CHECKING:
+    from homeassistant.components.vacuum import Segment
+else:
+    try:
+        from homeassistant.components.vacuum import Segment
+    except ImportError:
+        # Fallback for HA < 2026.3
+        @dataclass
+        class Segment:
+            """Fallback Segment dataclass (matches HA 2026.3 signature)."""
+
+            id: str
+            name: str
+            group: str | None = None
 
 
 def _serialize_segments(segments: list[Segment]) -> list[dict[str, Any]]:
@@ -43,7 +47,9 @@ def _serialize_segments(segments: list[Segment]) -> list[dict[str, Any]]:
 
 def _deserialize_segments(data: list[dict[str, Any]]) -> list[Segment]:
     """Deserialize segments from config entry storage."""
-    return [Segment(id=str(s["id"]), name=s["name"], group=s.get("group")) for s in data]
+    return [
+        Segment(id=str(s["id"]), name=s["name"], group=s.get("group")) for s in data
+    ]
 
 
 def _segments_to_attributes(segments: list[Segment]) -> list[dict[str, str]]:
@@ -77,6 +83,7 @@ def _segment_name_map(segments: list[Segment]) -> dict[str, str]:
     """Return comparable segment id-to-name mapping."""
     return {segment.id: segment.name for segment in segments}
 
+
 _LOGGER = logging.getLogger(__name__)
 
 # CLEAN_AREA was added in HA 2026.3; fall back gracefully on older installs
@@ -95,13 +102,13 @@ _BASE_SUPPORTED_FEATURES = (
 )
 
 _ACTIVITY_MAP: dict[str, VacuumActivity] = {
-    "cleaning":  VacuumActivity.CLEANING,
-    "docked":    VacuumActivity.DOCKED,
-    "charging":  VacuumActivity.DOCKED,
-    "error":     VacuumActivity.ERROR,
+    "cleaning": VacuumActivity.CLEANING,
+    "docked": VacuumActivity.DOCKED,
+    "charging": VacuumActivity.DOCKED,
+    "error": VacuumActivity.ERROR,
     "returning": VacuumActivity.RETURNING,
-    "idle":      VacuumActivity.IDLE,
-    "paused":    VacuumActivity.PAUSED,
+    "idle": VacuumActivity.IDLE,
+    "paused": VacuumActivity.PAUSED,
 }
 
 
@@ -128,7 +135,9 @@ class RoboVacMQTTEntity(CoordinatorEntity[EufyCleanCoordinator], StateVacuumEnti
     _attr_has_entity_name = True
     _attr_name = None
 
-    def __init__(self, coordinator: EufyCleanCoordinator, config_entry: ConfigEntry | None = None) -> None:
+    def __init__(
+        self, coordinator: EufyCleanCoordinator, config_entry: ConfigEntry | None = None
+    ) -> None:
         """Initialize the entity."""
         super().__init__(coordinator)
         self._attr_unique_id = coordinator.device_id
@@ -200,10 +209,16 @@ class RoboVacMQTTEntity(CoordinatorEntity[EufyCleanCoordinator], StateVacuumEnti
         """
         defaults: dict[str, Any] = {}
 
-        if self.coordinator.data.fan_speed and self.coordinator.data.fan_speed != "Standard":
+        if (
+            self.coordinator.data.fan_speed
+            and self.coordinator.data.fan_speed != "Standard"
+        ):
             defaults["fan_speed"] = self.coordinator.data.fan_speed
 
-        if self.coordinator.data.cleaning_mode and self.coordinator.data.cleaning_mode != "Vacuum":
+        if (
+            self.coordinator.data.cleaning_mode
+            and self.coordinator.data.cleaning_mode != "Vacuum"
+        ):
             defaults["clean_mode"] = self.coordinator.data.cleaning_mode
 
         if "mop_water_level" in self.coordinator.data.received_fields:
@@ -227,7 +242,9 @@ class RoboVacMQTTEntity(CoordinatorEntity[EufyCleanCoordinator], StateVacuumEnti
             "clean_intensity",
             "edge_mopping",
         )
-        has_explicit_custom = any(merged.get(key) is not None for key in explicit_custom_keys)
+        has_explicit_custom = any(
+            merged.get(key) is not None for key in explicit_custom_keys
+        )
 
         if has_explicit_custom:
             return merged
@@ -247,7 +264,7 @@ class RoboVacMQTTEntity(CoordinatorEntity[EufyCleanCoordinator], StateVacuumEnti
         command_kwargs: dict[str, Any] = {"room_ids": room_ids, "map_id": map_id}
         if mode != "GENERAL":
             command_kwargs["mode"] = mode
-        
+
         command = build_command("room_clean", **command_kwargs)
         await self.coordinator.async_send_command(command)
 
@@ -272,7 +289,7 @@ class RoboVacMQTTEntity(CoordinatorEntity[EufyCleanCoordinator], StateVacuumEnti
 
         # New-style: 'rooms' is a list of dicts with per-room config
         rooms_config = params.get("rooms")
-        
+
         if rooms_config and isinstance(rooms_config, list):
             # Extract and validate IDs for the clean command
             room_ids: list[int] = []
@@ -302,19 +319,28 @@ class RoboVacMQTTEntity(CoordinatorEntity[EufyCleanCoordinator], StateVacuumEnti
 
         room_ids = params["room_ids"]
         merged_params = self._merge_room_clean_defaults(params)
-        
+
         fan_speed = merged_params.get("fan_speed")
         water_level = merged_params.get("water_level")
         clean_times = merged_params.get("clean_times")
         clean_mode = merged_params.get("clean_mode")
         clean_intensity = merged_params.get("clean_intensity")
         edge_mopping = merged_params.get("edge_mopping")
-        
+
         has_explicit_custom = (
-            any(v is not None for v in [fan_speed, water_level, clean_times, clean_mode, clean_intensity])
+            any(
+                v is not None
+                for v in [
+                    fan_speed,
+                    water_level,
+                    clean_times,
+                    clean_mode,
+                    clean_intensity,
+                ]
+            )
             or edge_mopping is not None
         )
-        
+
         if has_explicit_custom:
             # 1. Configure Room Params
             await self._async_send_room_custom(
@@ -337,8 +363,10 @@ class RoboVacMQTTEntity(CoordinatorEntity[EufyCleanCoordinator], StateVacuumEnti
 
     async def async_clean_segments(self, segment_ids: list[str], **kwargs: Any) -> None:
         """Clean specific segments with current custom parameters."""
-        room_ids = [int(segment_id) for segment_id in segment_ids if segment_id.isdigit()]
-        
+        room_ids = [
+            int(segment_id) for segment_id in segment_ids if segment_id.isdigit()
+        ]
+
         if not room_ids:
             return
 

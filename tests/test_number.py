@@ -13,18 +13,19 @@ from custom_components.robovac_mqtt.models import VacuumState
 from custom_components.robovac_mqtt.number import (
     DockNumberEntity,
     _set_wash_freq_value,
-    async_setup_entry,
 )
 
 # pylint: disable=redefined-outer-name
 
+
 # Getter/setter used by the wash frequency number entity
-_WASH_FREQ_GETTER = (
-    lambda cfg: cfg.get("wash", {})
-    .get("wash_freq", {})
-    .get("time_or_area", {})
-    .get("value", 15)
-)
+def _wash_freq_getter(cfg):
+    return (
+        cfg.get("wash", {})
+        .get("wash_freq", {})
+        .get("time_or_area", {})
+        .get("value", 15)
+    )
 
 
 @pytest.fixture
@@ -49,7 +50,7 @@ def _make_entity(mock_coordinator) -> DockNumberEntity:
         15,
         25,
         1,
-        _WASH_FREQ_GETTER,
+        _wash_freq_getter,
         _set_wash_freq_value,
         icon="mdi:clock-time-four-outline",
     )
@@ -86,9 +87,7 @@ async def test_dock_number_native_value_empty_cfg(
     assert entity.native_value is None
 
 
-async def test_dock_number_unavailable_no_cfg(
-    hass: HomeAssistant, mock_coordinator
-):
+async def test_dock_number_unavailable_no_cfg(hass: HomeAssistant, mock_coordinator):
     """Entity is unavailable when dock_auto_cfg is empty."""
     entry = MockConfigEntry(domain=DOMAIN, data={})
     entry.add_to_hass(hass)
@@ -103,9 +102,7 @@ async def test_dock_number_unavailable_no_cfg(
     assert entity.available is False
 
 
-async def test_dock_number_available_with_cfg(
-    hass: HomeAssistant, mock_coordinator
-):
+async def test_dock_number_available_with_cfg(hass: HomeAssistant, mock_coordinator):
     """Entity is available when dock_auto_cfg has data."""
     entry = MockConfigEntry(domain=DOMAIN, data={})
     entry.add_to_hass(hass)
@@ -123,9 +120,7 @@ async def test_dock_number_available_with_cfg(
 
 
 @pytest.mark.asyncio
-async def test_dock_number_set_value_deepcopy(
-    hass: HomeAssistant, mock_coordinator
-):
+async def test_dock_number_set_value_deepcopy(hass: HomeAssistant, mock_coordinator):
     """async_set_native_value does not mutate coordinator.data.dock_auto_cfg."""
     entry = MockConfigEntry(domain=DOMAIN, data={})
     entry.add_to_hass(hass)
@@ -140,11 +135,9 @@ async def test_dock_number_set_value_deepcopy(
     await entity.async_set_native_value(22)
 
     # Original cfg must be unchanged
-    original_value = (
-        mock_coordinator.data.dock_auto_cfg["wash"]["wash_freq"]["time_or_area"][
-            "value"
-        ]
-    )
+    original_value = mock_coordinator.data.dock_auto_cfg["wash"]["wash_freq"][
+        "time_or_area"
+    ]["value"]
     assert original_value == 20
 
 

@@ -171,7 +171,11 @@ async def test_dock_switch_deepcopy_no_mutation(hass: HomeAssistant, mock_coordi
     await entity.async_turn_on()
 
     # Original config should be unchanged (deepcopy prevents mutation)
-    assert original_cfg["collectdust_v2"]["sw"]["value"] is False
+    collectdust_cfg = original_cfg["collectdust_v2"]
+    assert isinstance(collectdust_cfg, dict)
+    sw_cfg = collectdust_cfg["sw"]
+    assert isinstance(sw_cfg, dict)
+    assert sw_cfg["value"] is False
 
 
 def test_dock_switch_unavailable_no_cfg(mock_coordinator):

@@ -5,7 +5,13 @@ from base64 import b64encode
 import pytest
 
 from custom_components.robovac_mqtt.proto.cloud.error_code_pb2 import ErrorCode
-from custom_components.robovac_mqtt.utils import decode, encode, encode_message, encode_varint
+from custom_components.robovac_mqtt.utils import (
+    decode,
+    deduplicate_names,
+    encode,
+    encode_message,
+    encode_varint,
+)
 
 
 def test_decode_empty_data_raises():
@@ -68,7 +74,12 @@ def test_encode_decode_roundtrip():
 
 
 def test_deduplicate_names():
-    from custom_components.robovac_mqtt.utils import deduplicate_names
-    assert deduplicate_names(["A", "B", "A", "C", "A"]) == ["A", "B", "A (2)", "C", "A (3)"]
+    assert deduplicate_names(["A", "B", "A", "C", "A"]) == [
+        "A",
+        "B",
+        "A (2)",
+        "C",
+        "A (3)",
+    ]
     assert deduplicate_names(["X", "Y"]) == ["X", "Y"]
-    assert deduplicate_names([]) == []
+    assert not deduplicate_names([])

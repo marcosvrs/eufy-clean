@@ -7,19 +7,22 @@ from typing import Any
 from google.protobuf.json_format import MessageToDict
 
 from ..const import (
-    CLEANING_MODE_NAMES,
-    CLEANING_INTENSITY_NAMES,
     CARPET_STRATEGY_NAMES,
+    CLEANING_INTENSITY_NAMES,
+    CLEANING_MODE_NAMES,
     CORNER_CLEANING_NAMES,
-    FAN_SUCTION_NAMES,
-    MOP_WATER_LEVEL_NAMES,
     DOCK_ACTIVITY_STATES,
     DPS_MAP,
     EUFY_CLEAN_APP_TRIGGER_MODES,
     EUFY_CLEAN_ERROR_CODES,
     EUFY_CLEAN_NOVEL_CLEAN_SPEED,
+    FAN_SUCTION_NAMES,
+    MOP_WATER_LEVEL_NAMES,
     TRIGGER_SOURCE_NAMES,
     WORK_MODE_NAMES,
+    CleaningMode,
+    MopWaterLevel,
+    TriggerSource,
 )
 from ..models import AccessoryState, VacuumState
 from ..proto.cloud.clean_param_pb2 import (
@@ -347,6 +350,10 @@ def _map_task_status(status: WorkStatus, dock_status: str | None = None) -> str:
                 return "Washing Mop"
 
         # If not resumable and cleaning field is absent, the task is complete
+        if status.HasField("station") and status.station.HasField(
+            "dust_collection_system"
+        ):
+            return "Emptying Dust"
         return "Completed"
 
     if s == 7:  # Returning / Go Home
@@ -361,6 +368,12 @@ def _map_task_status(status: WorkStatus, dock_status: str | None = None) -> str:
         return "Returning"
 
     if s == 5:  # Cleaning
+        if (
+            status.HasField("cleaning")
+            and status.cleaning.state == 1  # PAUSED
+            and not status.HasField("go_wash")
+        ):
+            return "Paused"
         return "Cleaning"
 
     if s == 4:
@@ -398,8 +411,18 @@ def _map_work_status(status: WorkStatus) -> str:
         # This aligns with HA's vacuum state model where "docked" includes station activities
         if status.HasField("go_wash") and status.go_wash.mode in (1, 2):
             return "docked"
-        if status.HasField("station") and status.station.HasField("washing_drying_system"):
+        if status.HasField("station") and status.station.HasField(
+            "washing_drying_system"
+        ):
             return "docked"
+        # User-initiated pause: cleaning sub-state is PAUSED and robot is NOT
+        # navigating back to the dock for a wash (go_wash absent).
+        if (
+            status.HasField("cleaning")
+            and status.cleaning.state == 1  # PAUSED
+            and not status.HasField("go_wash")
+        ):
+            return "paused"
         return "cleaning"
     if s == 6:  # Active clean (alternate)
         return "cleaning"
@@ -423,7 +446,7 @@ def _map_trigger_source(value: int) -> str:
     4: ROBOT
     5: REMOTE_CTRL
     """
-    return TRIGGER_SOURCE_NAMES.get(value, "unknown")
+    return TRIGGER_SOURCE_NAMES.get(TriggerSource(value), "unknown")
 
 
 def _map_clean_speed(value: Any) -> str:
@@ -526,7 +549,10 @@ def _parse_map_data(value: Any) -> dict[str, Any] | None:
             for r in universal_data.cur_map_room.data:
                 name = (r.name or "").strip() or f"Room {r.id}"
                 rooms.append({"id": r.id, "name": name})
-            return {"map_id": universal_data.cur_map_room.map_id, "rooms": _deduplicate_room_names(rooms)}
+            return {
+                "map_id": universal_data.cur_map_room.map_id,
+                "rooms": _deduplicate_room_names(rooms),
+            }
     except Exception as e:
         _LOGGER.debug("UniversalDataResponse parse failed: %s", e)
 
@@ -537,10 +563,13 @@ def _parse_map_data(value: Any) -> dict[str, Any] | None:
             _LOGGER.debug("Decoded RoomParams: %s", room_params)
         if room_params and (room_params.map_id or room_params.rooms):
             rooms = []
-            for r in room_params.rooms:
-                name = (r.name or "").strip() or f"Room {r.id}"
-                rooms.append({"id": r.id, "name": name})
-            return {"map_id": room_params.map_id, "rooms": _deduplicate_room_names(rooms)}
+            for rm in room_params.rooms:
+                name = (rm.name or "").strip() or f"Room {rm.id}"
+                rooms.append({"id": rm.id, "name": name})
+            return {
+                "map_id": room_params.map_id,
+                "rooms": _deduplicate_room_names(rooms),
+            }
     except Exception as e:
         _LOGGER.debug("RoomParams parse failed: %s", e)
 
@@ -619,7 +648,9 @@ def _process_cleaning_parameters(
     # Extract Cleaning Mode
     if clean_param.HasField("clean_type"):
         mode_val = clean_param.clean_type.value
-        changes["cleaning_mode"] = CLEANING_MODE_NAMES.get(mode_val, "Vacuum")
+        changes["cleaning_mode"] = CLEANING_MODE_NAMES.get(
+            CleaningMode(mode_val), "Vacuum"
+        )
         _track_field(state, changes, "cleaning_mode")
 
     # Extract Fan Speed (available on newer devices in DPS 154)
@@ -627,12 +658,16 @@ def _process_cleaning_parameters(
         fan_val = clean_param.fan.suction
         changes["fan_speed"] = FAN_SUCTION_NAMES.get(fan_val, "Standard")
         _track_field(state, changes, "fan_speed")
-        _LOGGER.debug("DPS 154: Extracted fan speed %s (value: %s)", changes["fan_speed"], fan_val)
+        _LOGGER.debug(
+            "DPS 154: Extracted fan speed %s (value: %s)", changes["fan_speed"], fan_val
+        )
 
     # Extract Mop Water Level
     if clean_param.HasField("mop_mode"):
         level_val = clean_param.mop_mode.level
-        changes["mop_water_level"] = MOP_WATER_LEVEL_NAMES.get(level_val, "Medium")
+        changes["mop_water_level"] = MOP_WATER_LEVEL_NAMES.get(
+            MopWaterLevel(level_val), "Medium"
+        )
         _track_field(state, changes, "mop_water_level")
         _LOGGER.debug(
             "DPS 154: Extracted mop water level %s (value: %s)",
@@ -647,21 +682,35 @@ def _process_cleaning_parameters(
         corner_val = clean_param.mop_mode.corner_clean
         changes["corner_cleaning"] = CORNER_CLEANING_NAMES.get(corner_val, "Normal")
         _track_field(state, changes, "corner_cleaning")
-        _LOGGER.debug("DPS 154: Extracted corner cleaning %s (value: %s)", changes["corner_cleaning"], corner_val)
+        _LOGGER.debug(
+            "DPS 154: Extracted corner cleaning %s (value: %s)",
+            changes["corner_cleaning"],
+            corner_val,
+        )
 
     # Extract Cleaning Intensity
     if clean_param.HasField("clean_extent"):
         extent_val = clean_param.clean_extent.value
-        changes["cleaning_intensity"] = CLEANING_INTENSITY_NAMES.get(extent_val, "Normal")
+        changes["cleaning_intensity"] = CLEANING_INTENSITY_NAMES.get(
+            extent_val, "Normal"
+        )
         _track_field(state, changes, "cleaning_intensity")
-        _LOGGER.debug("DPS 154: Extracted cleaning intensity %s (value: %s)", changes["cleaning_intensity"], extent_val)
+        _LOGGER.debug(
+            "DPS 154: Extracted cleaning intensity %s (value: %s)",
+            changes["cleaning_intensity"],
+            extent_val,
+        )
 
     # Extract Carpet Strategy
     if clean_param.HasField("clean_carpet"):
         carpet_val = clean_param.clean_carpet.strategy
         changes["carpet_strategy"] = CARPET_STRATEGY_NAMES.get(carpet_val, "Auto Raise")
         _track_field(state, changes, "carpet_strategy")
-        _LOGGER.debug("DPS 154: Extracted carpet strategy %s (value: %s)", changes["carpet_strategy"], carpet_val)
+        _LOGGER.debug(
+            "DPS 154: Extracted carpet strategy %s (value: %s)",
+            changes["carpet_strategy"],
+            carpet_val,
+        )
 
     # Extract Smart Mode Switch
     if clean_param.HasField("smart_mode_sw"):
@@ -672,7 +721,7 @@ def _process_cleaning_parameters(
     if _LOGGER.isEnabledFor(logging.DEBUG):
         tracked_fields = {
             "cleaning_mode",
-            "fan_speed", 
+            "fan_speed",
             "mop_water_level",
             "corner_cleaning",
             "cleaning_intensity",
@@ -680,4 +729,7 @@ def _process_cleaning_parameters(
             "smart_mode",
         }
         field_count = sum(1 for k in changes if k in tracked_fields)
-        _LOGGER.debug("DPS 154: Successfully processed cleaning parameters - extracted %d fields", field_count)
+        _LOGGER.debug(
+            "DPS 154: Successfully processed cleaning parameters - extracted %d fields",
+            field_count,
+        )

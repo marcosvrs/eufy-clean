@@ -8,9 +8,9 @@ from custom_components.robovac_mqtt.api.commands import (
     build_room_clean_command,
     build_scene_clean_command,
     build_set_auto_action_cfg_command,
-    build_set_cleaning_mode_command,
-    build_set_cleaning_intensity_command,
     build_set_clean_speed_command,
+    build_set_cleaning_intensity_command,
+    build_set_cleaning_mode_command,
     build_set_water_level_command,
 )
 from custom_components.robovac_mqtt.api.parser import update_state
@@ -49,12 +49,13 @@ def test_update_state_work_status(mock_decode):
 @patch("custom_components.robovac_mqtt.api.parser.decode")
 def test_update_state_work_mode(mock_decode):
     """Test updating work mode through parser."""
-    state = VacuumState()
-
     # Case 1: Mode field present (1 = SELECT_ROOM)
+    state = VacuumState()
     mock_status = MagicMock()
     mock_status.state = 5  # Cleaning
     mock_status.mode.value = 1
+    mock_status.trigger.source = 0
+    mock_status.HasField.side_effect = lambda f: f in ["mode", "trigger"]
     mock_decode.return_value = mock_status
 
     dps = {DPS_MAP["WORK_STATUS"]: "encoded"}
@@ -62,11 +63,14 @@ def test_update_state_work_mode(mock_decode):
     assert new_state.work_mode == "Room"
 
     # Case 2: Mode field missing but cleaning
+    state = VacuumState()
+    mock_status.HasField.side_effect = None
     mock_status.HasField.return_value = False
     new_state, _ = update_state(state, dps)
     assert new_state.work_mode == "Auto"
 
     # Case 3: Mode field missing and not cleaning
+    state = VacuumState()
     mock_status.state = 0  # Standby
     new_state, _ = update_state(state, dps)
     assert new_state.work_mode == "unknown"

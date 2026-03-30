@@ -258,39 +258,6 @@ async def async_setup_entry(
             )
         )
 
-        # Robot Position - relative to dock (meters)
-        entities.append(
-            RoboVacSensor(
-                coordinator,
-                "robot_distance_x",
-                "Robot Distance X",
-                lambda s: s.robot_rel_x,
-                state_class=SensorStateClass.MEASUREMENT,
-                unit=UnitOfLength.METERS,
-                icon="mdi:crosshairs-gps",
-                availability_fn=lambda s: (
-                    "robot_position" in s.received_fields and s.dock_ref_x is not None
-                ),
-                suggested_display_precision=2,
-            )
-        )
-
-        entities.append(
-            RoboVacSensor(
-                coordinator,
-                "robot_distance_y",
-                "Robot Distance Y",
-                lambda s: s.robot_rel_y,
-                state_class=SensorStateClass.MEASUREMENT,
-                unit=UnitOfLength.METERS,
-                icon="mdi:crosshairs-gps",
-                availability_fn=lambda s: (
-                    "robot_position" in s.received_fields and s.dock_ref_y is not None
-                ),
-                suggested_display_precision=2,
-            )
-        )
-
         # Accessory Sensors
         accessories = [
             ("filter_usage", "Filter Remaining", "mdi:air-filter"),

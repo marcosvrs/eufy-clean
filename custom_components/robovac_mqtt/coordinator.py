@@ -6,7 +6,11 @@ from dataclasses import replace
 from typing import Any
 
 from homeassistant.core import CALLBACK_TYPE, HomeAssistant, callback
-from homeassistant.helpers.device_registry import CONNECTION_NETWORK_MAC, DeviceInfo
+from homeassistant.helpers.device_registry import (
+    CONNECTION_NETWORK_MAC,
+    DeviceInfo,
+    format_mac,
+)
 from homeassistant.helpers.dispatcher import async_dispatcher_send
 from homeassistant.helpers.event import async_call_later
 from homeassistant.helpers.storage import Store
@@ -72,7 +76,7 @@ class EufyCleanCoordinator(DataUpdateCoordinator[VacuumState]):
         )
         # Add MAC address from DPS 169 DeviceInfo if available
         if mac := self.data.device_mac:
-            info["connections"] = {(CONNECTION_NETWORK_MAC, mac)}
+            info["connections"] = {(CONNECTION_NETWORK_MAC, format_mac(mac))}
         return info
 
     async def initialize(self) -> None:

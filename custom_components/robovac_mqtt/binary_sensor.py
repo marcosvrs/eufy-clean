@@ -51,6 +51,7 @@ async def async_setup_entry(
                 "Child Lock",
                 lambda s: s.child_lock,
                 category=EntityCategory.DIAGNOSTIC,
+                availability_fn=lambda s: "child_lock" in s.received_fields,
             )
         )
 
@@ -68,16 +69,25 @@ class RoboVacBinarySensor(CoordinatorEntity[EufyCleanCoordinator], BinarySensorE
         value_fn: Callable[[VacuumState], bool],
         device_class: BinarySensorDeviceClass | None = None,
         category: EntityCategory | None = EntityCategory.DIAGNOSTIC,
+        availability_fn: Callable[[VacuumState], bool] | None = None,
     ) -> None:
         """Initialize the binary sensor."""
         super().__init__(coordinator)
         self._value_fn = value_fn
+        self._availability_fn = availability_fn
         self._attr_unique_id = f"{coordinator.device_id}_{id_suffix}"
         self._attr_has_entity_name = True
         self._attr_name = name_suffix
         self._attr_device_info = coordinator.device_info
         self._attr_device_class = device_class
         self._attr_entity_category = category
+
+    @property
+    def available(self) -> bool:
+        """Return True if entity is available."""
+        if self._availability_fn is not None:
+            return self._availability_fn(self.coordinator.data)
+        return super().available
 
     @property
     def is_on(self) -> bool | None:

@@ -5,7 +5,6 @@ import logging
 from dataclasses import replace
 from typing import Any
 
-from google.protobuf.internal.decoder import _DecodeVarint
 from google.protobuf.json_format import MessageToDict
 
 from ..const import (
@@ -47,6 +46,20 @@ from ..utils import decode, deduplicate_names
 _LOGGER = logging.getLogger(__name__)
 
 
+def _decode_varint(data: bytes, pos: int) -> tuple[int, int]:
+    """Decode a protobuf varint starting at *pos*. Returns (value, new_pos)."""
+    value = 0
+    shift = 0
+    while pos < len(data):
+        b = data[pos]
+        value |= (b & 0x7F) << shift
+        pos += 1
+        if not (b & 0x80):
+            return value, pos
+        shift += 7
+    return value, pos
+
+
 def _decode_raw_varints(data: bytes) -> dict[int, int | bytes]:
     """Decode raw protobuf fields from bytes (no schema needed).
 
@@ -56,13 +69,13 @@ def _decode_raw_varints(data: bytes) -> dict[int, int | bytes]:
     fields: dict[int, int | bytes] = {}
     i = 0
     while i < len(data):
-        tag, i = _DecodeVarint(data, i)
+        tag, i = _decode_varint(data, i)
         fn, wt = tag >> 3, tag & 7
         if wt == 0:  # varint
-            val, i = _DecodeVarint(data, i)
+            val, i = _decode_varint(data, i)
             fields[fn] = val
         elif wt == 2:  # length-delimited
-            blen, i = _DecodeVarint(data, i)
+            blen, i = _decode_varint(data, i)
             fields[fn] = data[i : i + blen]
             i += blen
         else:
@@ -83,7 +96,7 @@ def _parse_robot_telemetry(value: str) -> dict[str, Any] | None:
         field 6: bytes   additional data (2 packed varints)
     """
     raw = base64.b64decode(value)
-    _length, pos = _DecodeVarint(raw, 0)
+    _length, pos = _decode_varint(raw, 0)
     outer = _decode_raw_varints(raw[pos:])
     sub_bytes = outer.get(2)
     if not isinstance(sub_bytes, bytes):
@@ -460,16 +473,6 @@ def _process_other_dps(
                     changes["robot_position_x"] = raw_x
                     changes["robot_position_y"] = raw_y
                     _track_field(state, changes, "robot_position")
-
-                    # Capture dock reference when robot is docked
-                    cur_activity = changes.get("activity", state.activity)
-                    if cur_activity == "docked":
-                        changes["dock_ref_x"] = raw_x
-                        changes["dock_ref_y"] = raw_y
-
-                    # NOTE: relative position (robot_rel_x/y) is computed
-                    # by the coordinator using configurable scale + rotation.
-                    # Parser only extracts raw coordinates and dock reference.
 
             elif key in KNOWN_UNPROCESSED_DPS:
                 pass  # Acknowledged; value already in raw_dps

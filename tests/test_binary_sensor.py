@@ -20,6 +20,7 @@ def mock_coordinator():
     coordinator.device_name = "Test Vac"
     coordinator.device_model = "T2118"
     coordinator.data = VacuumState()
+    coordinator.last_update_success = True
     return coordinator
 
 
@@ -62,3 +63,22 @@ def test_charging_sensor_default_false(mock_coordinator):
     entity.hass = MagicMock()
 
     assert entity.is_on is False
+
+
+def test_binary_sensor_availability_honors_coordinator_state(mock_coordinator):
+    """Test custom availability does not bypass coordinator availability."""
+    mock_coordinator.data.received_fields = {"child_lock"}
+
+    entity = RoboVacBinarySensor(
+        mock_coordinator,
+        "child_lock",
+        "Child Lock",
+        lambda s: s.child_lock,
+        availability_fn=lambda s: "child_lock" in s.received_fields,
+    )
+    entity.hass = MagicMock()
+
+    assert entity.available is True
+
+    mock_coordinator.last_update_success = False
+    assert entity.available is False

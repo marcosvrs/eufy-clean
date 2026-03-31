@@ -6,7 +6,11 @@ from dataclasses import replace
 from typing import Any
 
 from homeassistant.core import CALLBACK_TYPE, HomeAssistant, callback
-from homeassistant.helpers.device_registry import DeviceInfo
+from homeassistant.helpers.device_registry import (
+    CONNECTION_NETWORK_MAC,
+    DeviceInfo,
+    format_mac,
+)
 from homeassistant.helpers.dispatcher import async_dispatcher_send
 from homeassistant.helpers.event import async_call_later
 from homeassistant.helpers.storage import Store
@@ -62,7 +66,7 @@ class EufyCleanCoordinator(DataUpdateCoordinator[VacuumState]):
     @property
     def device_info(self) -> DeviceInfo:
         """Return device info."""
-        return DeviceInfo(
+        info = DeviceInfo(
             identifiers={(DOMAIN, self.device_id)},
             name=self.device_name,
             manufacturer="Eufy",
@@ -70,6 +74,10 @@ class EufyCleanCoordinator(DataUpdateCoordinator[VacuumState]):
             serial_number=self.serial_number,
             sw_version=self.firmware_version,
         )
+        # Add MAC address from DPS 169 DeviceInfo if available
+        if mac := self.data.device_mac:
+            info["connections"] = {(CONNECTION_NETWORK_MAC, format_mac(mac))}
+        return info
 
     async def initialize(self) -> None:
         """Initialize connection to the device."""
@@ -204,6 +212,51 @@ class EufyCleanCoordinator(DataUpdateCoordinator[VacuumState]):
         if self._segment_update_cancel:
             self._segment_update_cancel()
             self._segment_update_cancel = None
+
+    @callback
+    def set_active_cleaning_targets(
+        self,
+        room_ids: list[int] | None = None,
+        zone_count: int = 0,
+    ) -> None:
+        """Set active cleaning targets on state (called when HA sends commands)."""
+        rooms = self.data.rooms
+        if room_ids:
+            room_lookup = {r["id"]: r.get("name", f"Room {r['id']}") for r in rooms}
+            names = [room_lookup.get(rid, f"Room {rid}") for rid in room_ids]
+            new_state = replace(
+                self.data,
+                active_room_ids=room_ids,
+                active_room_names=", ".join(names),
+                active_zone_count=0,
+                current_scene_id=0,
+                current_scene_name=None,
+                received_fields=self.data.received_fields | {"active_room_ids"},
+            )
+        else:
+            new_state = replace(
+                self.data,
+                active_room_ids=[],
+                active_room_names="",
+                active_zone_count=zone_count,
+                current_scene_id=0,
+                current_scene_name=None,
+                received_fields=self.data.received_fields | {"active_room_ids"},
+            )
+        self.async_set_updated_data(new_state)
+
+    @callback
+    def set_active_scene(self, scene_id: int, scene_name: str | None) -> None:
+        """Set the active cleaning scene on state."""
+        new_state = replace(
+            self.data,
+            current_scene_id=scene_id,
+            current_scene_name=scene_name,
+            active_room_ids=[],
+            active_room_names="",
+            active_zone_count=0,
+        )
+        self.async_set_updated_data(new_state)
 
     async def async_send_command(self, command_dict: dict[str, Any]) -> None:
         """Send command to device."""

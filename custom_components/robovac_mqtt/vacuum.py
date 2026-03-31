@@ -266,6 +266,7 @@ class RoboVacMQTTEntity(CoordinatorEntity[EufyCleanCoordinator], StateVacuumEnti
             command_kwargs["mode"] = mode
 
         command = build_command("room_clean", **command_kwargs)
+        self.coordinator.set_active_cleaning_targets(room_ids=room_ids)
         await self.coordinator.async_send_command(command)
 
     async def _async_send_room_custom(
@@ -410,6 +411,8 @@ class RoboVacMQTTEntity(CoordinatorEntity[EufyCleanCoordinator], StateVacuumEnti
             "error_message": data.error_message,
             "status_code": data.status_code,
             "work_mode": data.work_mode,
+            "active_room_ids": data.active_room_ids,
+            "active_zone_count": data.active_zone_count,
             "rooms": rooms,
             "segments": segments,
         }
@@ -489,9 +492,19 @@ class RoboVacMQTTEntity(CoordinatorEntity[EufyCleanCoordinator], StateVacuumEnti
         """Send a raw command to the vacuum."""
         if command == "scene_clean":
             if isinstance(params, dict) and "scene_id" in params:
-                await self.coordinator.async_send_command(
-                    build_command("scene_clean", scene_id=params["scene_id"])
+                scene_id = params["scene_id"]
+                scene_name = next(
+                    (
+                        scene.get("name")
+                        for scene in self.coordinator.data.scenes
+                        if scene["id"] == scene_id
+                    ),
+                    None,
                 )
+                await self.coordinator.async_send_command(
+                    build_command("scene_clean", scene_id=scene_id)
+                )
+                self.coordinator.set_active_scene(scene_id, scene_name)
             return
 
         if command == "room_clean" and isinstance(params, dict):

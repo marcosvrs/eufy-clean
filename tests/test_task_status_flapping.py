@@ -231,11 +231,13 @@ def test_mid_cleaning_with_paused_state():
     )
     assert state.dock_status == "Idle"
 
-    # Now robot should show Completed
+    # With the current device behavior, CHARGING + cleaning.PAUSED can still be
+    # a transitional mid-clean dock state even after the dock has just gone Idle.
+    # We should not treat that as completion until the robot stops reporting the
+    # paused cleaning field.
     state, _ = update_state(
         state, {DPS_MAP["WORK_STATUS"]: "EgoCCAEQAxoAMgIIAXICIgB6AA=="}
     )
-    # After washing is done (dock_status is Idle, not washing), it should be Completed
     assert (
-        state.task_status == "Completed"
-    ), "Should be 'Completed' when CHARGING and dock is NOT washing"
+        state.task_status == "Paused"
+    ), "Should remain 'Paused' when CHARGING still reports cleaning.PAUSED"

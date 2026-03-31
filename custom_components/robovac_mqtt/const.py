@@ -520,8 +520,38 @@ DPS_MAP = {
     "MAP_STREAM": "166",
     "UNSETTING": "176",
     "MAP_EDIT_REQUEST": "170",
+    "MULTI_MAP_MANAGE": "172",
     "MAP_MANAGE": "169",
+    "UNDISTURBED": "157",
 }
+
+# DPS keys that are known but intentionally not parsed.
+# Values are already stored in raw_dps for diagnostics.
+KNOWN_UNPROCESSED_DPS: frozenset[str] = frozenset(
+    {
+        DPS_MAP["DIRECTION"],  # 155 - RemoteCtrl echo
+        DPS_MAP["MULTI_MAP_SW"],  # 156 - multi-map toggle (also in DPS 176)
+        DPS_MAP["MAP_EDIT"],  # 164 - MapEditResponse ack
+        DPS_MAP[
+            "MAP_STREAM"
+        ],  # 166 - debug/metadata on T2351 (map data is local P2P only)
+        # Note: DPS 169 (MAP_MANAGE) is now parsed as DeviceInfo
+        DPS_MAP["MAP_EDIT_REQUEST"],  # 170 - MapEditRequest echo
+        # Unknown DPS keys observed in the wild:
+        "150",  # Unknown, value: None
+        "151",  # Unknown, value: True
+        "159",  # Unknown, value: True
+        "161",  # Unknown, likely volume (value: 80)
+        "162",  # Unknown protobuf, timing config
+        "171",  # Unknown, value: None
+        "174",  # Unknown, value: None
+        "175",  # Unknown, value: None
+        "178",  # Unknown protobuf, timestamp/event log
+    }
+)
+
+# DPS 179 key (no named entry in DPS_MAP — undocumented telemetry channel)
+DPS_ROBOT_TELEMETRY = "179"
 
 
 ACCESSORY_MAX_LIFE = {

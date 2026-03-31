@@ -30,6 +30,8 @@ def mock_coordinator():
     coordinator.device_name = "Test Device"
     coordinator.device_model = "T2118"
     coordinator.async_send_command = AsyncMock()
+    coordinator.set_active_scene = MagicMock()
+    coordinator.set_active_cleaning_targets = MagicMock()
     coordinator.last_update_success = True
     return coordinator
 
@@ -158,6 +160,7 @@ async def test_scene_select_entity(mock_coordinator):
 
         mock_build.assert_called_with("scene_clean", scene_id=2)
         mock_coordinator.async_send_command.assert_called_with({"cmd": "scene_cmd"})
+        mock_coordinator.set_active_scene.assert_called_with(2, "Scene 2")
 
 
 @pytest.mark.asyncio
@@ -184,6 +187,7 @@ async def test_room_select_entity(mock_coordinator):
 
         mock_build.assert_called_with("room_clean", room_ids=[10], map_id=5)
         mock_coordinator.async_send_command.assert_called_with({"cmd": "room_cmd"})
+        mock_coordinator.set_active_cleaning_targets.assert_called_with(room_ids=[10])
 
 
 @pytest.mark.asyncio

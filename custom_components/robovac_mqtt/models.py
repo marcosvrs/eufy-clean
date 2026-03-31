@@ -68,6 +68,11 @@ class VacuumState:
     current_scene_id: int = 0
     current_scene_name: str | None = None
 
+    # Active cleaning targets (from DPS 152 echo)
+    active_room_ids: list[int] = field(default_factory=list)
+    active_room_names: str = ""  # Comma-separated resolved names
+    active_zone_count: int = 0
+
     # Accessories
     accessories: AccessoryState = field(default_factory=AccessoryState)
 
@@ -81,6 +86,24 @@ class VacuumState:
     carpet_strategy: str = "Auto Raise"  # Clean carpet strategy from DPS 154
     corner_cleaning: str = "Normal"  # Mop corner cleaning from DPS 154
     smart_mode: bool = False  # Smart mode switch from DPS 154
+
+    # Device settings (from DPS 176 UnisettingResponse)
+    wifi_signal: float = -100.0  # AP signal strength in dBm (converted from 0-100%)
+    child_lock: bool = False  # Children lock switch
+    dnd_enabled: bool = False  # Do Not Disturb switch
+    dnd_start_hour: int = 22  # Do Not Disturb start hour
+    dnd_start_minute: int = 0  # Do Not Disturb start minute
+    dnd_end_hour: int = 8  # Do Not Disturb end hour
+    dnd_end_minute: int = 0  # Do Not Disturb end minute
+
+    # Device network info (from DPS 169, DeviceInfo proto)
+    device_mac: str = ""  # Device MAC address
+    wifi_ssid: str = ""  # Connected WiFi network name
+    wifi_ip: str = ""  # Device IP address
+
+    # Robot telemetry (from DPS 179, no known proto definition)
+    robot_position_x: int = 0  # Raw map X coordinate (firmware-internal grid)
+    robot_position_y: int = 0  # Raw map Y coordinate (firmware-internal grid)
 
     # Raw data for fallback/diagnostics
     raw_dps: dict[str, Any] = field(default_factory=dict)

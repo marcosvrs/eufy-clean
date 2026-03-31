@@ -138,6 +138,8 @@ async def test_set_fan_speed(mock_coordinator, mock_config_entry):
 async def test_async_send_command_raw(mock_coordinator, mock_config_entry):
     """Test sending raw commands."""
     entity = RoboVacMQTTEntity(mock_coordinator, mock_config_entry)
+    mock_coordinator.set_active_scene = MagicMock()
+    mock_coordinator.data.scenes = [{"id": 5, "name": "Evening"}]
 
     with patch("custom_components.robovac_mqtt.vacuum.build_command") as mock_build:
         mock_build.return_value = {"cmd": "raw"}
@@ -145,6 +147,7 @@ async def test_async_send_command_raw(mock_coordinator, mock_config_entry):
         # Test scene_clean
         await entity.async_send_command("scene_clean", params={"scene_id": 5})
         mock_build.assert_called_with("scene_clean", scene_id=5)
+        mock_coordinator.set_active_scene.assert_called_with(5, "Evening")
 
         # Test room_clean
         mock_coordinator.data.map_id = 9

@@ -11,13 +11,18 @@ from custom_components.robovac_mqtt.api.commands import (
     build_set_clean_speed_command,
     build_set_cleaning_intensity_command,
     build_set_cleaning_mode_command,
+    build_set_undisturbed_command,
     build_set_water_level_command,
 )
 from custom_components.robovac_mqtt.api.parser import update_state
 from custom_components.robovac_mqtt.const import DPS_MAP, EUFY_CLEAN_CONTROL
 from custom_components.robovac_mqtt.models import VacuumState
 from custom_components.robovac_mqtt.proto.cloud.error_code_pb2 import ErrorCode
+from custom_components.robovac_mqtt.proto.cloud.unisetting_pb2 import (
+    UnisettingResponse,
+)
 from custom_components.robovac_mqtt.proto.cloud.work_status_pb2 import WorkStatus
+from custom_components.robovac_mqtt.utils import encode
 
 
 def test_update_state_battery():
@@ -243,3 +248,201 @@ def test_update_state_find_robot():
     dps = {DPS_MAP["FIND_ROBOT"]: "false"}
     new_state, changes = update_state(state, dps)
     assert new_state.find_robot is False
+
+
+def test_build_set_undisturbed_command():
+    """Test building a Do Not Disturb command."""
+    cmd = build_set_undisturbed_command(True, 22, 0, 8, 0)
+    assert DPS_MAP["UNDISTURBED"] in cmd
+
+
+def test_update_state_undisturbed():
+    """Test parsing Do Not Disturb state from DPS 157."""
+    state = VacuumState()
+    dps = {DPS_MAP["UNDISTURBED"]: "EAoAEgwKAggBEgIIFhoCCAg="}
+
+    new_state, changes = update_state(state, dps)
+
+    assert new_state.dnd_enabled is True
+    assert new_state.dnd_start_hour == 22
+    assert new_state.dnd_start_minute == 0
+    assert new_state.dnd_end_hour == 8
+    assert new_state.dnd_end_minute == 0
+    assert "do_not_disturb" in changes["received_fields"]
+
+
+def test_completed_docked_refresh_keeps_cleared_targets():
+    """Test repeated completed docked updates keep targets cleared."""
+    state = VacuumState(
+        activity="docked",
+        task_status="Completed",
+        active_room_ids=[],
+        active_room_names="",
+    )
+
+    dps = {DPS_MAP["WORK_STATUS"]: "ChADGgByAiIAegA="}
+    new_state, _ = update_state(state, dps)
+
+    assert new_state.activity == "docked"
+    assert new_state.task_status == "Completed"
+    assert new_state.active_room_ids == []
+    assert new_state.active_room_names == ""
+
+
+@patch("custom_components.robovac_mqtt.api.parser.decode")
+def test_mid_clean_washing_does_not_clear_active_targets(mock_decode):
+    """Test dock-side washing preserves the active room target."""
+    state = VacuumState(
+        activity="cleaning",
+        active_room_ids=[1],
+        active_room_names="Kitchen1",
+    )
+
+    mock_status = MagicMock()
+    mock_status.state = 5
+    mock_status.cleaning.state = 1
+    mock_status.go_wash.mode = 1
+    mock_status.mode.value = 1
+    mock_status.HasField.side_effect = lambda field: field in {
+        "mode",
+        "charging",
+        "cleaning",
+        "go_wash",
+        "station",
+    }
+    mock_status.station.HasField.return_value = True
+    mock_decode.return_value = mock_status
+
+    dps = {DPS_MAP["WORK_STATUS"]: "encoded"}
+    new_state, _ = update_state(state, dps)
+
+    assert new_state.activity == "docked"
+    assert new_state.task_status == "Washing Mop"
+    assert new_state.active_room_ids == [1]
+    assert new_state.active_room_names == "Kitchen1"
+
+
+@patch("custom_components.robovac_mqtt.api.parser.decode")
+def test_charging_paused_state_does_not_clear_active_targets(mock_decode):
+    """Test paused charging during wash preparation does not clear target."""
+    state = VacuumState(
+        activity="cleaning",
+        active_room_ids=[1],
+        active_room_names="Kitchen1",
+    )
+
+    mock_status = MagicMock()
+    mock_status.state = 3
+    mock_status.cleaning.state = 1
+    mock_status.HasField.side_effect = lambda field: field in {
+        "charging",
+        "cleaning",
+        "station",
+        "mode",
+    }
+    mock_status.mode.value = 1
+    mock_status.station.HasField.return_value = False
+    mock_decode.return_value = mock_status
+
+    dps = {DPS_MAP["WORK_STATUS"]: "encoded"}
+    new_state, _ = update_state(state, dps)
+
+    assert new_state.activity == "docked"
+    assert new_state.task_status == "Paused"
+    assert new_state.active_room_ids == [1]
+    assert new_state.active_room_names == "Kitchen1"
+
+
+@patch("custom_components.robovac_mqtt.api.parser.decode")
+def test_completed_docked_state_clears_active_targets(mock_decode):
+    """Test completed docked states clear the active room target."""
+    state = VacuumState(
+        activity="docked",
+        task_status="Washing Mop",
+        active_room_ids=[1],
+        active_room_names="Kitchen1",
+    )
+
+    mock_status = MagicMock()
+    mock_status.state = 3
+    mock_status.HasField.side_effect = lambda field: field in {"charging"}
+    mock_decode.return_value = mock_status
+
+    dps = {DPS_MAP["WORK_STATUS"]: "encoded"}
+    new_state, _ = update_state(state, dps)
+
+    assert new_state.activity == "docked"
+    assert new_state.task_status == "Completed"
+    assert new_state.active_room_ids == []
+    assert new_state.active_room_names == ""
+
+
+def test_empty_room_clean_echo_preserves_existing_active_rooms():
+    """Test empty room-clean echoes do not wipe optimistic target state."""
+    state = VacuumState(
+        active_room_ids=[1],
+        active_room_names="Kitchen1",
+        rooms=[{"id": 1, "name": "Kitchen1"}],
+    )
+
+    dps = {DPS_MAP["PLAY_PAUSE"]: "AggB"}
+    new_state, changes = update_state(state, dps)
+
+    assert new_state.active_room_ids == [1]
+    assert new_state.active_room_names == "Kitchen1"
+    assert "active_room_ids" not in changes
+
+
+def test_update_state_device_info_dps169():
+    """Test parsing DPS 169 (DeviceInfo) for MAC, WiFi SSID, and WiFi IP."""
+    state = VacuumState()
+    # Real DPS 169 payload from a T2351 (X10 Pro Omni)
+    dps = {
+        DPS_MAP["MAP_MANAGE"]: "vgEKF2V1ZnkgQ2xlYW4gWDEwIFBybyBPbW5pGhFjMDo"
+        "4YTo2MDoyMzo4MzpkOSIGMy40Ljg1KAMyCkx1ZnRIYW1uZW46CjEwLjEuMC4xMDZCKD"
+        "A5OTM2ZDFkNjdhZjE2YWJlYzJiNDdhOTZjYmU5M2RiNTY4NmM2YzhaCgoGMS4yLjI3EA"
+        "hiLQgBEgQIAhADGgQIAhAPIgQIARABMgQIARADOgQIARABQgQIARADUgUIARCzJGoJVDI"
+        "zNTFfb3Rh"
+    }
+    new_state, _ = update_state(state, dps)
+    assert new_state.device_mac == "c0:8a:60:23:83:d9"
+    assert new_state.wifi_ssid == "LuftHamnen"
+    assert new_state.wifi_ip == "10.1.0.106"
+    assert "wifi_ssid" in new_state.received_fields
+    assert "wifi_ip" in new_state.received_fields
+
+
+def test_update_state_wifi_signal_dps176():
+    """Test parsing WiFi signal strength from DPS 176 (UnisettingResponse)."""
+    # Build a UnisettingResponse with ap_signal_strength=80 (i.e. -60 dBm)
+    encoded = encode(UnisettingResponse, {"ap_signal_strength": 80})
+
+    state = VacuumState()
+    dps = {DPS_MAP["UNSETTING"]: encoded}
+    new_state, _ = update_state(state, dps)
+    assert new_state.wifi_signal == -60.0
+    assert "wifi_signal" in new_state.received_fields
+
+
+def test_update_state_robot_position_dps179():
+    """Test parsing robot position from DPS 179 telemetry."""
+    state = VacuumState()
+    # Real DPS 179 payload from active cleaning session
+    dps = {"179": "HBIaOhgIlrujzgYQYxhiIPx9KIcOMgbO3QKg6gI="}
+    new_state, changes = update_state(state, dps)
+    assert "robot_position_x" in changes
+    assert "robot_position_y" in changes
+    # Raw unsigned varint values from undocumented telemetry format
+    assert isinstance(new_state.robot_position_x, int)
+    assert isinstance(new_state.robot_position_y, int)
+    assert "robot_position" in new_state.received_fields
+
+
+def test_known_unprocessed_dps_does_not_crash():
+    """Test that known-but-unprocessed DPS keys are handled gracefully."""
+    state = VacuumState()
+    # DPS 155 (DIRECTION), 156 (MULTI_MAP_SW), 161 (unknown) are in KNOWN_UNPROCESSED_DPS
+    dps = {"155": None, "156": True, "161": 80}
+    new_state, _ = update_state(state, dps)
+    # Should not crash and state should be unchanged (except raw_dps)
+    assert new_state.activity == "idle"

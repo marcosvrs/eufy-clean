@@ -8,7 +8,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from custom_components.robovac_mqtt.api.map_renderer import render_path
+from .api.map_renderer import render_path
 from .const import DOMAIN
 from .coordinator import EufyCleanCoordinator
 

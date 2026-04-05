@@ -35,6 +35,7 @@ from ..proto.cloud.consumable_pb2 import ConsumableResponse
 from ..proto.cloud.control_pb2 import ModeCtrlRequest
 from ..proto.cloud.error_code_pb2 import ErrorCode
 from ..proto.cloud.multi_maps_pb2 import MultiMapsManageResponse
+from ..proto.cloud.realtime_stream_pb2 import RealtimeStream
 from ..proto.cloud.scene_pb2 import SceneResponse
 from ..proto.cloud.station_pb2 import StationResponse
 from ..proto.cloud.stream_pb2 import RoomParams
@@ -85,24 +86,25 @@ def _decode_raw_varints(data: bytes) -> dict[int, int | bytes]:
 
 
 def _parse_robot_telemetry(value: str) -> dict[str, Any] | None:
-    """Parse DPS 179 robot telemetry (no proto definition available).
+    def _strip_length_prefix(data: bytes) -> bytes:
+        pos = 0
+        while pos < len(data) and (data[pos] & 0x80):
+            pos += 1
+        return data[pos + 1 :]
 
-    Wire format: varint-length-prefixed message containing:
-      field 2 (bytes) -> sub-message with field 7 (bytes) -> inner message:
-        field 1: uint32  Unix timestamp
-        field 2: uint32  battery percentage
-        field 3: uint32  unknown (slowly increasing value)
-        field 4: uint32  map X coordinate
-        field 5: uint32  map Y coordinate
-        field 6: bytes   additional data (2 packed varints)
-
-    See docs/DPS_179_TELEMETRY.md for detailed format documentation.
-    """
     try:
         raw = base64.b64decode(value)
     except Exception:
         _LOGGER.debug("Failed to decode DPS 179 base64: %.50s", value)
         return None
+    try:
+        msg = RealtimeStream()
+        msg.ParseFromString(_strip_length_prefix(raw))
+        if msg.HasField("data") and msg.data.HasField("position"):
+            return {"x": msg.data.position.x, "y": msg.data.position.y}
+    except Exception:
+        _LOGGER.debug("RealtimeStream parse failed for DPS 179", exc_info=True)
+
     _length, pos = _decode_varint(raw, 0)
     outer = _decode_raw_varints(raw[pos:])
     sub_bytes = outer.get(2)
@@ -258,22 +260,10 @@ def _process_work_status(
         if work_status.HasField("cleaning") and work_status.cleaning.scheduled_task:
             changes["trigger_source"] = "schedule"
 
-        # Update dock_status from WorkStatus.
-        # go_wash.mode is the authoritative signal for wash/dry cycle state.
-        # Station sub-fields (washing_drying_system, water_injection_system)
-        # report sub-phases within that cycle and must not overwrite the
-        # primary dock status when go_wash is active.
-        is_go_wash_active = (
-            work_status.HasField("go_wash")
-            and work_status.go_wash.mode in (1, 2)
-        )
-
-        if is_go_wash_active:
-            if work_status.go_wash.mode == 2:
-                changes["dock_status"] = "Drying"
-            else:
-                changes["dock_status"] = "Washing"
-        elif work_status.HasField("station"):
+        # Update dock_status from WorkStatus if available.
+        # Station sub-fields provide detailed dock activity (water injection,
+        # dust collection, etc.) within the broader go_wash operation.
+        if work_status.HasField("station"):
             st = work_status.station
 
             has_dock_activity = False
@@ -289,12 +279,20 @@ def _process_work_status(
                 has_dock_activity = True
                 changes["dock_status"] = "Emptying dust"
 
-            if st.HasField("water_injection_system") and not has_dock_activity:
+            if st.HasField("water_injection_system"):
                 has_dock_activity = True
                 if st.water_injection_system.state == 0:
                     changes["dock_status"] = "Adding clean water"
                 else:
                     changes["dock_status"] = "Recycling waste water"
+
+            if not has_dock_activity:
+                if work_status.HasField("go_wash") and work_status.go_wash.mode in (1, 2):
+                    has_dock_activity = True
+                    if work_status.go_wash.mode == 2:
+                        changes["dock_status"] = "Drying"
+                    else:
+                        changes["dock_status"] = "Washing"
 
             if not has_dock_activity:
                 current_dock = changes.get("dock_status", state.dock_status)

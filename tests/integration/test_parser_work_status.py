@@ -299,25 +299,19 @@ def test_returning_charging_is_returning():
 
 
 def test_docked_washing_water_emptying():
-    """Real captured: WorkStatus WASHING + station.water_injection_system.state=EMPTYING.
-
-    go_wash.mode=WASHING takes priority over station sub-fields.
-    """
+    """Real captured: WorkStatus WASHING + station.water_injection_system.state=EMPTYING."""
     fixture = load_fixture("mqtt/work_status/docked_washing_water_emptying.json")
     state, _ = update_state(VacuumState(), fixture["dps"])
     assert state.activity == "docked"
-    assert state.dock_status == "Washing"
+    assert state.dock_status == "Recycling waste water"
 
 
 def test_docked_washing_water_injection():
-    """Real captured: WorkStatus WASHING + station.water_injection_system={} (adding water).
-
-    go_wash.mode=WASHING takes priority over station sub-fields.
-    """
+    """Real captured: WorkStatus WASHING + station.water_injection_system={} (adding water)."""
     fixture = load_fixture("mqtt/work_status/docked_washing_water_injection.json")
     state, _ = update_state(VacuumState(), fixture["dps"])
     assert state.activity == "docked"
-    assert state.dock_status == "Washing"
+    assert state.dock_status == "Adding clean water"
 
 
 def test_docked_washing_wds():
@@ -458,7 +452,7 @@ def test_scene_clean_washing():
     state, _ = update_state(VacuumState(), fixture["dps"])
     assert state.activity == "docked"
     assert state.work_mode == "Scene"
-    assert state.dock_status == "Washing"
+    assert state.dock_status == "Recycling waste water"
 
 
 def test_remote_ctrl_state():

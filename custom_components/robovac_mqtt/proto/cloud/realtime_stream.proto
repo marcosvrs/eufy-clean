@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+package proto.cloud;
+
+message PositionTelemetry {
+    uint32 timestamp = 1;
+    uint32 battery = 2;
+    uint32 unknown_seq = 3;
+    sint32 x = 4;
+    sint32 y = 5;
+    bytes extra_data = 6;
+}
+
+message TelemetryWrapper {
+    bytes lifetime_stats = 2;
+    PositionTelemetry position = 7;
+}
+
+message RealtimeStream {
+    TelemetryWrapper data = 2;
+    bytes session_summary_short = 11;
+    bytes session_summary_long = 13;
+}

@@ -16,7 +16,7 @@
       },
       "expected_state_after": {
         "activity": "docked",
-        "dock_status": "Washing"
+        "dock_status": "Recycling waste water"
       },
       "delay_seconds": 7
     },

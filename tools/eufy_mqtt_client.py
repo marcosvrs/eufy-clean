@@ -30,6 +30,7 @@ import tempfile
 import time
 import uuid
 import types as _types
+from typing import Any
 
 import requests
 
@@ -44,6 +45,8 @@ _PROTOS_AVAILABLE = False
 StationResponse = None
 UnisettingResponse = None
 ErrorCode = None
+stream_pb2: Any = None
+p2pdata_pb2: Any = None
 try:
     _root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     for _pkg, _path in [
@@ -60,6 +63,7 @@ try:
     from custom_components.robovac_mqtt.proto.cloud.station_pb2 import StationResponse
     from custom_components.robovac_mqtt.proto.cloud.unisetting_pb2 import UnisettingResponse
     from custom_components.robovac_mqtt.proto.cloud.error_code_pb2 import ErrorCode
+    from custom_components.robovac_mqtt.proto.cloud import stream_pb2, p2pdata_pb2
     _PROTOS_AVAILABLE = True
 except Exception:
     pass
@@ -100,6 +104,119 @@ def _try_decode_proto(proto_class, b64_value: str):
         return msg
     except Exception:
         return None
+
+
+def _try_decode_proto_bytes(proto_class, raw_value: bytes):
+    try:
+        msg = proto_class()
+        msg.ParseFromString(raw_value)
+        return msg
+    except Exception:
+        try:
+            offset = 0
+            shift = 0
+            while offset < len(raw_value):
+                byte = raw_value[offset]
+                offset += 1
+                shift += 7
+                if not (byte & 0x80):
+                    break
+            msg = proto_class()
+            msg.ParseFromString(raw_value[offset:])
+            return msg
+        except Exception:
+            return None
+
+
+def _bytes_hex(raw_value: bytes) -> str:
+    return raw_value.hex()
+
+
+def _safe_topic_suffix(topic: str) -> str:
+    return topic.replace("/", "_")
+
+
+def _smart_mb_capture_dir(capture_dir: str) -> str:
+    return os.path.join(capture_dir, "smart_mb")
+
+
+def _smart_mb_summary(msg) -> str:
+    if msg is None:
+        return ""
+
+    if _PROTOS_AVAILABLE and isinstance(msg, stream_pb2.MapInfo):
+        return (
+            f"stream.MapInfo map_id={msg.map_id} size={msg.width}x{msg.height} "
+            f"res={msg.resolution} type={msg.type} name={getattr(msg, 'name', '')!r}"
+        )
+    if _PROTOS_AVAILABLE and isinstance(msg, p2pdata_pb2.MapInfo):
+        return (
+            f"p2p.MapInfo map_id={msg.map_id} size={msg.map_width}x{msg.map_height} "
+            f"stable={msg.map_stable} msg_type={msg.msg_type} name={getattr(msg, 'name', '')!r}"
+        )
+    if _PROTOS_AVAILABLE and isinstance(msg, p2pdata_pb2.MapPixels):
+        return f"p2p.MapPixels pixel_size={msg.pixel_size} pixels_len={len(msg.pixels)}"
+    if _PROTOS_AVAILABLE and isinstance(msg, p2pdata_pb2.CompleteMap):
+        return (
+            f"p2p.CompleteMap map_id={msg.map_id} size={msg.map_width}x{msg.map_height} "
+            f"stable={msg.map_stable} name={getattr(msg, 'name', '')!r}"
+        )
+    return msg.__class__.__name__
+
+
+def _extract_smart_mb_payload_bytes(raw_payload: bytes, json_data):
+    if not isinstance(json_data, dict):
+        return raw_payload
+
+    for key in ("payload", "data", "content", "body"):
+        value = json_data.get(key)
+        if isinstance(value, bytes):
+            return value
+        if isinstance(value, dict):
+            nested = value.get("payload") or value.get("data") or value.get("content")
+            if isinstance(nested, bytes):
+                return nested
+            if isinstance(nested, str):
+                try:
+                    return base64.b64decode(nested)
+                except Exception:
+                    try:
+                        return bytes.fromhex(nested)
+                    except Exception:
+                        continue
+        if isinstance(value, str):
+            try:
+                return base64.b64decode(value, validate=True)
+            except Exception:
+                try:
+                    return bytes.fromhex(value)
+                except Exception:
+                    try:
+                        nested_json = json.loads(value)
+                        return _extract_smart_mb_payload_bytes(raw_payload, nested_json)
+                    except Exception:
+                        continue
+
+    return raw_payload
+
+
+def _smart_mb_proto_decode(raw_bytes: bytes):
+    if not _PROTOS_AVAILABLE:
+        return None, ""
+
+    candidates = [
+        ("stream.MapInfo", stream_pb2.MapInfo),
+        ("p2p.MapInfo", p2pdata_pb2.MapInfo),
+        ("p2p.MapPixels", p2pdata_pb2.MapPixels),
+        ("p2p.CompleteMap", p2pdata_pb2.CompleteMap),
+    ]
+
+    for _, proto_class in candidates:
+        decoded = _try_decode_proto_bytes(proto_class, raw_bytes)
+        if decoded is not None and decoded.ListFields():
+            return decoded, _smart_mb_summary(decoded)
+
+    return None, ""
 
 
 def _decode_dps_for_display(key: str, value) -> str:
@@ -291,7 +408,8 @@ class EufyCloudAuth:
 
 class EufyMqttClient:
     def __init__(self, mqtt_info: dict, device_sn: str, device_model: str,
-                 user_id: str, on_status=None, capture_dir: str | None = None):
+                 user_id: str, on_status=None, capture_dir: str | None = None,
+                 smart_mb_only: bool = False):
         self.mqtt_info = mqtt_info
         self.device_sn = device_sn
         self.device_model = device_model
@@ -303,6 +421,8 @@ class EufyMqttClient:
         self.last_dps = {}
         self._capture_dir = capture_dir
         self._mqtt_capture_count = 0
+        self._smart_mb_capture_count = 0
+        self._smart_mb_only = smart_mb_only
 
     def connect(self):
         ca_path = os.path.join(self._cert_dir, "ca.pem")
@@ -385,10 +505,16 @@ class EufyMqttClient:
             return
 
         print(f"Connected to {self.mqtt_info['endpoint_addr']}")
-        client.subscribe(f"cmd/eufy_home/{self.device_model}/{self.device_sn}/res")
+        if not self._smart_mb_only:
+            client.subscribe(f"cmd/eufy_home/{self.device_model}/{self.device_sn}/res")
         client.subscribe(f"smart/mb/in/{self.device_sn}")
+        client.subscribe(f"smart/mb/out/{self.device_sn}")
 
     def _on_message(self, client, userdata, msg):
+        if msg.topic.startswith("smart/mb/"):
+            self._handle_smart_mb_message(msg)
+            return
+
         try:
             raw_payload = msg.payload.decode()
             data = json.loads(raw_payload)
@@ -408,6 +534,49 @@ class EufyMqttClient:
                     self.on_status(dps)
         except (json.JSONDecodeError, KeyError):
             pass
+
+    def _handle_smart_mb_message(self, msg):
+        raw_payload = bytes(msg.payload)
+        ts = time.strftime("%H:%M:%S")
+        raw_hex = _bytes_hex(raw_payload)
+        print(f"\n[{ts}] ── SMART/MB {msg.topic} ──────────────────────")
+        print(f"  raw_hex: {raw_hex}")
+
+        json_data = None
+        parsed_json = False
+        try:
+            json_data = json.loads(raw_payload.decode())
+            parsed_json = True
+        except Exception:
+            json_data = None
+
+        payload_bytes = _extract_smart_mb_payload_bytes(raw_payload, json_data)
+        decoded_proto, summary = _smart_mb_proto_decode(payload_bytes)
+        if summary:
+            print(f"  decoded: {summary}")
+        elif decoded_proto is not None:
+            print(f"  decoded: {decoded_proto.__class__.__name__}")
+
+        if self._capture_dir:
+            self._save_smart_mb_message(msg.topic, raw_payload, json_data, parsed_json)
+
+        self._smart_mb_capture_count += 1
+
+    def _save_smart_mb_message(self, topic: str, raw_payload: bytes, data, is_json: bool):
+        assert self._capture_dir is not None
+        smart_mb_dir = _smart_mb_capture_dir(self._capture_dir)
+        os.makedirs(smart_mb_dir, exist_ok=True)
+
+        ts = int(time.time() * 1000)
+        topic_suffix = _safe_topic_suffix(topic)
+        if is_json:
+            filepath = os.path.join(smart_mb_dir, f"{ts}_{topic_suffix}.json")
+            with open(filepath, "w") as f:
+                json.dump(data, f, indent=2)
+        else:
+            filepath = os.path.join(smart_mb_dir, f"{ts}_{topic_suffix}.hex")
+            with open(filepath, "w") as f:
+                f.write(raw_payload.hex())
 
     def _save_mqtt_message(self, data: dict):
         assert self._capture_dir is not None
@@ -465,10 +634,12 @@ def main():
                         help="Seconds to listen for status (0=forever)")
     parser.add_argument("--capture-dir", default=None,
                         help="Directory to save captured HTTP responses and MQTT messages "
-                             "as JSON fixtures. Creates http/ and mqtt/ subdirectories. "
+                             "as JSON fixtures. Creates http/, mqtt/, and smart_mb/ subdirectories. "
                              "Run anonymize_fixtures.py on the output before committing.")
     parser.add_argument("--duration", type=int, default=None,
                         help="Capture duration in seconds (overrides --listen in capture mode)")
+    parser.add_argument("--smart-mb-only", action="store_true",
+                        help="Subscribe only to smart/mb topics and listen forever")
     args = parser.parse_args()
 
     if not args.email or not args.password:
@@ -534,13 +705,17 @@ def main():
         user_id=auth.user_id,
         on_status=print_status,
         capture_dir=args.capture_dir,
+        smart_mb_only=args.smart_mb_only,
     )
     client.connect()
     time.sleep(3)
 
     speed_map = {"quiet": 0, "standard": 1, "turbo": 2, "max": 3}
 
-    if args.command == "start":
+    if args.smart_mb_only:
+        listen_seconds = 0
+        print("Smart/mb only mode: listening until Ctrl+C...")
+    elif args.command == "start":
         print("Starting clean...")
         client.start_clean()
     elif args.command == "pause":
@@ -557,6 +732,8 @@ def main():
         client.set_speed(speed_map[args.command])
 
     listen_seconds = args.duration if args.duration is not None else args.listen
+    if args.smart_mb_only:
+        listen_seconds = 0
     print(f"\nListening for {listen_seconds}s..." if listen_seconds else "\nListening (Ctrl+C to stop)...")
     try:
         if listen_seconds:
@@ -572,8 +749,9 @@ def main():
 
     if args.capture_dir:
         mqtt_count = client._mqtt_capture_count
+        smart_mb_count = client._smart_mb_capture_count
         print(f"\nCaptured {http_capture_count} HTTP responses, "
-              f"{mqtt_count} MQTT messages to {args.capture_dir}")
+              f"{mqtt_count} MQTT messages, {smart_mb_count} smart/mb messages to {args.capture_dir}")
 
     client.disconnect()
 

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import base64
 import logging
+from importlib import import_module
 from dataclasses import replace
 from typing import Any
 
@@ -35,10 +36,13 @@ from ..proto.cloud.consumable_pb2 import ConsumableResponse
 from ..proto.cloud.control_pb2 import ModeCtrlRequest
 from ..proto.cloud.error_code_pb2 import ErrorCode
 from ..proto.cloud.multi_maps_pb2 import MultiMapsManageResponse
-from ..proto.cloud.realtime_stream_pb2 import RealtimeStream
 from ..proto.cloud.scene_pb2 import SceneResponse
 from ..proto.cloud.station_pb2 import StationResponse
 from ..proto.cloud.stream_pb2 import RoomParams
+
+RealtimeStream = import_module(
+    "custom_components.robovac_mqtt.proto.cloud.realtime_stream_pb2"
+).RealtimeStream
 from ..proto.cloud.undisturbed_pb2 import UndisturbedResponse
 from ..proto.cloud.unisetting_pb2 import UnisettingResponse
 from ..proto.cloud.universal_data_pb2 import UniversalDataResponse

@@ -3,13 +3,16 @@ from __future__ import annotations
 import base64
 import json
 import logging
+from importlib import import_module
 from pathlib import Path
+from typing import Any
 
 from custom_components.robovac_mqtt.api.parser import _parse_robot_telemetry
-from custom_components.robovac_mqtt.proto.cloud.realtime_stream_pb2 import (
-    RealtimeStream,
-)
 from custom_components.robovac_mqtt.utils import decode
+
+RealtimeStream = import_module(
+    "custom_components.robovac_mqtt.proto.cloud.realtime_stream_pb2"
+).RealtimeStream
 
 
 FIXTURE_PATH = Path("tests/fixtures/mqtt/telemetry/position_update.json")
@@ -31,7 +34,7 @@ def _all_dps_179_values() -> list[str]:
     return values
 
 
-def _decode_stream(value: str) -> RealtimeStream:
+def _decode_stream(value: str) -> Any:
     msg = RealtimeStream()
     msg.ParseFromString(_strip_length_prefix(base64.b64decode(value)))
     return msg

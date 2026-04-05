@@ -211,10 +211,17 @@ def _process_work_status(
         changes["task_status"] = _map_task_status(work_status, current_dock_status)
 
         # Check for charging status
-        # If the charging sub-message exists, we trust it regardless of main state
-        if work_status.HasField("charging"):
-            # Charging.State.DOING is 0
-            changes["charging"] = work_status.charging.state == 0
+        # State 3 (CHARGING) is the authoritative signal. For other states,
+        # the charging sub-message may be present with default values (state=0)
+        # due to protobuf field presence semantics, so we only trust it when
+        # the main state confirms the device is actually charging.
+        if work_status.state == 3:
+            changes["charging"] = True
+        elif work_status.HasField("charging") and work_status.charging.state == 0:
+            # charging.state=0 (DOING) is only meaningful when main state is 3
+            # For state=5 (CLEANING), an empty charging{} sub-message is a
+            # protobuf default, not an actual charging signal
+            changes["charging"] = False
         else:
             changes["charging"] = False
 
@@ -251,44 +258,54 @@ def _process_work_status(
         if work_status.HasField("cleaning") and work_status.cleaning.scheduled_task:
             changes["trigger_source"] = "schedule"
 
-        # Update dock_status from WorkStatus if available
-        # This helps clear "stuck" states (like Drying) if StationResponse
-        # stops updating but WorkStatus continues to report (e.g. as Charging/Idle).
-        if work_status.HasField("station"):
+        # Update dock_status from WorkStatus.
+        # go_wash.mode is the authoritative signal for wash/dry cycle state.
+        # Station sub-fields (washing_drying_system, water_injection_system)
+        # report sub-phases within that cycle and must not overwrite the
+        # primary dock status when go_wash is active.
+        is_go_wash_active = (
+            work_status.HasField("go_wash")
+            and work_status.go_wash.mode in (1, 2)
+        )
+
+        if is_go_wash_active:
+            if work_status.go_wash.mode == 2:
+                changes["dock_status"] = "Drying"
+            else:
+                changes["dock_status"] = "Washing"
+        elif work_status.HasField("station"):
             st = work_status.station
 
-            # Track if any dock activity is detected in this message
             has_dock_activity = False
 
-            # Washing / Drying
             if st.HasField("washing_drying_system"):
                 has_dock_activity = True
-                # 0=WASHING, 1=DRYING
                 if st.washing_drying_system.state == 1:
                     changes["dock_status"] = "Drying"
                 else:
                     changes["dock_status"] = "Washing"
 
-            # Dust Collection
             if st.HasField("dust_collection_system"):
                 has_dock_activity = True
-                # 0=EMPTYING
                 changes["dock_status"] = "Emptying dust"
 
-            # Water Injection
-            if st.HasField("water_injection_system"):
+            if st.HasField("water_injection_system") and not has_dock_activity:
                 has_dock_activity = True
-                # 0=ADDING, 1=EMPTYING
                 if st.water_injection_system.state == 0:
                     changes["dock_status"] = "Adding clean water"
                 else:
                     changes["dock_status"] = "Recycling waste water"
 
-            # Reset to Idle if station field is present but no activity
             if not has_dock_activity:
                 current_dock = changes.get("dock_status", state.dock_status)
                 if current_dock in DOCK_ACTIVITY_STATES:
                     changes["dock_status"] = "Idle"
+
+        elif work_status.HasField("go_wash") and work_status.go_wash.mode in (1, 2):
+            if work_status.go_wash.mode == 2:
+                changes["dock_status"] = "Drying"
+            else:
+                changes["dock_status"] = "Washing"
 
         else:
             # No station field - if charging and was in dock activity, reset to Idle
@@ -599,7 +616,7 @@ def _map_task_status(status: WorkStatus, dock_status: str | None = None) -> str:
         return "Cleaning"
 
     if s == 4:
-        return "Positioning"
+        return "Mapping"
 
     if s == 2:
         return "Error"
@@ -623,7 +640,7 @@ def _map_work_status(status: WorkStatus) -> str:
         return "error"
     if s == 3:  # Charging
         return "docked"
-    if s == 4:  # Positioning
+    if s == 4:  # FAST_MAPPING
         return "cleaning"
     if s == 5:  # Active clean / station wash+dry
         # go_wash.mode: 0=NAVIGATION, 1=WASHING, 2=DRYING

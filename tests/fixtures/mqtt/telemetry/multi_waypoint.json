@@ -1,0 +1,32 @@
+{
+  "description": "Real captured: DPS 179 telemetry \u2014 multi-waypoint map data (109-byte format)",
+  "raw_payload": {
+    "head": {
+      "version": "1.0.0.2",
+      "client_id": "android-anon-openudid-anon_user-0",
+      "sess_id": "android-anon-openudid-anon_user-0",
+      "msg_seq": 14383,
+      "cmd": 65537,
+      "cmd_status": 1,
+      "sign_code": 0,
+      "seed": "null",
+      "timestamp": 86,
+      "tz_offset": 100
+    },
+    "payload": {
+      "protocol": 1,
+      "t": 1773459296339,
+      "account_id": "ANON_USER_001",
+      "device_sn": "TXXX_ANON_001",
+      "data": {
+        "179": "bBJqCmjKAjAICBih27/OBiIAKhwIDRABGAEg8///////////ASjz//////////8BMA04AUABSgDKAjIIBRji27/OBiIAKh0I3AUQFxgXIPX//////////wEo2vX/////////ATDcBTgXQBdKAA=="
+      }
+    }
+  },
+  "dps": {
+    "179": "bBJqCmjKAjAICBih27/OBiIAKhwIDRABGAEg8///////////ASjz//////////8BMA04AUABSgDKAjIIBRji27/OBiIAKh0I3AUQFxgXIPX//////////wEo2vX/////////ATDcBTgXQBdKAA=="
+  },
+  "expected_state": {
+    "_note": "Large telemetry with nested map/waypoint data \u2014 _parse_robot_telemetry extracts x,y if present"
+  }
+}

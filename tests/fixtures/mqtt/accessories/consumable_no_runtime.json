@@ -1,0 +1,9 @@
+{
+  "description": "SYNTHETIC: ConsumableResponse with missing Runtime field (edge case, not captured)",
+  "dps": {
+    "168": "AA=="
+  },
+  "expected_state": {
+    "accessories": "unchanged"
+  }
+}

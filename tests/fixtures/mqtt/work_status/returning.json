@@ -1,0 +1,56 @@
+{
+  "description": "Real captured: WorkStatus state=GO_HOME (returning to dock)",
+  "raw_payload": {
+    "head": {
+      "version": "1.0.0.2",
+      "client_id": "android-anon-openudid-anon_user-0",
+      "sess_id": "android-anon-openudid-anon_user-0",
+      "msg_seq": 14309,
+      "cmd": 65537,
+      "cmd_status": 1,
+      "sign_code": 0,
+      "seed": "null",
+      "timestamp": 44,
+      "tz_offset": 100
+    },
+    "payload": {
+      "protocol": 1,
+      "t": 1773459253641,
+      "account_id": "ANON_USER_001",
+      "device_sn": "TXXX_ANON_001",
+      "data": {
+        "153": "DBAHQgIQCnICIgB6AA=="
+      }
+    }
+  },
+  "dps": {
+    "153": "DBAHQgIQCnICIgB6AA=="
+  },
+  "expected_state": {
+    "activity": "returning",
+    "charging": false
+  },
+  "additional_captured_values": [
+    {
+      "dps": {
+        "153": "ChAHQgByAiIAegA="
+      },
+      "source": "eufy_anon_4/1775292709168_153.json",
+      "note": "Session 3/4: GO_HOME variant (state=7)"
+    },
+    {
+      "dps": {
+        "153": "DhAHGgIaAEIAcgIiAHoA"
+      },
+      "source": "eufy_anon_4/1775292798976_153.json",
+      "note": "Session 3/4: GO_HOME variant (state=7)"
+    },
+    {
+      "dps": {
+        "153": "EBAHGgQIAhoAQgByAiIAegA="
+      },
+      "source": "eufy_anon_4/1775292798452_153.json",
+      "note": "Session 3/4: GO_HOME variant (state=7)"
+    }
+  ]
+}

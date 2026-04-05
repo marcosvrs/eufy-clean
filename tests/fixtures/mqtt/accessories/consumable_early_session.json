@@ -1,0 +1,32 @@
+{
+  "description": "Real captured: ConsumableResponse early in session (dustbag=6826, sensor=404)",
+  "raw_payload": {
+    "head": {
+      "version": "1.0.0.2",
+      "client_id": "android-anon-openudid-anon_user-0",
+      "sess_id": "android-anon-openudid-anon_user-0",
+      "msg_seq": 14371,
+      "cmd": 65537,
+      "cmd_status": 1,
+      "sign_code": 0,
+      "seed": "null",
+      "timestamp": 84,
+      "tz_offset": 100
+    },
+    "payload": {
+      "protocol": 1,
+      "t": 1773459293573,
+      "account_id": "ANON_USER_001",
+      "device_sn": "TXXX_ANON_001",
+      "data": {
+        "168": "pAEKoQEKAggJEgIICRoCCAkiAggJKgMIlAMyAggGOgMIqjVaAwi6AWIDCLoBagMIugF6Awi6AYoBAJoBAwiQAqABqL/i2tzMudEYwgJYCgYICRAzGBQSBggJEDMYFBoGCAkQMxgUIgYICRAzGBQyBggPECsYLjoGCAkQMxgUQgYIBhAYGBRKBAgwEANSBAgwEANaBAgwEANiBggGEBgYFGoECDAQAw=="
+      }
+    }
+  },
+  "dps": {
+    "168": "pAEKoQEKAggJEgIICRoCCAkiAggJKgMIlAMyAggGOgMIqjVaAwi6AWIDCLoBagMIugF6Awi6AYoBAJoBAwiQAqABqL/i2tzMudEYwgJYCgYICRAzGBQSBggJEDMYFBoGCAkQMxgUIgYICRAzGBQyBggPECsYLjoGCAkQMxgUQgYIBhAYGBRKBAgwEANSBAgwEANaBAgwEANiBggGEBgYFGoECDAQAw=="
+  },
+  "expected_state": {
+    "_note": "Accessory usage: side_brush=9h, rolling_brush=9h, filter=9h, scrape=9h, sensor=404h, mop=6h, dustbag=6826h"
+  }
+}

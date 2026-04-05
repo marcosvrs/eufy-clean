@@ -1,0 +1,49 @@
+{
+  "description": "Real captured: CleanParamResponse with cleaning parameters",
+  "raw_payload": {
+    "head": {
+      "version": "1.0.0.2",
+      "client_id": "android-anon-openudid-anon_user-0",
+      "sess_id": "android-anon-openudid-anon_user-0",
+      "msg_seq": 14284,
+      "cmd": 65537,
+      "cmd_status": 1,
+      "sign_code": 0,
+      "seed": "null",
+      "timestamp": 21,
+      "tz_offset": 100
+    },
+    "payload": {
+      "protocol": 1,
+      "t": 1773459231276,
+      "account_id": "ANON_USER_001",
+      "device_sn": "TXXX_ANON_001",
+      "data": {
+        "154": "JgoQCgASAhIAGgIIAiICEAEqABIAGgAiDgoAGgIIAiICEAEqADIA"
+      }
+    }
+  },
+  "dps": {
+    "154": "JgoQCgASAhIAGgIIAiICEAEqABIAGgAiDgoAGgIIAiICEAEqADIA"
+  },
+  "expected_state": {
+    "cleaning_mode": "Vacuum and mop",
+    "fan_speed": "Quiet"
+  },
+  "additional_captured_values": [
+    {
+      "dps": {
+        "154": "JgoQCgIIAhICEgAaAggCIgAqABIAGgAiDgoCCAIaAggCIgAqADIA"
+      },
+      "source": "1775257984230_154.json",
+      "note": "Session 2: CleanParamResponse variant"
+    },
+    {
+      "dps": {
+        "154": "LAoSCgIIAhICEgAaAggBIgIQASoAEgAaACISCgIIAhoCCAEiAhABKgAyAggD"
+      },
+      "source": "eufy_anon_3/1775292013954_154.json",
+      "note": "Session 3: CleanParamResponse variant"
+    }
+  ]
+}

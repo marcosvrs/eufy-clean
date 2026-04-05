@@ -1,0 +1,32 @@
+{
+  "description": "Real captured: UniversalDataResponse map_id=15 (new map with unnamed rooms)",
+  "raw_payload": {
+    "head": {
+      "version": "1.0.0.2",
+      "client_id": "android-anon-openudid-anon_user-0",
+      "sess_id": "android-anon-openudid-anon_user-0",
+      "msg_seq": 24522,
+      "cmd": 65537,
+      "cmd_status": 1,
+      "sign_code": 0,
+      "seed": "null",
+      "timestamp": 302,
+      "tz_offset": 100
+    },
+    "payload": {
+      "protocol": 1,
+      "t": 1773517413399,
+      "account_id": "ANON_USER_001",
+      "device_sn": "TXXX_ANON_001",
+      "data": {
+        "165": "FgoUCA8SBAgBGgASBAgCGgASBAgDGgA="
+      }
+    }
+  },
+  "dps": {
+    "165": "FgoUCA8SBAgBGgASBAgCGgASBAgDGgA="
+  },
+  "expected_state": {
+    "_note": "map_id=15, 3 rooms with no names — newly created map before room naming"
+  }
+}

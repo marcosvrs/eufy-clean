@@ -1,0 +1,43 @@
+{
+  "description": "Real captured: DPS 179 telemetry \u2014 status report with battery info (22-byte format)",
+  "raw_payload": {
+    "head": {
+      "version": "1.0.0.2",
+      "client_id": "android-anon-openudid-anon_user-0",
+      "sess_id": "android-anon-openudid-anon_user-0",
+      "msg_seq": 14382,
+      "cmd": 65537,
+      "cmd_status": 1,
+      "sign_code": 0,
+      "seed": "null",
+      "timestamp": 86,
+      "tz_offset": 100
+    },
+    "payload": {
+      "protocol": 1,
+      "t": 1773459296312,
+      "account_id": "ANON_USER_001",
+      "device_sn": "TXXX_ANON_001",
+      "data": {
+        "179": "FRITEhEItQQQASi427/OBjDi27/OBg=="
+      }
+    }
+  },
+  "dps": {
+    "179": "FRITEhEItQQQASi427/OBjDi27/OBg=="
+  },
+  "expected_state": {
+    "_note": "Status format with battery field \u2014 _parse_robot_telemetry may return None if no x/y"
+  },
+  "additional_captured_values": [
+    {
+      "dps": {
+        "179": "FRITEhEItQQQASj23r/OBjCa37/OBg=="
+      },
+      "source": "1775234973307_179.json",
+      "note": "22-byte status report"
+    },
+    {"dps": {"179": "FRITEhEItQQQASiVksHOBjDoksHOBg=="}, "source": "1775257964497_179.json", "note": "Session 2: status report"},
+    {"dps": {"179": "FRITEhEItQQQASiJlMHOBjCalMHOBg=="}, "source": "1775258141625_179.json", "note": "Session 2: status report"}
+  ]
+}

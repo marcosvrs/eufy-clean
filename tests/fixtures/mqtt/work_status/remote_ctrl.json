@@ -1,0 +1,39 @@
+{
+  "description": "Real captured: WorkStatus state=REMOTE_CTRL (RC joystick mode)",
+  "raw_payload": {
+    "head": {
+      "version": "1.0.0.2",
+      "client_id": "android-anon-openudid-anon_user-0",
+      "sess_id": "android-anon-openudid-anon_user-0",
+      "msg_seq": 22917,
+      "cmd": 65537,
+      "cmd_status": 1,
+      "sign_code": 0,
+      "seed": "null",
+      "timestamp": 84,
+      "tz_offset": 100
+    },
+    "payload": {
+      "protocol": 1,
+      "t": 1773516585437,
+      "account_id": "ANON_USER_001",
+      "device_sn": "TXXX_ANON_001",
+      "data": {
+        "153": "DBAGGgIaAHICIgB6AA=="
+      }
+    }
+  },
+  "dps": {
+    "153": "DBAGGgIaAHICIgB6AA=="
+  },
+  "expected_state": {
+    "_note": "state=6 (REMOTE_CTRL) — RC joystick mode, parser may not handle this state explicitly"
+  },
+  "additional_captured_values": [
+    {
+      "dps": {"153": "CBAGcgIiAHoA"},
+      "source": "eufy_anon_3/1775291878629_153.json",
+      "note": "REMOTE_CTRL shorter variant"
+    }
+  ]
+}

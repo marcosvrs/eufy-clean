@@ -1,0 +1,73 @@
+{
+  "description": "Real captured: DPS 179 telemetry \u2014 short position ping (15-byte format, no x/y coords)",
+  "raw_payload": {
+    "head": {
+      "version": "1.0.0.2",
+      "client_id": "android-anon-openudid-anon_user-0",
+      "sess_id": "android-anon-openudid-anon_user-0",
+      "msg_seq": 14478,
+      "cmd": 65537,
+      "cmd_status": 1,
+      "sign_code": 0,
+      "seed": "null",
+      "timestamp": 471,
+      "tz_offset": 100
+    },
+    "payload": {
+      "protocol": 1,
+      "t": 1773459681538,
+      "account_id": "ANON_USER_001",
+      "device_sn": "TXXX_ANON_001",
+      "data": {
+        "179": "DhIMOgoI496/zgYyAgAA"
+      }
+    }
+  },
+  "dps": {
+    "179": "DhIMOgoI496/zgYyAgAA"
+  },
+  "expected_state": {
+    "_note": "Short format without position fields \u2014 _parse_robot_telemetry returns None"
+  },
+  "additional_captured_values": [
+    {
+      "dps": {
+        "179": "DhIMOgoI5t6/zgYyAgAA"
+      },
+      "source": "1775234921242_179.json",
+      "note": "15-byte ping"
+    },
+    {
+      "dps": {
+        "179": "DhIMOgoI6N6/zgYyAgAA"
+      },
+      "source": "1775234923322_179.json",
+      "note": "15-byte ping"
+    },
+    {
+      "dps": {
+        "179": "DhIMOgoI7d6/zgYyAgAA"
+      },
+      "source": "1775234927480_179.json",
+      "note": "15-byte ping"
+    },
+    {
+      "dps": {
+        "179": "DhIMOgoI8N6/zgYyAgAA"
+      },
+      "source": "1775234931210_179.json",
+      "note": "15-byte ping"
+    },
+    {"dps": {"179": "DhIMOgoI05DBzgYyAgAA"}, "source": "1775257686776_179.json", "note": "Session 2: 15-byte ping"},
+    {"dps": {"179": "DhIMOgoI5ZDBzgYyAgAA"}, "source": "1775257704668_179.json", "note": "Session 2: 15-byte ping"},
+    {"dps": {"179": "DhIMOgoI85DBzgYyAgAA"}, "source": "1775257719371_179.json", "note": "Session 2: 15-byte ping"},
+    {"dps": {"179": "DhIMOgoIwpHBzgYyAgAA"}, "source": "1775257798170_179.json", "note": "Session 2: 15-byte ping"},
+    {"dps": {"179": "DhIMOgoI55HBzgYyAgAA"}, "source": "1775257835361_179.json", "note": "Session 2: 15-byte ping"},
+    {"dps": {"179": "DhIMOgoI65HBzgYyAgAA"}, "source": "1775257839003_179.json", "note": "Session 2: 15-byte ping"},
+    {"dps": {"179": "DhIMOgoI/5HBzgYyAgAA"}, "source": "1775257858961_179.json", "note": "Session 2: 15-byte ping"},
+    {"dps": {"179": "DhIMOgoIgZLBzgYyAgAA"}, "source": "1775257861548_179.json", "note": "Session 2: 15-byte ping"},
+    {"dps": {"179": "DhIMOgoIlZLBzgYyAgAA"}, "source": "1775257880890_179.json", "note": "Session 2: 15-byte ping"},
+    {"dps": {"179": "DhIMOgoIqpLBzgYyAgAA"}, "source": "1775257902035_179.json", "note": "Session 2: 15-byte ping"},
+    {"dps": {"179": "DhIMOgoI0ZLBzgYyAgAA"}, "source": "1775257940788_179.json", "note": "Session 2: 15-byte ping"}
+  ]
+}

@@ -1,0 +1,49 @@
+=== Fixture File Count ===
+42
+
+=== All Valid JSON ===
+All valid JSON
+
+=== File List ===
+tests/fixtures/http/cloud_device_list_response.json
+tests/fixtures/http/device_list_response.json
+tests/fixtures/http/login_response.json
+tests/fixtures/http/mqtt_credentials_response.json
+tests/fixtures/http/user_info_response.json
+tests/fixtures/mqtt/accessories/consumable_full.json
+tests/fixtures/mqtt/accessories/consumable_no_runtime.json
+tests/fixtures/mqtt/cleaning_params/request_format.json
+tests/fixtures/mqtt/cleaning_params/response_format.json
+tests/fixtures/mqtt/cleaning_stats/stats_response.json
+tests/fixtures/mqtt/dps_plain/battery_0.json
+tests/fixtures/mqtt/dps_plain/battery_100.json
+tests/fixtures/mqtt/dps_plain/battery_50.json
+tests/fixtures/mqtt/dps_plain/clean_speed_standard.json
+tests/fixtures/mqtt/dps_plain/find_robot_true.json
+tests/fixtures/mqtt/error_code/no_error.json
+tests/fixtures/mqtt/error_code/wheel_stuck.json
+tests/fixtures/mqtt/map_data/room_params.json
+tests/fixtures/mqtt/map_data/universal_data_response.json
+tests/fixtures/mqtt/scene_info/scenes_list.json
+tests/fixtures/mqtt/station_status/drying.json
+tests/fixtures/mqtt/station_status/emptying_dust.json
+tests/fixtures/mqtt/station_status/idle.json
+tests/fixtures/mqtt/station_status/washing.json
+tests/fixtures/mqtt/task_status/cleaning.json
+tests/fixtures/mqtt/task_status/paused.json
+tests/fixtures/mqtt/task_status/returning_to_charge.json
+tests/fixtures/mqtt/work_status/cleaning_active.json
+tests/fixtures/mqtt/work_status/cleaning_positioning.json
+tests/fixtures/mqtt/work_status/docked_charging.json
+tests/fixtures/mqtt/work_status/docked_drying.json
+tests/fixtures/mqtt/work_status/docked_washing.json
+tests/fixtures/mqtt/work_status/error.json
+tests/fixtures/mqtt/work_status/idle_sleep.json
+tests/fixtures/mqtt/work_status/idle_standby.json
+tests/fixtures/mqtt/work_status/returning.json
+tests/fixtures/mqtt/work_status/trigger_app.json
+tests/fixtures/mqtt/work_status/trigger_button.json
+tests/fixtures/mqtt/work_status/trigger_missing_app_mode.json
+tests/fixtures/mqtt/work_status/trigger_schedule.json
+tests/fixtures/sequences/dock_wash_dry_cycle.json
+tests/fixtures/sequences/full_cleaning_cycle.json

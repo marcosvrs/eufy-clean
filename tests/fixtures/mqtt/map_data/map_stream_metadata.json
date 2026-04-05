@@ -1,0 +1,32 @@
+{
+  "description": "Real captured: MAP_STREAM Metadata (stream channel version info)",
+  "raw_payload": {
+    "head": {
+      "version": "1.0.0.2",
+      "client_id": "android-anon-openudid-anon_user-0",
+      "sess_id": "android-anon-openudid-anon_user-0",
+      "msg_seq": 23403,
+      "cmd": 65537,
+      "cmd_status": 1,
+      "sign_code": 0,
+      "seed": "null",
+      "timestamp": 558,
+      "tz_offset": 100
+    },
+    "payload": {
+      "protocol": 1,
+      "t": 1773517060102,
+      "account_id": "ANON_USER_001",
+      "device_sn": "TXXX_ANON_001",
+      "data": {
+        "166": "DAoCCAESACIAMgA6AA=="
+      }
+    }
+  },
+  "dps": {
+    "166": "DAoCCAESACIAMgA6AA=="
+  },
+  "expected_state": {
+    "_note": "DPS 166 MAP_STREAM: Metadata with versions.map_data=1 — stream channel version info"
+  }
+}

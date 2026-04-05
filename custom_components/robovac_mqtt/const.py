@@ -578,6 +578,7 @@ DOCK_ACTIVITY_STATES = (
 
 # Modes that imply APP trigger source
 EUFY_CLEAN_APP_TRIGGER_MODES = {
+    0,  # AUTO
     1,  # SELECT_ROOM
     2,  # SELECT_ZONE
     3,  # SPOT

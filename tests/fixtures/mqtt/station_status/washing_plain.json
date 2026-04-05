@@ -1,0 +1,97 @@
+{
+  "description": "Real captured: StationResponse state=WASHING, no sub-flags, clean_water=40",
+  "raw_payload": {
+    "head": {
+      "version": "1.0.0.2",
+      "client_id": "android-anon-openudid-anon_user-0",
+      "sess_id": "android-anon-openudid-anon_user-0",
+      "msg_seq": 14403,
+      "cmd": 65537,
+      "cmd_status": 1,
+      "sign_code": 0,
+      "seed": "null",
+      "timestamp": 175,
+      "tz_offset": 100
+    },
+    "payload": {
+      "protocol": 1,
+      "t": 1773459385234,
+      "account_id": "ANON_USER_001",
+      "device_sn": "TXXX_ANON_001",
+      "data": {
+        "173": "MAokCgwKBggBGgIIGRIAGAESBAgBEgAyDgoCCAESBAgCGA8aAggBEgQIARABKgIIKA=="
+      }
+    }
+  },
+  "dps": {
+    "173": "MAokCgwKBggBGgIIGRIAGAESBAgBEgAyDgoCCAESBAgCGA8aAggBEgQIARABKgIIKA=="
+  },
+  "expected_state": {
+    "dock_status": "Washing"
+  },
+  "additional_captured_values": [
+    {
+      "dps": {
+        "173": "MAokCgwKBggBGgIIGRIAGAESBAgBEgAyDgoCCAESBAgCGA8aAggBEgQIARABKgIIJw=="
+      },
+      "source": "1775234631022_173.json",
+      "note": "washing plain, water=39"
+    },
+    {
+      "dps": {
+        "173": "MAokCgwKBggBGgIIGRIAGAESBAgBEgAyDgoCCAESBAgCGA8aAggBEgQIARABKgIIJg=="
+      },
+      "source": "1775234645640_173.json",
+      "note": "washing plain, water=38"
+    },
+    {
+      "dps": {
+        "173": "MAokCgwKBggBGgIIGRIAGAESBAgBEgAyDgoCCAESBAgCGA8aAggBEgQIARABKgIIJQ=="
+      },
+      "source": "1775234654896_173.json",
+      "note": "washing plain, water=37"
+    },
+    {
+      "dps": {
+        "173": "MAokCgwKBggBGgIIGRIAGAESBAgBEgAyDgoCCAESBAgCGA8aAggBEgQIARABKgIIIg=="
+      },
+      "source": "1775258066615_173.json",
+      "note": "Session 2: washing plain"
+    },
+    {
+      "dps": {
+        "173": "MAokCgwKBggBGgIIGRIAGAESBAgBEgAyDgoCCAESBAgCGA8aAggBEgQIARABKgIIIQ=="
+      },
+      "source": "1775258074465_173.json",
+      "note": "Session 2: washing plain"
+    },
+    {
+      "dps": {
+        "173": "MAokCgwKBggBGgIIGRIAGAESBAgBEgAyDgoCCAESBAgCGA8aAggBEgQIARABKgIIIA=="
+      },
+      "source": "1775258083587_173.json",
+      "note": "Session 2: washing plain"
+    },
+    {
+      "dps": {
+        "173": "MAokCgwKBggBGgIIGRIAGAESBAgBEgAyDgoCCAESBAgCGA8aAggBEgQIARABKgIIHw=="
+      },
+      "source": "1775258096491_173.json",
+      "note": "Session 2: washing plain"
+    },
+    {
+      "dps": {
+        "173": "MAokCgwKBggBGgIIGRIAGAESBAgBEgAyDgoCCAESBAgCGA8aAggBEgQIARABKgIIHg=="
+      },
+      "source": "1775258102577_173.json",
+      "note": "Session 2: washing plain"
+    },
+    {
+      "dps": {
+        "173": "LgokCgwKBggBGgIIGRIAGAESBAgBEgAyDgoCCAESBAgCGA8aAggBEgQIARABKgA="
+      },
+      "source": "eufy_anon_3/1775292095220_173.json",
+      "note": "Session 3/4: washing variant"
+    }
+  ]
+}

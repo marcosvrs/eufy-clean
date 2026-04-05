@@ -1,0 +1,169 @@
+{
+  "description": "Real captured: CleanStatistics (DPS 167) with session and total stats",
+  "raw_payload": {
+    "head": {
+      "version": "1.0.0.2",
+      "client_id": "android-anon-openudid-anon_user-0",
+      "sess_id": "android-anon-openudid-anon_user-0",
+      "msg_seq": 14281,
+      "cmd": 65537,
+      "cmd_status": 1,
+      "sign_code": 0,
+      "seed": "null",
+      "timestamp": 21,
+      "tz_offset": 100
+    },
+    "payload": {
+      "protocol": 1,
+      "t": 1773459231013,
+      "account_id": "ANON_USER_001",
+      "device_sn": "TXXX_ANON_001",
+      "data": {
+        "167": "GgoAEgoIss5eEK1oGLUEGgoIss5eEK1oGLUE",
+        "177": "CgiD7vP4nYgiUgA="
+      }
+    }
+  },
+  "dps": {
+    "167": "GgoAEgoIss5eEK1oGLUEGgoIss5eEK1oGLUE"
+  },
+  "expected_state": {
+    "cleaning_time": "real device stats",
+    "cleaning_area": "real device stats"
+  },
+  "additional_captured_values": [
+    {
+      "dps": {
+        "167": "GgoAEgoIpuZeEMhoGLcEGgoIpuZeEMhoGLcE"
+      },
+      "source": "eufy_anon_4/1775292574223_167.json",
+      "note": "Session 3/4: CleanStatistics variant"
+    },
+    {
+      "dps": {
+        "167": "GgoAEgoIruVeEMZoGLYEGgoIruVeEMZoGLYE"
+      },
+      "source": "eufy_anon_3/1775291910762_167_177.json",
+      "note": "Session 3/4: CleanStatistics variant"
+    },
+    {
+      "dps": {
+        "167": "HAoCCAoSCgim5l4QyGgYtwQaCgim5l4QyGgYtwQ="
+      },
+      "source": "eufy_anon_4/1775292584072_167.json",
+      "note": "Session 3/4: CleanStatistics variant"
+    },
+    {
+      "dps": {
+        "167": "HgoECB4QExIKCKbmXhDIaBi3BBoKCKbmXhDIaBi3BA=="
+      },
+      "source": "eufy_anon_4/1775292604071_167.json",
+      "note": "Session 3/4: CleanStatistics variant"
+    },
+    {
+      "dps": {
+        "167": "HgoECBQQCRIKCKbmXhDIaBi3BBoKCKbmXhDIaBi3BA=="
+      },
+      "source": "eufy_anon_4/1775292594071_167.json",
+      "note": "Session 3/4: CleanStatistics variant"
+    },
+    {
+      "dps": {
+        "167": "HgoECCgQExIKCKbmXhDIaBi3BBoKCKbmXhDIaBi3BA=="
+      },
+      "source": "eufy_anon_4/1775292614065_167.json",
+      "note": "Session 3/4: CleanStatistics variant"
+    },
+    {
+      "dps": {
+        "167": "HgoECDIQExIKCKbmXhDIaBi3BBoKCKbmXhDIaBi3BA=="
+      },
+      "source": "eufy_anon_4/1775292624076_167.json",
+      "note": "Session 3/4: CleanStatistics variant"
+    },
+    {
+      "dps": {
+        "167": "HgoECDwQARIKCK7lXhDGaBi2BBoKCK7lXhDGaBi2BA=="
+      },
+      "source": "eufy_anon_4/1775292408157_167.json",
+      "note": "Session 3/4: CleanStatistics variant"
+    },
+    {
+      "dps": {
+        "167": "HgoECDwQFxIKCKbmXhDIaBi3BBoKCKbmXhDIaBi3BA=="
+      },
+      "source": "eufy_anon_4/1775292634068_167.json",
+      "note": "Session 3/4: CleanStatistics variant"
+    },
+    {
+      "dps": {
+        "167": "HgoECEYQFxIKCKbmXhDIaBi3BBoKCKbmXhDIaBi3BA=="
+      },
+      "source": "eufy_anon_4/1775292644070_167.json",
+      "note": "Session 3/4: CleanStatistics variant"
+    },
+    {
+      "dps": {
+        "167": "HgoECFAQGxIKCKbmXhDIaBi3BBoKCKbmXhDIaBi3BA=="
+      },
+      "source": "eufy_anon_4/1775292654066_167.json",
+      "note": "Session 3/4: CleanStatistics variant"
+    },
+    {
+      "dps": {
+        "167": "HgoECFoQARIKCK7lXhDGaBi2BBoKCK7lXhDGaBi2BA=="
+      },
+      "source": "eufy_anon_4/1775292438170_167.json",
+      "note": "Session 3/4: CleanStatistics variant"
+    },
+    {
+      "dps": {
+        "167": "HgoECFoQGxIKCKbmXhDIaBi3BBoKCKbmXhDIaBi3BA=="
+      },
+      "source": "eufy_anon_4/1775292664063_167.json",
+      "note": "Session 3/4: CleanStatistics variant"
+    },
+    {
+      "dps": {
+        "167": "HgoECG4QHBIKCKbmXhDIaBi3BBoKCKbmXhDIaBi3BA=="
+      },
+      "source": "eufy_anon_4/1775292684072_167.json",
+      "note": "Session 3/4: CleanStatistics variant"
+    },
+    {
+      "dps": {
+        "167": "HgoECGQQGxIKCKbmXhDIaBi3BBoKCKbmXhDIaBi3BA=="
+      },
+      "source": "eufy_anon_4/1775292674063_167.json",
+      "note": "Session 3/4: CleanStatistics variant"
+    },
+    {
+      "dps": {
+        "167": "HgoECHgQAhIKCK7lXhDGaBi2BBoKCK7lXhDGaBi2BA=="
+      },
+      "source": "eufy_anon_4/1775292468155_167.json",
+      "note": "Session 3/4: CleanStatistics variant"
+    },
+    {
+      "dps": {
+        "167": "HgoECHgQAhIKCKbmXhDIaBi3BBoKCKbmXhDIaBi3BA=="
+      },
+      "source": "eufy_anon_4/1775292484752_167_168_177.json",
+      "note": "Session 3/4: CleanStatistics variant"
+    },
+    {
+      "dps": {
+        "167": "HgoECHgQHBIKCKbmXhDIaBi3BBoKCKbmXhDIaBi3BA=="
+      },
+      "source": "eufy_anon_4/1775292694065_167.json",
+      "note": "Session 3/4: CleanStatistics variant"
+    },
+    {
+      "dps": {
+        "167": "HwoFCIIBEBwSCgim5l4QyGgYtwQaCgim5l4QyGgYtwQ="
+      },
+      "source": "eufy_anon_4/1775292704163_167.json",
+      "note": "Session 3/4: CleanStatistics variant"
+    }
+  ]
+}

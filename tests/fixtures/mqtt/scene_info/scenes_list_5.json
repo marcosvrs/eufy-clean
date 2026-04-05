@@ -1,0 +1,35 @@
+{
+  "description": "Real captured: SceneResponse with 5 scenes (2 valid: Daily, Customize) — after adding custom scene",
+  "raw_payload": {
+    "head": {
+      "version": "1.0.0.2",
+      "client_id": "android-anon-openudid-anon_user-0",
+      "sess_id": "android-anon-openudid-anon_user-0",
+      "msg_seq": 15256,
+      "cmd": 65537,
+      "cmd_status": 1,
+      "sign_code": 0,
+      "seed": "null",
+      "timestamp": 384,
+      "tz_offset": 100
+    },
+    "payload": {
+      "protocol": 1,
+      "t": 1773482713533,
+      "account_id": "ANON_USER_001",
+      "device_sn": "TXXX_ANON_001",
+      "data": {
+        "180": "jwEIARB7GgAiEQoCCAQQASIFRGFpbHkoCDgBIiQKAggFGAEiFEZ1bGwgSG9tZSBEZWVwIENsZWFuKP7///8PQAIiHwoCCAYYASIPUG9zdC1NZWFsIENsZWFuKP7///8PQAMiFgoCCAcYAyIKRnVsbCBIb3VzZSgIOAMiFQoCCAgQASIJQ3VzdG9taXplKAg4BA=="
+      }
+    }
+  },
+  "dps": {
+    "180": "jwEIARB7GgAiEQoCCAQQASIFRGFpbHkoCDgBIiQKAggFGAEiFEZ1bGwgSG9tZSBEZWVwIENsZWFuKP7///8PQAIiHwoCCAYYASIPUG9zdC1NZWFsIENsZWFuKP7///8PQAMiFgoCCAcYAyIKRnVsbCBIb3VzZSgIOAMiFQoCCAgQASIJQ3VzdG9taXplKAg4BA=="
+  },
+  "expected_state": {
+    "scenes": [
+      {"id": 4, "name": "Daily", "type": 0},
+      {"id": 8, "name": "Customize", "type": 0}
+    ]
+  }
+}

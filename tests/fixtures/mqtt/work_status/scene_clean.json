@@ -1,0 +1,41 @@
+{
+  "description": "Real captured: WorkStatus mode=SCENE (8), state=CLEANING, no go_wash — scene clean in progress",
+  "raw_payload": {
+    "head": {
+      "version": "1.0.0.2",
+      "client_id": "android-anon-openudid-anon_user-0",
+      "sess_id": "android-anon-openudid-anon_user-0",
+      "msg_seq": 15262,
+      "cmd": 65537,
+      "cmd_status": 1,
+      "sign_code": 0,
+      "seed": "null",
+      "timestamp": 393,
+      "tz_offset": 100
+    },
+    "payload": {
+      "protocol": 1,
+      "t": 1773482722795,
+      "account_id": "ANON_USER_001",
+      "device_sn": "TXXX_ANON_001",
+      "data": {
+        "153": "JAoCCAgQBRoCGgAyAhgBcgIiAHoAmgENCAgiCUN1c3RvbWl6ZQ=="
+      }
+    }
+  },
+  "dps": {
+    "153": "JAoCCAgQBRoCGgAyAhgBcgIiAHoAmgENCAgiCUN1c3RvbWl6ZQ=="
+  },
+  "expected_state": {
+    "activity": "cleaning",
+    "work_mode": "Scene",
+    "task_status": "Cleaning"
+  },
+  "additional_captured_values": [
+    {
+      "dps": {"153": "IAoCCAgQBTICGAFyAiIAegCaAQ0ICCIJQ3VzdG9taXpl"},
+      "source": "1775258123865_153.json",
+      "note": "Session 2: scene clean active, slightly different encoding"
+    }
+  ]
+}

@@ -1,0 +1,34 @@
+{
+  "description": "Real captured: WorkStatus state=FAULT (2), mode=SELECT_ZONE — error triggered during zone clean",
+  "raw_payload": {
+    "head": {
+      "version": "1.0.0.2",
+      "client_id": "android-anon-openudid-anon_user-0",
+      "sess_id": "android-anon-openudid-anon_user-0",
+      "msg_seq": 14816,
+      "cmd": 65537,
+      "cmd_status": 1,
+      "sign_code": 0,
+      "seed": "null",
+      "timestamp": 96,
+      "tz_offset": 100
+    },
+    "payload": {
+      "protocol": 1,
+      "t": 1773482425918,
+      "account_id": "ANON_USER_001",
+      "device_sn": "TXXX_ANON_001",
+      "data": {
+        "153": "EAoCCAIQAjICCAFyAiIAegA="
+      }
+    }
+  },
+  "dps": {
+    "153": "EAoCCAIQAjICCAFyAiIAegA="
+  },
+  "expected_state": {
+    "activity": "error",
+    "task_status": "Error",
+    "work_mode": "Zone"
+  }
+}

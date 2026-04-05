@@ -1,0 +1,88 @@
+{
+  "description": "Real captured: ErrorCode no active errors, setting.warn_mask=[39] (error 39 suppressed)",
+  "raw_payload": {
+    "head": {
+      "version": "1.0.0.2",
+      "client_id": "android-anon-openudid-anon_user-0",
+      "sess_id": "android-anon-openudid-anon_user-0",
+      "msg_seq": 14422,
+      "cmd": 65537,
+      "cmd_status": 1,
+      "sign_code": 0,
+      "seed": "null",
+      "timestamp": 257,
+      "tz_offset": 100
+    },
+    "payload": {
+      "protocol": 1,
+      "t": 1773459466976,
+      "account_id": "ANON_USER_001",
+      "device_sn": "TXXX_ANON_001",
+      "data": {
+        "177": "Dwin1c/ojI8iIgMKASdSAA=="
+      }
+    }
+  },
+  "dps": {
+    "177": "Dwin1c/ojI8iIgMKASdSAA=="
+  },
+  "expected_state": {
+    "error_code": 0,
+    "error_message": ""
+  },
+  "additional_captured_values": [
+    {
+      "dps": {
+        "177": "Dwjm0r7S+I8iIgMKASdSAA=="
+      },
+      "source": "1775234732720_177.json",
+      "note": "no error, warn_mask=[39]"
+    },
+    {
+      "dps": {
+        "177": "Dwj/sa+dvZEiIgMKASdSAA=="
+      },
+      "source": "1775234785496_177.json",
+      "note": "no error, warn_mask=[39]"
+    },
+    {
+      "dps": {
+        "177": "Dwi90bj1vZQiIgMKASdSAA=="
+      },
+      "source": "1775234888804_177.json",
+      "note": "no error, warn_mask=[39]"
+    },
+    {
+      "dps": {
+        "177": "DwjE6b2b1ZgiIgMKASdSAA=="
+      },
+      "source": "1775235032498_177.json",
+      "note": "no error, warn_mask=[39]"
+    },
+    {
+      "dps": {"177": "DwifsIi+h6snIgMKASdSAA=="},
+      "source": "1775257655890_177.json",
+      "note": "Session 2: no error, warn_mask=[39]"
+    },
+    {
+      "dps": {"177": "Dwjy57GJ2qwnIgMKAR9SAA=="},
+      "source": "1775257712419_177.json",
+      "note": "Session 2: no error, warn_mask=[31]"
+    },
+    {
+      "dps": {"177": "Dwie06G0s7AnIgMKAR9SAA=="},
+      "source": "1775257839433_177.json",
+      "note": "Session 2: no error, warn_mask=[31]"
+    },
+    {
+      "dps": {"177": "Dwju7arnzbQnIgMKAR9SAA=="},
+      "source": "1775257983965_177.json",
+      "note": "Session 2: no error, warn_mask=[31]"
+    },
+    {
+      "dps": {"177": "DwjMkoO3z7QnIgMKAVVSAA=="},
+      "source": "1775257984430_177.json",
+      "note": "Session 2: no error, warn_mask=[85]"
+    }
+  ]
+}

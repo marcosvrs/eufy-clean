@@ -1,0 +1,20 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.12, pytest-8.3.4, pluggy-1.6.0 -- /usr/bin/python
+cachedir: .pytest_cache
+rootdir: /workspace/eufy-clean
+configfile: pyproject.toml
+plugins: picked-0.5.0, sugar-1.0.0, timeout-2.3.1, unordered-0.6.1, xdist-3.6.1, anyio-4.13.0, socket-0.7.0, github-actions-annotate-failures-0.2.0, syrupy-4.8.0, homeassistant-custom-component-0.13.205, pytest_freezer-0.4.8, respx-0.21.1, aiohttp-1.0.5, asyncio-0.24.0, cov-6.0.0, requests-mock-1.12.1
+asyncio: mode=Mode.AUTO, default_loop_scope=None
+collecting ... collected 29 items / 20 deselected / 9 selected
+
+tests/integration/test_parser_work_status.py::test_state_0_is_idle PASSED [ 11%]
+tests/integration/test_parser_work_status.py::test_state_1_is_idle_sleep PASSED [ 22%]
+tests/integration/test_parser_work_status.py::test_state_2_is_error PASSED [ 33%]
+tests/integration/test_parser_work_status.py::test_state_3_is_docked PASSED [ 44%]
+tests/integration/test_parser_work_status.py::test_state_4_is_cleaning PASSED [ 55%]
+tests/integration/test_parser_work_status.py::test_state_5_no_station_is_cleaning PASSED [ 66%]
+tests/integration/test_parser_work_status.py::test_state_7_is_returning PASSED [ 77%]
+tests/integration/test_parser_work_status.py::test_status_code_reflects_raw_state PASSED [ 88%]
+tests/integration/test_parser_work_status.py::test_status_code_docked PASSED [100%]
+
+======================= 9 passed, 20 deselected in 0.79s =======================

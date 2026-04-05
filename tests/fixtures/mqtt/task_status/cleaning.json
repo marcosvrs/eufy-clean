@@ -1,0 +1,33 @@
+{
+  "description": "Real captured: WorkStatus actively cleaning (state=CLEANING, cleaning.state not set = DOING)",
+  "raw_payload": {
+    "head": {
+      "version": "1.0.0.2",
+      "client_id": "android-anon-openudid-anon_user-0",
+      "sess_id": "android-anon-openudid-anon_user-0",
+      "msg_seq": 14738,
+      "cmd": 65537,
+      "cmd_status": 1,
+      "sign_code": 0,
+      "seed": "null",
+      "timestamp": 65,
+      "tz_offset": 100
+    },
+    "payload": {
+      "protocol": 1,
+      "t": 1773482394664,
+      "account_id": "ANON_USER_001",
+      "device_sn": "TXXX_ANON_001",
+      "data": {
+        "153": "EgoCCAIQBRoCGgAyAHICIgB6AA=="
+      }
+    }
+  },
+  "dps": {
+    "153": "EgoCCAIQBRoCGgAyAHICIgB6AA=="
+  },
+  "expected_state": {
+    "activity": "cleaning",
+    "task_status": "Cleaning"
+  }
+}

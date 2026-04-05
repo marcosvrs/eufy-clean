@@ -1,0 +1,10 @@
+{
+  "description": "ErrorCode with warn=2 (WHEEL STUCK)",
+  "dps": {
+    "177": "AxoBAg=="
+  },
+  "expected_state": {
+    "error_code": 2,
+    "error_message": "WHEEL STUCK"
+  }
+}

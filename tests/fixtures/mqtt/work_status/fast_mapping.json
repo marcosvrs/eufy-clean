@@ -1,0 +1,40 @@
+{
+  "description": "Real captured: WorkStatus state=FAST_MAPPING (map scan without cleaning)",
+  "raw_payload": {
+    "head": {
+      "version": "1.0.0.2",
+      "client_id": "android-anon-openudid-anon_user-0",
+      "sess_id": "android-anon-openudid-anon_user-0",
+      "msg_seq": 23979,
+      "cmd": 65537,
+      "cmd_status": 1,
+      "sign_code": 0,
+      "seed": "null",
+      "timestamp": 170,
+      "tz_offset": 100
+    },
+    "payload": {
+      "protocol": 1,
+      "t": 1773517280881,
+      "account_id": "ANON_USER_001",
+      "device_sn": "TXXX_ANON_001",
+      "data": {
+        "153": "EgoCCAQQBBoCGgAqAHICIgB6AA=="
+      }
+    }
+  },
+  "dps": {
+    "153": "EgoCCAQQBBoCGgAqAHICIgB6AA=="
+  },
+  "expected_state": {
+    "work_mode": "Fast Mapping",
+    "_note": "state=4, mode=4 (FAST_MAPPING) — real fast mapping captured from session 4"
+  },
+  "additional_captured_values": [
+    {
+      "dps": {"153": "DgoCCAQQBCoAcgIiAHoA"},
+      "source": "eufy_anon_4/1775292574860_153.json",
+      "note": "FAST_MAPPING shorter variant"
+    }
+  ]
+}

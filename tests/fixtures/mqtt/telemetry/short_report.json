@@ -1,0 +1,32 @@
+{
+  "description": "Real captured: DPS 179 telemetry \u2014 short report with battery (16-byte format)",
+  "raw_payload": {
+    "head": {
+      "version": "1.0.0.2",
+      "client_id": "android-anon-openudid-anon_user-0",
+      "sess_id": "android-anon-openudid-anon_user-0",
+      "msg_seq": 14434,
+      "cmd": 65537,
+      "cmd_status": 1,
+      "sign_code": 0,
+      "seed": "null",
+      "timestamp": 429,
+      "tz_offset": 100
+    },
+    "payload": {
+      "protocol": 1,
+      "t": 1773459638894,
+      "account_id": "ANON_USER_001",
+      "device_sn": "TXXX_ANON_001",
+      "data": {
+        "179": "DxINIgsItQQQARir3b/OBg=="
+      }
+    }
+  },
+  "dps": {
+    "179": "DxINIgsItQQQARir3b/OBg=="
+  },
+  "expected_state": {
+    "_note": "Short format \u2014 _parse_robot_telemetry may return None"
+  }
+}

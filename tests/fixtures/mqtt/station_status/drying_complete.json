@@ -1,0 +1,40 @@
+{
+  "description": "Real captured: StationResponse DRYING with empty tank (end of dry cycle)",
+  "raw_payload": {
+    "head": {
+      "version": "1.0.0.2",
+      "client_id": "android-anon-openudid-anon_user-0",
+      "sess_id": "android-anon-openudid-anon_user-0",
+      "msg_seq": 23971,
+      "cmd": 65537,
+      "cmd_status": 1,
+      "sign_code": 0,
+      "seed": "null",
+      "timestamp": 145,
+      "tz_offset": 100
+    },
+    "payload": {
+      "protocol": 1,
+      "t": 1773517256559,
+      "account_id": "ANON_USER_001",
+      "device_sn": "TXXX_ANON_001",
+      "data": {
+        "173": "MAomCgwKBggBGgIIGRIAGAESBAgBEgAyEAoCCAESBggCEA8YDxoCCAESBAgBEAIqAA=="
+      }
+    }
+  },
+  "dps": {
+    "173": "MAomCgwKBggBGgIIGRIAGAESBAgBEgAyEAoCCAESBggCEA8YDxoCCAESBAgBEAIqAA=="
+  },
+  "expected_state": {
+    "dock_status": "Drying",
+    "_note": "StationResponse DRYING(2), water=0 — end of dry cycle with empty tank"
+  },
+  "additional_captured_values": [
+    {
+      "dps": {"173": "MAomCgwKBggBGgIIGRIAGAESBAgBEgAyEAoCCAESBggCEA8YDxoCCAESBAgBEAIqAA=="},
+      "source": "eufy_anon_4/1775292569560_173.json",
+      "note": "drying, water=0, identical value"
+    }
+  ]
+}

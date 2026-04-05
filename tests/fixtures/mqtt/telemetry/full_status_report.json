@@ -1,0 +1,36 @@
+{
+  "description": "Real captured: DPS 179 telemetry \u2014 full status report with multiple segments (143-byte format)",
+  "raw_payload": {
+    "head": {
+      "version": "1.0.0.2",
+      "client_id": "android-anon-openudid-anon_user-0",
+      "sess_id": "android-anon-openudid-anon_user-0",
+      "msg_seq": 14635,
+      "cmd": 65537,
+      "cmd_status": 1,
+      "sign_code": 0,
+      "seed": "null",
+      "timestamp": 526,
+      "tz_offset": 100
+    },
+    "payload": {
+      "protocol": 1,
+      "t": 1773459736435,
+      "account_id": "ANON_USER_001",
+      "device_sn": "TXXX_ANON_001",
+      "data": {
+        "179": "jQESigEKhwHKAiIIBRjH3r/OBiIAKg0I1wMQAhgCINgDKNcDMNcDOAJAAkoAygIqCAEYzd6/zgYiACoVCOsFEAcYByDXAyjn9/////////8BMOsFOAdAB0oAygIyCAUYmt+/zgYiACodCLQLECoYKiCP/v////////8BKNHw/////////wEwtAs4KkAqSgA="
+      }
+    }
+  },
+  "dps": {
+    "179": "jQESigEKhwHKAiIIBRjH3r/OBiIAKg0I1wMQAhgCINgDKNcDMNcDOAJAAkoAygIqCAEYzd6/zgYiACoVCOsFEAcYByDXAyjn9/////////8BMOsFOAdAB0oAygIyCAUYmt+/zgYiACodCLQLECoYKiCP/v////////8BKNHw/////////wEwtAs4KkAqSgA="
+  },
+  "expected_state": {
+    "_note": "Largest telemetry format with 3 nested segments \u2014 _parse_robot_telemetry extracts x,y if present"
+  },
+  "additional_captured_values": [
+    {"dps": {"179": "NxI1CjPKAjAY6JLBzgYiACodCLYNEBkYGSDt/f////////8BKJvw/////////wEwtg04GUAZSgA="}, "source": "1775257964524_179.json", "note": "Session 2: full status report variant"},
+    {"dps": {"179": "WBJWClTKAiAY/JLBzgYiACoNCLwEEAEYASC8BCi8BDC8BDgBQAFKAMoCLggFGJqUwc4GIgAqFwj1BBCOARiOASDTBijn9P////////8BMPUEOI4BQI4BSgA="}, "source": "1775258141653_179.json", "note": "Session 2: full status report variant"}
+  ]
+}

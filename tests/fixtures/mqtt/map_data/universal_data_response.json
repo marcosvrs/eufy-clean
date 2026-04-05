@@ -1,0 +1,23 @@
+{
+  "description": "UniversalDataResponse with 3 rooms on map_id=4",
+  "dps": {
+    "165": "RwpFCAQSEwgBEgdLaXRjaGVuGgYIBBICCAESFwgCEgtMaXZpbmcgUm9vbRoGCAUSAggBEhMIAxIHQmVkcm9vbRoGCAISAggB"
+  },
+  "expected_state": {
+    "map_id": 4,
+    "rooms": [
+      {
+        "id": 1,
+        "name": "Kitchen"
+      },
+      {
+        "id": 2,
+        "name": "Living Room"
+      },
+      {
+        "id": 3,
+        "name": "Bedroom"
+      }
+    ]
+  }
+}

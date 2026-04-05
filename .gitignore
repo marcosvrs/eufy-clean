@@ -1,20 +1,52 @@
-build
-out
-venv
-.python-version
-.kiro
-.git
-node_modules
-# build
+# ── Build / dist ──────────────────────────────────────────────────────
+build/
+out/
+dist/
 *.tgz
-.DS_Store
-**/__pycache__
+*.egg-info/
+
+# ── Python environments ───────────────────────────────────────────────
+venv/
+.venv/
+.python-version
+**/__pycache__/
+*.py[cod]
+*.pyo
+
+# ── Secrets / credentials ─────────────────────────────────────────────
 *.pem
 *.key
-# proto/cloud/*.py
-**/__pycache__
 *.env
+.env.*
 config/
+
+# ── Raw capture data (real device traffic — never commit) ─────────────
+# Anonymized fixtures go in tests/fixtures/ instead
+/tmp/eufy_capture_*/
+/tmp/eufy_anon_*/
+
+# ── Orchestrator internal state ───────────────────────────────────────
+# Plans, notepads, and evidence ARE committed (project knowledge)
+# Only the runtime boulder state is excluded
+.sisyphus/boulder.json
+.sisyphus/drafts/
+
+# ── Test / coverage artifacts ─────────────────────────────────────────
+.pytest_cache/
+.coverage
+coverage.xml
+htmlcov/
+*.lcov
+
+# ── IDE / editor ──────────────────────────────────────────────────────
 .idea/
+.vscode/settings.json
+.DS_Store
+*.swp
+*.swo
+
+# ── Tool-specific ─────────────────────────────────────────────────────
+.kiro/
 .claude/
+node_modules/
 RELEASE_NOTES.md

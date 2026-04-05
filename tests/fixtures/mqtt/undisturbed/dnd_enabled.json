@@ -1,0 +1,32 @@
+{
+  "description": "Real captured: UndisturbedResponse DND enabled (22:00-05:00)",
+  "raw_payload": {
+    "head": {
+      "version": "1.0.0.2",
+      "client_id": "android-anon-openudid-anon_user-0",
+      "sess_id": "android-anon-openudid-anon_user-0",
+      "msg_seq": 22914,
+      "cmd": 65537,
+      "cmd_status": 1,
+      "sign_code": 0,
+      "seed": "null",
+      "timestamp": 64,
+      "tz_offset": 100
+    },
+    "payload": {
+      "protocol": 1,
+      "t": 1773516565995,
+      "account_id": "ANON_USER_001",
+      "device_sn": "TXXX_ANON_001",
+      "data": {
+        "157": "EAoAEgwKAggBEgIIFhoCCAU="
+      }
+    }
+  },
+  "dps": {
+    "157": "EAoAEgwKAggBEgIIFhoCCAU="
+  },
+  "expected_state": {
+    "_note": "DPS 157 UndisturbedResponse: sw.value=true, begin.hour=22, end.hour=5 — DND schedule enabled"
+  }
+}

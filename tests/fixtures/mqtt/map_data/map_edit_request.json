@@ -1,0 +1,97 @@
+{
+  "description": "Real captured: MapEditRequest method=SET_CRUISE_POINTS (stored in raw_dps)",
+  "raw_payload": {
+    "head": {
+      "version": "1.0.0.2",
+      "client_id": "android-anon-openudid-anon_user-0",
+      "sess_id": "android-anon-openudid-anon_user-0",
+      "msg_seq": 14275,
+      "cmd": 65537,
+      "cmd_status": 1,
+      "sign_code": 0,
+      "seed": "null",
+      "timestamp": 0,
+      "tz_offset": 100
+    },
+    "payload": {
+      "protocol": 1,
+      "t": 1773459210167,
+      "account_id": "ANON_USER_001",
+      "device_sn": "TXXX_ANON_001",
+      "data": {
+        "164": "YggGEGQaACJaCgIIARIECAEQARoMCAESBBgFIB4aAgh/IjEYvva79M4zIig2NGEwNmVjNmViY2VjMjQ1MjliNTYzODAxYzU3NzQ0ZjdjZDQwNTMyKg0IAzIJCAQSBURhaWx5"
+      }
+    }
+  },
+  "dps": {
+    "164": "YggGEGQaACJaCgIIARIECAEQARoMCAESBBgFIB4aAgh/IjEYvva79M4zIig2NGEwNmVjNmViY2VjMjQ1MjliNTYzODAxYzU3NzQ0ZjdjZDQwNTMyKg0IAzIJCAQSBURhaWx5"
+  },
+  "expected_state": {
+    "_note": "MapEditRequest is a send-only DPS; parser stores in raw_dps"
+  },
+  "additional_captured_values": [
+    {
+      "dps": {
+        "164": "7AEIARoAIloKAggBEgQIARABGgwIARIEGAUgHhoCCH8iMRi+9rv0zjMiKDY0YTA2ZWM2ZWJjZWMyNDUyOWI1NjM4MDFjNTc3NDRmN2NkNDA1MzIqDQgDMgkIBBIFRGFpbHkiiQEKAggCEgQIARABGgYSAiANGgAiYgjj7fus1TMSKDY0YTA2ZWM2ZWJjZWMyNDUyOWI1NjM4MDFjNTc3NDRmN2NkNDA1MzIY4+37rNUzIig2NGEwNmVjNmViY2VjMjQ1MjliNTYzODAxYzU3NzQ0ZjdjZDQwNTMyKhEIAzINCAgSCUN1c3RvbWl6ZQ=="
+      },
+      "source": "1775257974627_164.json",
+      "note": "Session 2: MapEditRequest with 2 scene entries"
+    },
+    {
+      "dps": {
+        "164": "6AEaACJaCgIIARIECAEQARoMCAESBBgFIB4aAgh/IjEYvva79M4zIig2NGEwNmVjNmViY2VjMjQ1MjliNTYzODAxYzU3NzQ0ZjdjZDQwNTMyKg0IAzIJCAQSBURhaWx5IocBCgIIAhICCAEaBhICIA0aACJiCOPt+6zVMxIoNjRhMDZlYzZlYmNlYzI0NTI5YjU2MzgwMWM1Nzc0NGY3Y2Q0MDUzMhjj7fus1TMiKDY0YTA2ZWM2ZWJjZWMyNDUyOWI1NjM4MDFjNTc3NDRmN2NkNDA1MzIqEQgDMg0ICBIJQ3VzdG9taXpl"
+      },
+      "source": "1775257983633_164.json",
+      "note": "Session 2: MapEditRequest variant"
+    },
+    {
+      "dps": {
+        "164": "6wEIBRDRARoAIlgKAggBEgIIARoMCAESBBgFIB4aAgh/IjEYsdiqvdUzIig2NGEwNmVjNmViY2VjMjQ1MjliNTYzODAxYzU3NzQ0ZjdjZDQwNTMyKg0IAzIJCAQSBURhaWx5IocBCgIIAhICCAEaBhICIA0aACJiCOPt+6zVMxIoNjRhMDZlYzZlYmNlYzI0NTI5YjU2MzgwMWM1Nzc0NGY3Y2Q0MDUzMhjj7fus1TMiKDY0YTA2ZWM2ZWJjZWMyNDUyOWI1NjM4MDFjNTc3NDRmN2NkNDA1MzIqEQgDMg0ICBIJQ3VzdG9taXpl"
+      },
+      "source": "eufy_anon_3/1775292296342_164.json",
+      "note": "Session 3/4: MapEditRequest variant"
+    },
+    {
+      "dps": {
+        "164": "7AEIBhBkGgAiWgoCCAESBAgBEAEaDAgBEgQYBSAeGgIIfyIxGL72u/TOMyIoNjRhMDZlYzZlYmNlYzI0NTI5YjU2MzgwMWM1Nzc0NGY3Y2Q0MDUzMioNCAMyCQgEEgVEYWlseSKHAQoCCAISAggBGgYSAiANGgAiYgjj7fus1TMSKDY0YTA2ZWM2ZWJjZWMyNDUyOWI1NjM4MDFjNTc3NDRmN2NkNDA1MzIY4+37rNUzIig2NGEwNmVjNmViY2VjMjQ1MjliNTYzODAxYzU3NzQ0ZjdjZDQwNTMyKhEIAzINCAgSCUN1c3RvbWl6ZQ=="
+      },
+      "source": "eufy_anon_3/1775291793930_164.json",
+      "note": "Session 3/4: MapEditRequest variant"
+    },
+    {
+      "dps": {
+        "164": "7QEIBBDSARoAIloKAggBEgQIARABGgwIARIEGAUgHhoCCH8iMRi/7Kq91TMiKDY0YTA2ZWM2ZWJjZWMyNDUyOWI1NjM4MDFjNTc3NDRmN2NkNDA1MzIqDQgDMgkIBBIFRGFpbHkihwEKAggCEgIIARoGEgIgDRoAImII4+37rNUzEig2NGEwNmVjNmViY2VjMjQ1MjliNTYzODAxYzU3NzQ0ZjdjZDQwNTMyGOPt+6zVMyIoNjRhMDZlYzZlYmNlYzI0NTI5YjU2MzgwMWM1Nzc0NGY3Y2Q0MDUzMioRCAMyDQgIEglDdXN0b21pemU="
+      },
+      "source": "eufy_anon_3/1775292298918_164.json",
+      "note": "Session 3/4: MapEditRequest variant"
+    },
+    {
+      "dps": {
+        "164": "7QEIBhDPARoAIloKAggBEgQIARABGgwIARIEGAUgHhoCCH8iMRi+9rv0zjMiKDY0YTA2ZWM2ZWJjZWMyNDUyOWI1NjM4MDFjNTc3NDRmN2NkNDA1MzIqDQgDMgkIBBIFRGFpbHkihwEKAggCEgIIARoGEgIgDRoAImII4+37rNUzEig2NGEwNmVjNmViY2VjMjQ1MjliNTYzODAxYzU3NzQ0ZjdjZDQwNTMyGOPt+6zVMyIoNjRhMDZlYzZlYmNlYzI0NTI5YjU2MzgwMWM1Nzc0NGY3Y2Q0MDUzMioRCAMyDQgIEglDdXN0b21pemU="
+      },
+      "source": "eufy_anon_3/1775292290979_164.json",
+      "note": "Session 3/4: MapEditRequest variant"
+    },
+    {
+      "dps": {
+        "164": "7QEIBhDQARoAIloKAggBEgQIARABGgwIARIEGAUgHhoCCH8iMRi+9rv0zjMiKDY0YTA2ZWM2ZWJjZWMyNDUyOWI1NjM4MDFjNTc3NDRmN2NkNDA1MzIqDQgDMgkIBBIFRGFpbHkihwEKAggCEgIIARoGEgIgDRoAImII4+37rNUzEig2NGEwNmVjNmViY2VjMjQ1MjliNTYzODAxYzU3NzQ0ZjdjZDQwNTMyGOPt+6zVMyIoNjRhMDZlYzZlYmNlYzI0NTI5YjU2MzgwMWM1Nzc0NGY3Y2Q0MDUzMioRCAMyDQgIEglDdXN0b21pemU="
+      },
+      "source": "eufy_anon_3/1775292291045_164.json",
+      "note": "Session 3/4: MapEditRequest variant"
+    },
+    {
+      "dps": {
+        "164": "YwgCENMBGgAiWgoCCAESBAgBEAEaDAgBEgQYBSAeGgIIfyIxGL/sqr3VMyIoNjRhMDZlYzZlYmNlYzI0NTI5YjU2MzgwMWM1Nzc0NGY3Y2Q0MDUzMioNCAMyCQgEEgVEYWlseQ=="
+      },
+      "source": "eufy_anon_3/1775292304196_164.json",
+      "note": "Session 3/4: MapEditRequest variant"
+    },
+    {
+      "dps": {
+        "164": "YwgGEN4BGgAiWgoCCAESBAgBEAEaDAgBEgQYBSAeGgIIfyIxGL/sqr3VMyIoNjRhMDZlYzZlYmNlYzI0NTI5YjU2MzgwMWM1Nzc0NGY3Y2Q0MDUzMioNCAMyCQgEEgVEYWlseQ=="
+      },
+      "source": "eufy_anon_4/1775292447380_164.json",
+      "note": "Session 3/4: MapEditRequest variant"
+    }
+  ]
+}

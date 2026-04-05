@@ -1,0 +1,43 @@
+{
+  "description": "Real captured: RoomParams with 8 rooms on map_id=8 (Living Room, Guest Bathroom, etc.)",
+  "raw_payload": {
+    "head": {
+      "version": "1.0.0.2",
+      "client_id": "android-anon-openudid-anon_user-0",
+      "sess_id": "android-anon-openudid-anon_user-0",
+      "msg_seq": 14727,
+      "cmd": 65537,
+      "cmd_status": 1,
+      "sign_code": 0,
+      "seed": "null",
+      "timestamp": 32,
+      "tz_offset": 100
+    },
+    "payload": {
+      "protocol": 1,
+      "t": 1773482361568,
+      "account_id": "ANON_USER_001",
+      "device_sn": "TXXX_ANON_001",
+      "data": {
+        "176": "RwoAGgAiACoCCAEyAEIECKCZAkoAUg4KAggBEgIIASICCAFCAFhSagIIAXIAegCCAQIIAZIBAKoBALIBAggBugEGCgASABoA",
+        "165": "ngEKmwEICBIRCAESC0xpdmluZyBSb29tGgASFggCEg5HdWVzdCBCYXRocm9vbRoCCAMSDQgDEgdIYWxsd2F5GgASFwgEEg9NYXN0ZXIgQmF0aHJvb20aAggDEg8IBRIHS2l0Y2hlbhoCCAQSFggGEg5NYXN0ZXIgYmVkcm9vbRoCCAISBAgHGgASFQgIEg1HdWVzdCBCZWRyb29tGgIICA=="
+      }
+    }
+  },
+  "dps": {
+    "165": "ngEKmwEICBIRCAESC0xpdmluZyBSb29tGgASFggCEg5HdWVzdCBCYXRocm9vbRoCCAMSDQgDEgdIYWxsd2F5GgASFwgEEg9NYXN0ZXIgQmF0aHJvb20aAggDEg8IBRIHS2l0Y2hlbhoCCAQSFggGEg5NYXN0ZXIgYmVkcm9vbRoCCAISBAgHGgASFQgIEg1HdWVzdCBCZWRyb29tGgIICA=="
+  },
+  "expected_state": {
+    "map_id": 8,
+    "rooms": [
+      {"id": 1, "name": "Living Room"},
+      {"id": 2, "name": "Guest Bathroom"},
+      {"id": 3, "name": "Hallway"},
+      {"id": 4, "name": "Master Bathroom"},
+      {"id": 5, "name": "Kitchen"},
+      {"id": 6, "name": "Master bedroom"},
+      {"id": 7, "name": "Room 7"},
+      {"id": 8, "name": "Guest Bedroom"}
+    ]
+  }
+}

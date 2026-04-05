@@ -1,0 +1,32 @@
+{
+  "description": "Real captured: MultiMapsManageResponse MAP_RENAME",
+  "raw_payload": {
+    "head": {
+      "version": "1.0.0.2",
+      "client_id": "android-anon-openudid-anon_user-0",
+      "sess_id": "android-anon-openudid-anon_user-0",
+      "msg_seq": 23778,
+      "cmd": 65537,
+      "cmd_status": 1,
+      "sign_code": 0,
+      "seed": "null",
+      "timestamp": 73,
+      "tz_offset": 100
+    },
+    "payload": {
+      "protocol": 1,
+      "t": 1773517184517,
+      "account_id": "ANON_USER_001",
+      "device_sn": "TXXX_ANON_001",
+      "data": {
+        "172": "BQgBEOEB"
+      }
+    }
+  },
+  "dps": {
+    "172": "BQgBEOEB"
+  },
+  "expected_state": {
+    "_note": "DPS 172 MultiMapsManageResponse: method=MAP_RENAME(1), seq=225"
+  }
+}

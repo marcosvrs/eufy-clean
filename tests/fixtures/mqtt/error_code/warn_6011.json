@@ -1,0 +1,174 @@
+{
+  "description": "Real captured: ErrorCode warn=6011 (mop wash warning)",
+  "raw_payload": {
+    "head": {
+      "version": "1.0.0.2",
+      "client_id": "android-anon-openudid-anon_user-0",
+      "sess_id": "android-anon-openudid-anon_user-0",
+      "msg_seq": 23250,
+      "cmd": 65537,
+      "cmd_status": 1,
+      "sign_code": 0,
+      "seed": "null",
+      "timestamp": 309,
+      "tz_offset": 100
+    },
+    "payload": {
+      "protocol": 1,
+      "t": 1773516810665,
+      "account_id": "ANON_USER_001",
+      "device_sn": "TXXX_ANON_001",
+      "data": {
+        "177": "FAj46vO8x5UvGgL7LiIAUgQSAvsu"
+      }
+    }
+  },
+  "dps": {
+    "177": "FAj46vO8x5UvGgL7LiIAUgQSAvsu"
+  },
+  "expected_state": {
+    "_note": "ErrorCode with warns=[6011] — mop wash warning, parser uses first warn code"
+  },
+  "additional_captured_values": [
+    {
+      "dps": {
+        "177": "EAi28OXc+pYvGgL7LiIAUgA="
+      },
+      "source": "eufy_anon_3/1775292151337_177.json",
+      "note": "Session 3/4: no-error heartbeat"
+    },
+    {
+      "dps": {
+        "177": "EAi2jeHb1KAvGgL7LiIAUgA="
+      },
+      "source": "eufy_anon_4/1775292484752_167_168_177.json",
+      "note": "Session 3/4: no-error heartbeat"
+    },
+    {
+      "dps": {
+        "177": "EAi5qbCq1aMvGgL7LiIAUgA="
+      },
+      "source": "eufy_anon_4/1775292587957_177.json",
+      "note": "Session 3/4: no-error heartbeat"
+    },
+    {
+      "dps": {
+        "177": "EAi8keWDhacvGgL7LiIAUgA="
+      },
+      "source": "eufy_anon_4/1775292703825_177.json",
+      "note": "Session 3/4: no-error heartbeat"
+    },
+    {
+      "dps": {
+        "177": "EAiMjqTHkKcvGgL7LiIAUgA="
+      },
+      "source": "eufy_anon_4/1775292709201_177_178.json",
+      "note": "Session 3/4: no-error heartbeat"
+    },
+    {
+      "dps": {
+        "177": "EAiPnJzG06MvGgL7LiIAUgA="
+      },
+      "source": "eufy_anon_4/1775292587457_177.json",
+      "note": "Session 3/4: no-error heartbeat"
+    },
+    {
+      "dps": {
+        "177": "EAigqL+MyJEvGgL7LiIAUgA="
+      },
+      "source": "eufy_anon_3/1775291965988_177.json",
+      "note": "Session 3/4: no-error heartbeat"
+    },
+    {
+      "dps": {
+        "177": "EAikgIWP/JIvGgL7LiIAUgA="
+      },
+      "source": "eufy_anon_3/1775292014230_177.json",
+      "note": "Session 3/4: no-error heartbeat"
+    },
+    {
+      "dps": {
+        "177": "EAinpOHBk5QvGgL7LiIAUgA="
+      },
+      "source": "eufy_anon_3/1775292054933_177.json",
+      "note": "Session 3/4: no-error heartbeat"
+    },
+    {
+      "dps": {
+        "177": "EAio7N25lZ0vGgL7LiIAUgA="
+      },
+      "source": "eufy_anon_3/1775292364648_177.json",
+      "note": "Session 3/4: no-error heartbeat"
+    },
+    {
+      "dps": {
+        "177": "EAis0oicoaMvGgL7LiIAUgA="
+      },
+      "source": "eufy_anon_4/1775292573957_177.json",
+      "note": "Session 3/4: no-error heartbeat"
+    },
+    {
+      "dps": {
+        "177": "EAiz25f4+ZIvGgL7LiIAUgA="
+      },
+      "source": "eufy_anon_3/1775292013630_177.json",
+      "note": "Session 3/4: no-error heartbeat"
+    },
+    {
+      "dps": {
+        "177": "EAj+quj/+Y8vGgL7LiIAUgA="
+      },
+      "source": "eufy_anon_3/1775291910626_177.json",
+      "note": "Session 3/4: no-error heartbeat"
+    },
+    {
+      "dps": {
+        "177": "EAj0tMXRjJAvGgL7LiIAUgA="
+      },
+      "source": "eufy_anon_3/1775291915656_177_178.json",
+      "note": "Session 3/4: no-error heartbeat"
+    },
+    {
+      "dps": {
+        "177": "EAjW/dvKgI8vGgL7LiIAUgA="
+      },
+      "source": "eufy_anon_3/1775291877958_177.json",
+      "note": "Session 3/4: no-error heartbeat"
+    },
+    {
+      "dps": {
+        "177": "EAjlhv7SsaIvGgL7LiIAUgA="
+      },
+      "source": "eufy_anon_4/1775292544055_177.json",
+      "note": "Session 3/4: no-error heartbeat"
+    },
+    {
+      "dps": {
+        "177": "EwiB7uuSm6cvGgL7LiIDCgEoUgA="
+      },
+      "source": "eufy_anon_4/1775292709763_177.json",
+      "note": "Session 3/4: no-error heartbeat"
+    },
+    {
+      "dps": {
+        "177": "EwiCzraq+pIvGgL7LiIDCgFVUgA="
+      },
+      "source": "eufy_anon_3/1775292013761_177.json",
+      "note": "Session 3/4: no-error heartbeat"
+    },
+    {
+      "dps": {
+        "177": "Ewj03OnS5akvGgL7LiIDCgEoUgA="
+      },
+      "source": "eufy_anon_4/1775292798482_177.json",
+      "note": "Session 3/4: no-error heartbeat"
+    },
+    {
+      "dps": {
+        "177": "Ewjhz/Kq+o8vGgL7LiIDCgFVUgA="
+      },
+      "source": "eufy_anon_3/1775291910762_167_177.json",
+      "note": "Session 3/4: no-error heartbeat"
+    }
+  ]
+}

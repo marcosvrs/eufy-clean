@@ -1,0 +1,55 @@
+{
+  "description": "Real captured: DPS 170 (MAP_EDIT_REQUEST) — map edit echo, different from DPS 164",
+  "raw_payload": {
+    "head": {
+      "version": "1.0.0.2",
+      "client_id": "android-anon-openudid-anon_user-0",
+      "sess_id": "android-anon-openudid-anon_user-0",
+      "msg_seq": 14722,
+      "cmd": 65537,
+      "cmd_status": 1,
+      "sign_code": 0,
+      "seed": "null",
+      "timestamp": 31,
+      "tz_offset": 100
+    },
+    "payload": {
+      "protocol": 1,
+      "t": 1773482361339,
+      "account_id": "ANON_USER_001",
+      "device_sn": "TXXX_ANON_001",
+      "data": {
+        "170": "BAgBEGg="
+      }
+    }
+  },
+  "dps": {
+    "170": "BAgBEGg="
+  },
+  "expected_state": {
+    "_note": "DPS 170 is stored in raw_dps but not parsed into specific state fields"
+  },
+  "additional_captured_values": [
+    {
+      "dps": {
+        "170": "BAgJEGo="
+      },
+      "source": "1775257630067_170.json",
+      "note": "DPS 170 variant with different map_id"
+    },
+    {
+      "dps": {
+        "170": "BQgFELcB"
+      },
+      "source": "eufy_anon_3/1775292012976_170.json",
+      "note": "Session 3: DPS 170 variant"
+    },
+    {
+      "dps": {
+        "170": "BQgOELIB"
+      },
+      "source": "eufy_anon_3/1775291982878_170.json",
+      "note": "Session 3: DPS 170 variant"
+    }
+  ]
+}

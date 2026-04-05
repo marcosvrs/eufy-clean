@@ -1,0 +1,39 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.12, pytest-8.3.4, pluggy-1.6.0 -- /usr/bin/python
+cachedir: .pytest_cache
+rootdir: /workspace/eufy-clean
+configfile: pyproject.toml
+plugins: picked-0.5.0, sugar-1.0.0, timeout-2.3.1, unordered-0.6.1, xdist-3.6.1, anyio-4.13.0, socket-0.7.0, github-actions-annotate-failures-0.2.0, syrupy-4.8.0, homeassistant-custom-component-0.13.205, pytest_freezer-0.4.8, respx-0.21.1, aiohttp-1.0.5, asyncio-0.24.0, cov-6.0.0, requests-mock-1.12.1
+asyncio: mode=Mode.AUTO, default_loop_scope=None
+collecting ... collected 28 items
+
+tests/integration/test_edge_cases.py::TestMalformedInput::test_empty_dps_dict_leaves_state_unchanged PASSED [  3%]
+tests/integration/test_edge_cases.py::TestMalformedInput::test_unknown_dps_key_does_not_crash PASSED [  7%]
+tests/integration/test_edge_cases.py::TestMalformedInput::test_invalid_base64_work_status_no_crash PASSED [ 10%]
+tests/integration/test_edge_cases.py::TestMalformedInput::test_truncated_protobuf_work_status_no_crash PASSED [ 14%]
+tests/integration/test_edge_cases.py::TestMalformedInput::test_invalid_base64_station_status_no_crash PASSED [ 17%]
+tests/integration/test_edge_cases.py::TestMalformedInput::test_none_value_battery_level_no_crash PASSED [ 21%]
+tests/integration/test_edge_cases.py::TestMalformedInput::test_none_value_work_status_no_crash PASSED [ 25%]
+tests/integration/test_edge_cases.py::TestMissingOptionalFields::test_work_status_without_station_field PASSED [ 28%]
+tests/integration/test_edge_cases.py::TestMissingOptionalFields::test_work_status_without_trigger_field PASSED [ 32%]
+tests/integration/test_edge_cases.py::TestMissingOptionalFields::test_work_status_without_mode_field PASSED [ 35%]
+tests/integration/test_edge_cases.py::TestBoundaryValues::test_battery_zero PASSED [ 39%]
+tests/integration/test_edge_cases.py::TestBoundaryValues::test_battery_hundred PASSED [ 42%]
+tests/integration/test_edge_cases.py::TestBoundaryValues::test_battery_out_of_range_high PASSED [ 46%]
+tests/integration/test_edge_cases.py::TestBoundaryValues::test_battery_as_integer PASSED [ 50%]
+tests/integration/test_edge_cases.py::TestRapidUpdates::test_ten_rapid_battery_updates_last_write_wins PASSED [ 53%]
+tests/integration/test_edge_cases.py::TestRapidUpdates::test_rapid_mixed_dps_messages PASSED [ 57%]
+tests/integration/test_edge_cases.py::TestConcurrentDpsKeys::test_work_status_and_battery_in_same_message PASSED [ 60%]
+tests/integration/test_edge_cases.py::TestConcurrentDpsKeys::test_battery_and_find_robot_in_same_message PASSED [ 64%]
+tests/integration/test_edge_cases.py::TestReceivedFieldsTracking::test_battery_tracked_in_received_fields PASSED [ 67%]
+tests/integration/test_edge_cases.py::TestReceivedFieldsTracking::test_received_fields_grow_over_multiple_messages PASSED [ 71%]
+tests/integration/test_edge_cases.py::TestReceivedFieldsTracking::test_received_fields_never_shrink PASSED [ 75%]
+tests/integration/test_edge_cases.py::TestPlainDpsHandling::test_clean_speed_plain_int PASSED [ 78%]
+tests/integration/test_edge_cases.py::TestPlainDpsHandling::test_clean_speed_as_actual_int PASSED [ 82%]
+tests/integration/test_edge_cases.py::TestPlainDpsHandling::test_find_robot_plain_bool_string PASSED [ 85%]
+tests/integration/test_edge_cases.py::TestPlainDpsHandling::test_clean_speed_out_of_range_index PASSED [ 89%]
+tests/integration/test_edge_cases.py::TestRawDpsStorage::test_known_unprocessed_dps_stored_in_raw PASSED [ 92%]
+tests/integration/test_edge_cases.py::TestRawDpsStorage::test_unknown_dps_stored_in_raw PASSED [ 96%]
+tests/integration/test_edge_cases.py::TestRawDpsStorage::test_raw_dps_accumulates_across_updates PASSED [100%]
+
+============================== 28 passed in 0.98s ==============================

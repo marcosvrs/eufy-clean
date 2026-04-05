@@ -1,0 +1,43 @@
+{
+  "description": "Real captured: WorkStatus state=CLEANING + go_wash.mode=WASHING (mop washing at dock)",
+  "raw_payload": {
+    "head": {
+      "version": "1.0.0.2",
+      "client_id": "android-anon-openudid-anon_user-0",
+      "sess_id": "android-anon-openudid-anon_user-0",
+      "msg_seq": 14387,
+      "cmd": 65537,
+      "cmd_status": 1,
+      "sign_code": 0,
+      "seed": "null",
+      "timestamp": 93,
+      "tz_offset": 100
+    },
+    "payload": {
+      "protocol": 1,
+      "t": 1773459303248,
+      "account_id": "ANON_USER_001",
+      "device_sn": "TXXX_ANON_001",
+      "data": {
+        "153": "FBAFGgIaADoCEAFyBgoCCAEiAHoA"
+      }
+    }
+  },
+  "dps": {
+    "153": "FBAFGgIaADoCEAFyBgoCCAEiAHoA"
+  },
+  "expected_state": {
+    "activity": "docked",
+    "dock_status": "Washing",
+    "charging": false
+  },
+  "additional_captured_values": [
+    {
+      "dps": {
+        "153": "HAoCCAEQBRoCGgAyAggBOgIQAXIGCgIIASIAegA="
+      },
+      "source": "eufy_anon_3/1775292014197_153.json",
+      "note": "Session 3/4: CLEANING+WASHING variant"
+    }
+  ]
+}

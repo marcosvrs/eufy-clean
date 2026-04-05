@@ -1,0 +1,28 @@
+{
+  "access_token": "ANON_TOKEN_XXX",
+  "email": "test@example.com",
+  "expires_in": 2592000,
+  "refresh_token": "SUVfLiCw7ZQZQdysyUo8lGQNig",
+  "res_code": 1,
+  "token_type": "Bearer",
+  "user_id": "ANON_USER_001",
+  "user_info": {
+    "id": "ANON_USER_HASH_001",
+    "nick_name": "eufy",
+    "email": "test@example.com",
+    "mobile": "ANON_MOBILE_001",
+    "phone_code": "353",
+    "country": "IE",
+    "timezone": "Europe/London",
+    "avatar": "",
+    "unit_height": "",
+    "registered_region": "EU",
+    "request_host": "https://appliances-api-eu.eufylife.com",
+    "t9147_sdk_flag": 0,
+    "language": "en",
+    "user_center_user_id": "ANON_USER_HASH_001",
+    "safety_email": "",
+    "is_device_init": 0,
+    "init_device_name": ""
+  }
+}

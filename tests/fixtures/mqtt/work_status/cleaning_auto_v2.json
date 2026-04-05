@@ -1,0 +1,33 @@
+{
+  "description": "Real captured: WorkStatus state=CLEANING, mode=AUTO, no charging field (auto clean without charging sub-message)",
+  "raw_payload": {
+    "head": {
+      "version": "1.0.0.2",
+      "client_id": "android-anon-openudid-anon_user-0",
+      "sess_id": "android-anon-openudid-anon_user-0",
+      "msg_seq": 14443,
+      "cmd": 65537,
+      "cmd_status": 1,
+      "sign_code": 0,
+      "seed": "null",
+      "timestamp": 443,
+      "tz_offset": 100
+    },
+    "payload": {
+      "protocol": 1,
+      "t": 1773459653359,
+      "account_id": "ANON_USER_001",
+      "device_sn": "TXXX_ANON_001",
+      "data": {
+        "153": "DAoAEAUyAHICIgB6AA=="
+      }
+    }
+  },
+  "dps": {
+    "153": "DAoAEAUyAHICIgB6AA=="
+  },
+  "expected_state": {
+    "activity": "cleaning",
+    "work_mode": "Auto"
+  }
+}

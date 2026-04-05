@@ -1,28 +1,12 @@
 """Unit tests for task status sensor logic."""
 
-# pylint: disable=redefined-outer-name
-
-from unittest.mock import MagicMock
-
-import pytest
+# Removed: test_task_status_sensor — covered by tests/integration/test_sensor_entities.py
 
 from custom_components.robovac_mqtt.api.parser import update_state
 from custom_components.robovac_mqtt.const import DPS_MAP
 from custom_components.robovac_mqtt.models import VacuumState
 from custom_components.robovac_mqtt.proto.cloud.work_status_pb2 import WorkStatus
-from custom_components.robovac_mqtt.sensor import RoboVacSensor
 from custom_components.robovac_mqtt.utils import encode_message
-
-
-@pytest.fixture
-def mock_coordinator():
-    """Mock the coordinator."""
-    coordinator = MagicMock()
-    coordinator.device_id = "test_id"
-    coordinator.device_name = "Test Vac"
-    coordinator.device_model = "T2118"
-    coordinator.data = VacuumState()
-    return coordinator
 
 
 def test_task_status_mapping():
@@ -97,7 +81,7 @@ def test_task_status_mapping():
     ws.state = 4
     dps = {DPS_MAP["WORK_STATUS"]: encode_message(ws)}
     new_state, _ = update_state(state, dps)
-    assert new_state.task_status == "Positioning"
+    assert new_state.task_status == "Mapping"
 
     # Case 10: Error
     ws = WorkStatus()
@@ -112,17 +96,3 @@ def test_task_status_mapping():
     dps = {DPS_MAP["WORK_STATUS"]: encode_message(ws)}
     new_state, _ = update_state(state, dps)
     assert new_state.task_status == "Remote Control"
-
-
-def test_task_status_sensor(mock_coordinator):
-    """Test task status sensor entity."""
-    mock_coordinator.data.task_status = "Washing Mop"
-
-    sensor = RoboVacSensor(
-        mock_coordinator,
-        "task_status",
-        "Task Status",
-        lambda s: s.task_status,
-        category=None,
-    )
-    assert sensor.native_value == "Washing Mop"

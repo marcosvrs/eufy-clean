@@ -1,0 +1,2 @@
+['unit-tests', 'integration-tests']
+pytest-cov

@@ -1,0 +1,41 @@
+{
+  "description": "Real captured: DPS 158 = 0 (Quiet speed — real device reports 0 as quiet, not standard)",
+  "raw_payload": {
+    "head": {
+      "version": "1.0.0.2",
+      "client_id": "android-anon-openudid-anon_user-0",
+      "sess_id": "android-anon-openudid-anon_user-0",
+      "msg_seq": 14283,
+      "cmd": 65537,
+      "cmd_status": 1,
+      "sign_code": 0,
+      "seed": "null",
+      "timestamp": 21,
+      "tz_offset": 100
+    },
+    "payload": {
+      "protocol": 1,
+      "t": 1773459231224,
+      "account_id": "ANON_USER_001",
+      "device_sn": "TXXX_ANON_001",
+      "data": {
+        "158": 0
+      }
+    }
+  },
+  "dps": {
+    "158": 0
+  },
+  "expected_state": {
+    "fan_speed": "Quiet"
+  },
+  "additional_captured_values": [
+    {
+      "dps": {
+        "158": 1
+      },
+      "source": "eufy_anon_3/1775292013878_158.json",
+      "note": "Session 3: clean speed=1"
+    }
+  ]
+}

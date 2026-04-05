@@ -1,0 +1,32 @@
+{
+  "description": "Real captured: ModeCtrlRequest START_SELECT_ROOMS_CLEAN (method=1, seq=104)",
+  "raw_payload": {
+    "head": {
+      "version": "1.0.0.2",
+      "client_id": "android-anon-openudid-anon_user-0",
+      "sess_id": "android-anon-openudid-anon_user-0",
+      "msg_seq": 14277,
+      "cmd": 65537,
+      "cmd_status": 1,
+      "sign_code": 0,
+      "seed": "null",
+      "timestamp": 19,
+      "tz_offset": 100
+    },
+    "payload": {
+      "protocol": 1,
+      "t": 1773459229533,
+      "account_id": "ANON_USER_001",
+      "device_sn": "TXXX_ANON_001",
+      "data": {
+        "152": "BAgBEGg="
+      }
+    }
+  },
+  "dps": {
+    "152": "BAgBEGg="
+  },
+  "expected_state": {
+    "_note": "Parser extracts active_room_ids from select_rooms_clean field; this echo has no rooms sub-message"
+  }
+}

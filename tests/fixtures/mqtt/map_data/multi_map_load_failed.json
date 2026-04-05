@@ -1,0 +1,32 @@
+{
+  "description": "Real captured: MultiMapsManageResponse MAP_LOAD failed",
+  "raw_payload": {
+    "head": {
+      "version": "1.0.0.2",
+      "client_id": "android-anon-openudid-anon_user-0",
+      "sess_id": "android-anon-openudid-anon_user-0",
+      "msg_seq": 24592,
+      "cmd": 65537,
+      "cmd_status": 1,
+      "sign_code": 0,
+      "seed": "null",
+      "timestamp": 317,
+      "tz_offset": 100
+    },
+    "payload": {
+      "protocol": 1,
+      "t": 1773517428225,
+      "account_id": "ANON_USER_001",
+      "device_sn": "TXXX_ANON_001",
+      "data": {
+        "172": "BwgCEOsBGAE="
+      }
+    }
+  },
+  "dps": {
+    "172": "BwgCEOsBGAE="
+  },
+  "expected_state": {
+    "_note": "DPS 172 MultiMapsManageResponse: method=MAP_LOAD(2), result=FAILED(1), seq=235"
+  }
+}

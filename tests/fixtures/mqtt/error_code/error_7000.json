@@ -1,0 +1,66 @@
+{
+  "description": "Real captured: ErrorCode with error=[7000] (obstacle/cliff detection)",
+  "raw_payload": {
+    "head": {
+      "version": "1.0.0.2",
+      "client_id": "android-anon-openudid-anon_user-0",
+      "sess_id": "android-anon-openudid-anon_user-0",
+      "msg_seq": 14916,
+      "cmd": 65537,
+      "cmd_status": 1,
+      "sign_code": 0,
+      "seed": "null",
+      "timestamp": 192,
+      "tz_offset": 100
+    },
+    "payload": {
+      "protocol": 1,
+      "t": 1773482521588,
+      "account_id": "ANON_USER_001",
+      "device_sn": "TXXX_ANON_001",
+      "data": {
+        "177": "Fwikspy94K4nEgLYNiIDCgEfUgQKAtg2"
+      }
+    }
+  },
+  "dps": {
+    "177": "Fwikspy94K4nEgLYNiIDCgEfUgQKAtg2"
+  },
+  "expected_state": {
+    "_note": "BUG: parser only checks warn[] field, not error[] field. Real error=[7000] is ignored.",
+    "error_code": 0,
+    "error_message": ""
+  },
+  "additional_captured_values": [
+    {
+      "dps": {"177": "Ewjhz9/w4a4nEgLYNiIDCgEfUgA="},
+      "source": "1775257783223_177.json",
+      "note": "error=[7000], same error repeated"
+    },
+    {
+      "dps": {"177": "Ewj61IK1/a4nEgLYNiIDCgEfUgA="},
+      "source": "1775257790545_177.json",
+      "note": "error=[7000], same error repeated"
+    },
+    {
+      "dps": {"177": "EwiOkpPV/q4nEgLYNiIDCgEfUgA="},
+      "source": "1775257790923_177.json",
+      "note": "error=[7000], same error repeated"
+    },
+    {
+      "dps": {"177": "EwihivLslK8nEgLYNiIDCgEfUgA="},
+      "source": "1775257796833_177.json",
+      "note": "error=[7000], same error repeated"
+    },
+    {
+      "dps": {"177": "EwiWxJ/9lK8nEgLYNiIDCgEfUgA="},
+      "source": "1775257796924_177.json",
+      "note": "error=[7000], same error repeated"
+    },
+    {
+      "dps": {"177": "EwjIv8uMlq8nEgLYNiIDCgEfUgA="},
+      "source": "1775257797224_177.json",
+      "note": "error=[7000], same error repeated"
+    }
+  ]
+}

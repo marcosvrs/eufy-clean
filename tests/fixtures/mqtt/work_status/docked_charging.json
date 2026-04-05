@@ -1,0 +1,43 @@
+{
+  "description": "Real captured: WorkStatus state=CHARGING (docked and charging)",
+  "raw_payload": {
+    "head": {
+      "version": "1.0.0.2",
+      "client_id": "android-anon-openudid-anon_user-0",
+      "sess_id": "android-anon-openudid-anon_user-0",
+      "msg_seq": 14384,
+      "cmd": 65537,
+      "cmd_status": 1,
+      "sign_code": 0,
+      "seed": "null",
+      "timestamp": 86,
+      "tz_offset": 100
+    },
+    "payload": {
+      "protocol": 1,
+      "t": 1773459296389,
+      "account_id": "ANON_USER_001",
+      "device_sn": "TXXX_ANON_001",
+      "data": {
+        "153": "DBADGgIaAHICIgB6AA=="
+      }
+    }
+  },
+  "dps": {
+    "153": "DBADGgIaAHICIgB6AA=="
+  },
+  "expected_state": {
+    "activity": "docked",
+    "charging": true,
+    "trigger_source": "unknown"
+  },
+  "additional_captured_values": [
+    {
+      "dps": {
+        "153": "DhADGgQIARoAcgIiAHoA"
+      },
+      "source": "eufy_anon_3/1775292000652_153.json",
+      "note": "Session 3/4: CHARGING variant"
+    }
+  ]
+}

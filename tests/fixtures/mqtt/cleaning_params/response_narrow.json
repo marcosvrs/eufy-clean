@@ -1,0 +1,33 @@
+{
+  "description": "Real captured: CleanParamResponse with clean_extent=NARROW, fan.suction=MAX",
+  "raw_payload": {
+    "head": {
+      "version": "1.0.0.2",
+      "client_id": "android-anon-openudid-anon_user-0",
+      "sess_id": "android-anon-openudid-anon_user-0",
+      "msg_seq": 14311,
+      "cmd": 65537,
+      "cmd_status": 1,
+      "sign_code": 0,
+      "seed": "null",
+      "timestamp": 44,
+      "tz_offset": 100
+    },
+    "payload": {
+      "protocol": 1,
+      "t": 1773459253892,
+      "account_id": "ANON_USER_001",
+      "device_sn": "TXXX_ANON_001",
+      "data": {
+        "154": "JAoOCgASAhIAGgIIASIAKgASABoAIg4KABoCCAEiACoAMgIIAw=="
+      }
+    }
+  },
+  "dps": {
+    "154": "JAoOCgASAhIAGgIIASIAKgASABoAIg4KABoCCAEiACoAMgIIAw=="
+  },
+  "expected_state": {
+    "cleaning_intensity": "Narrow",
+    "fan_speed": "Max"
+  }
+}

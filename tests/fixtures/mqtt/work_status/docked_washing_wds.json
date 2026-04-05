@@ -1,0 +1,49 @@
+{
+  "description": "Real captured: WorkStatus state=CLEANING, go_wash=WASHING, station.washing_drying_system={} (washing via washing_drying_system)",
+  "raw_payload": {
+    "head": {
+      "version": "1.0.0.2",
+      "client_id": "android-anon-openudid-anon_user-0",
+      "sess_id": "android-anon-openudid-anon_user-0",
+      "msg_seq": 14402,
+      "cmd": 65537,
+      "cmd_status": 1,
+      "sign_code": 0,
+      "seed": "null",
+      "timestamp": 173,
+      "tz_offset": 100
+    },
+    "payload": {
+      "protocol": 1,
+      "t": 1773459382838,
+      "account_id": "ANON_USER_001",
+      "device_sn": "TXXX_ANON_001",
+      "data": {
+        "153": "EhAFGgIaADoCEAFyBBoAIgB6AA=="
+      }
+    }
+  },
+  "dps": {
+    "153": "EhAFGgIaADoCEAFyBBoAIgB6AA=="
+  },
+  "expected_state": {
+    "activity": "docked",
+    "dock_status": "Washing"
+  },
+  "additional_captured_values": [
+    {
+      "dps": {
+        "153": "LAoCCAgQBRoCGgAyBAgBGAE6AhABcgQaACIAegCaAQ0ICCIJQ3VzdG9taXpl"
+      },
+      "source": "1775258064309_153.json",
+      "note": "Session 2: scene clean + washing via WDS"
+    },
+    {
+      "dps": {
+        "153": "GgoCCAEQBRoCGgAyAggBOgIQAXIEGgAiAHoA"
+      },
+      "source": "eufy_anon_3/1775292092861_153.json",
+      "note": "Session 3/4: CLEANING+WASHING variant"
+    }
+  ]
+}

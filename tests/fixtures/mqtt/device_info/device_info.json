@@ -1,0 +1,34 @@
+{
+  "description": "Real captured: DeviceInfo with product name, MAC, firmware, WiFi info (eufy Clean X10 Pro Omni)",
+  "raw_payload": {
+    "head": {
+      "version": "1.0.0.2",
+      "client_id": "android-anon-openudid-anon_user-0",
+      "sess_id": "android-anon-openudid-anon_user-0",
+      "msg_seq": 14379,
+      "cmd": 65537,
+      "cmd_status": 1,
+      "sign_code": 0,
+      "seed": "null",
+      "timestamp": 85,
+      "tz_offset": 100
+    },
+    "payload": {
+      "protocol": 1,
+      "t": 1773459295076,
+      "account_id": "ANON_USER_001",
+      "device_sn": "TXXX_ANON_001",
+      "data": {
+        "169": "vgEKF2V1ZnkgQ2xlYW4gWDEwIFBybyBPbW5pGhE5ODphODoyOTo1MjpjNjphZiIGMy40Ljg1KAMyBlJ1YmlkbzoOMTkyLjE2OC41MC4yNDZCKDY0YTA2ZWM2ZWJjZWMyNDUyOWI1NjM4MDFjNTc3NDRmN2NkNDA1MzJaCgoGMS4yLjI3EAdiLQgBEgQIAhADGgQIAhAPIgQIARABMgQIARADOgQIARABQgQIARADUgUIARCzJGoJVDIzNTFfb3Rh"
+      }
+    }
+  },
+  "dps": {
+    "169": "vgEKF2V1ZnkgQ2xlYW4gWDEwIFBybyBPbW5pGhE5ODphODoyOTo1MjpjNjphZiIGMy40Ljg1KAMyBlJ1YmlkbzoOMTkyLjE2OC41MC4yNDZCKDY0YTA2ZWM2ZWJjZWMyNDUyOWI1NjM4MDFjNTc3NDRmN2NkNDA1MzJaCgoGMS4yLjI3EAdiLQgBEgQIAhADGgQIAhAPIgQIARABMgQIARADOgQIARABQgQIARADUgUIARCzJGoJVDIzNTFfb3Rh"
+  },
+  "expected_state": {
+    "wifi_ssid": "ANON_WIFI",
+    "wifi_ip": "192.168.1.100",
+    "device_mac": "aa:bb:cc:dd:ee:ff"
+  }
+}

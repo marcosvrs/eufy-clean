@@ -1,0 +1,17 @@
+============================= test session starts ==============================
+tests/integration/test_vacuum_entity.py::test_vacuum_state_cleaning PASSED [  1%]
+tests/integration/test_vacuum_entity.py::test_vacuum_state_docked PASSED [  3%]
+tests/integration/test_vacuum_entity.py::test_vacuum_state_returning PASSED [  4%]
+tests/integration/test_vacuum_entity.py::test_vacuum_state_error PASSED  [  6%]
+tests/integration/test_vacuum_entity.py::test_vacuum_fan_speed_attribute PASSED [  7%]
+tests/integration/test_vacuum_entity.py::test_vacuum_battery_updates_coordinator PASSED [  9%]
+tests/integration/test_vacuum_entity.py::test_vacuum_fan_speed_list_nonempty PASSED [ 11%]
+tests/integration/test_vacuum_entity.py::test_vacuum_extra_attributes_present PASSED [ 12%]
+tests/integration/test_vacuum_entity.py::test_vacuum_start_command PASSED [ 14%]
+tests/integration/test_vacuum_entity.py::test_vacuum_stop_command PASSED [ 15%]
+tests/integration/test_vacuum_entity.py::test_vacuum_pause_command PASSED [ 17%]
+tests/integration/test_vacuum_entity.py::test_vacuum_return_to_base_command PASSED [ 19%]
+tests/integration/test_vacuum_entity.py::test_vacuum_set_fan_speed_command PASSED [ 20%]
+tests/integration/test_vacuum_entity.py::test_vacuum_locate_command PASSED [ 22%]
+tests/integration/test_vacuum_entity.py::test_vacuum_state_transition_cleaning_to_returning PASSED [ 23%]
+============================= 15 passed ==============================

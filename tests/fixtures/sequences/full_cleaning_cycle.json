@@ -1,0 +1,41 @@
+{
+  "description": "Real captured cleaning cycle: docked → cleaning (room) → returning → docked",
+  "messages": [
+    {
+      "dps": {
+        "153": "DBADGgIaAHICIgB6AA=="
+      },
+      "expected_state_after": {
+        "activity": "docked"
+      },
+      "delay_seconds": 0
+    },
+    {
+      "dps": {
+        "153": "EgoCCAEQBRoCGgAyAHICIgB6AA=="
+      },
+      "expected_state_after": {
+        "activity": "cleaning"
+      },
+      "delay_seconds": 2
+    },
+    {
+      "dps": {
+        "153": "DBAHQgIQCnICIgB6AA=="
+      },
+      "expected_state_after": {
+        "activity": "returning"
+      },
+      "delay_seconds": 1800
+    },
+    {
+      "dps": {
+        "153": "DBADGgIaAHICIgB6AA=="
+      },
+      "expected_state_after": {
+        "activity": "docked"
+      },
+      "delay_seconds": 120
+    }
+  ]
+}

@@ -1,0 +1,86 @@
+[
+  {
+    "id": "ANON_DEVICE_ID_001",
+    "sn": "",
+    "name": "X10 Pro Omni",
+    "alias_name": "Robovac",
+    "bluetooth": null,
+    "wifi": {
+      "mac": "AA:BB:CC:DD:EE:FF",
+      "wifi_ssid": "ANON_WIFI",
+      "lan_ip_addr": ""
+    },
+    "product": {
+      "id": "cbbebfbb-67f5-11e8-a09e-0242ac132351",
+      "name": "X10 Pro Omni",
+      "region": "[{\"regions\":[\"ALL\"],\"date\":\"2022-09-01 20:22:49\"}]",
+      "default_name": "RoboVac",
+      "icon_url": "https://d3pkbgk01oouhl.cloudfront.net/eufyhome/products/T2182_addProduct.png",
+      "category": "Home",
+      "appliance": "Cleaning",
+      "connect_type": 2,
+      "description": "T2182 eufy RoboVac L80, connected via EufyHome",
+      "product_code": "T2351",
+      "wifi_ssid_prefix": "eufy Clean X10 Pro Omni",
+      "wifi_ssid_prefix_full": "eufy Clean X10 Pro Omni-",
+      "index": 2,
+      "create_time": 1640585895,
+      "update_time": 1755596451,
+      "is_show": false,
+      "tuya_pid": "eqjjicnai45fqzom",
+      "app_ble_ssid_prefix": "eufy Clean X10 Pro Omni-",
+      "device_ble_ssid_prefix": "eufy Clean X10 Omni-",
+      "wifi_ssid_prefix_list": [
+        "eufy Clean X10 Omni-",
+        "eufy Clean X10 Pro Omni-",
+        "eufy X10A-"
+      ],
+      "device_ble_ssid_prefix_list": [
+        "eufy Clean X10 Omni-",
+        "eufy Clean X10 Pro Omni-",
+        "eufy X10A-"
+      ],
+      "is_additional": false,
+      "is_enable_whitelist": false,
+      "is_only_mega": false
+    },
+    "user_id": "ANON_USER_001",
+    "owner_info": null,
+    "home_id": "ANON_HOME_ID_001",
+    "home_name": "",
+    "room_id": "ANON_ROOM_ID_001",
+    "room_name": "Default Room",
+    "connect_type": 2,
+    "grant_by": 0,
+    "software_version": "v2.2.71",
+    "index": 0,
+    "device_key": "",
+    "create_time": 1737741669,
+    "update_time": 1775084927,
+    "hardware_version": "",
+    "scale_type": "",
+    "member_type": 2,
+    "user_center_user_id": "ANON_USER_HASH_001",
+    "is_not_work": false,
+    "local_code": "",
+    "needUpdate": false,
+    "setting": {
+      "id": "",
+      "device_id": "TXXX_ANON_002",
+      "is_default": true
+    },
+    "update_packages": [],
+    "update_version": {
+      "mcu": "",
+      "wifi": "",
+      "ble": "",
+      "res": ""
+    },
+    "current_version": {
+      "mcu": "",
+      "wifi": "",
+      "ble": "",
+      "res": ""
+    }
+  }
+]

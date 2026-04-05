@@ -1,0 +1,50 @@
+{
+  "description": "Real captured: StationResponse idle with empty water tank (water=0)",
+  "raw_payload": {
+    "head": {
+      "version": "1.0.0.2",
+      "client_id": "android-anon-openudid-anon_user-0",
+      "sess_id": "android-anon-openudid-anon_user-0",
+      "msg_seq": 23199,
+      "cmd": 65537,
+      "cmd_status": 1,
+      "sign_code": 0,
+      "seed": "null",
+      "timestamp": 172,
+      "tz_offset": 100
+    },
+    "payload": {
+      "protocol": 1,
+      "t": 1773516673848,
+      "account_id": "ANON_USER_001",
+      "device_sn": "TXXX_ANON_001",
+      "data": {
+        "173": "KgokCgwKBggBGgIIGRIAGAESBAgBEgAyDgoCCAESBAgCGA8aAggBEgAqAA=="
+      }
+    }
+  },
+  "dps": {
+    "173": "KgokCgwKBggBGgIIGRIAGAESBAgBEgAyDgoCCAESBAgCGA8aAggBEgAqAA=="
+  },
+  "expected_state": {
+    "dock_status": "Idle",
+    "_note": "StationResponse idle, clean_water=0 (empty tank)"
+  },
+  "additional_captured_values": [
+    {
+      "dps": {"173": "KAoiCgoKBggBGgIIGRIAEgQIARIAMg4KAggBEgQIAhgPGgIIARIAKgA="},
+      "source": "eufy_anon_3/1775292234444_173.json",
+      "note": "idle, water=0, shorter format"
+    },
+    {
+      "dps": {"173": "KgoiCgoKBggBGgIIGRIAEgQIARIAMg4KAggBEgQIAhgPGgIIARICCAEqAA=="},
+      "source": "eufy_anon_3/1775292233847_173.json",
+      "note": "idle, water=0, connected=true"
+    },
+    {
+      "dps": {"173": "KgokCgwKBggBGgIIGRIAGAESBAgBEgAyDgoAEgYIAhAPGA8aAggBEgAqAA=="},
+      "source": "eufy_anon_3/1775292244880_173.json",
+      "note": "idle, water=0, variant with different clean_water sub-message"
+    }
+  ]
+}

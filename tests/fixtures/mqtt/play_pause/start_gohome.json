@@ -1,0 +1,41 @@
+{
+  "description": "Real captured: ModeCtrlRequest START_GOHOME (method=6, seq=108)",
+  "raw_payload": {
+    "head": {
+      "version": "1.0.0.2",
+      "client_id": "android-anon-openudid-anon_user-0",
+      "sess_id": "android-anon-openudid-anon_user-0",
+      "msg_seq": 14306,
+      "cmd": 65537,
+      "cmd_status": 1,
+      "sign_code": 0,
+      "seed": "null",
+      "timestamp": 43,
+      "tz_offset": 100
+    },
+    "payload": {
+      "protocol": 1,
+      "t": 1773459253498,
+      "account_id": "ANON_USER_001",
+      "device_sn": "TXXX_ANON_001",
+      "data": {
+        "152": "BAgGEGw="
+      }
+    }
+  },
+  "dps": {
+    "152": "BAgGEGw="
+  },
+  "expected_state": {
+    "_note": "Go home echo \u2014 no select_rooms/zones, parser ignores"
+  },
+  "additional_captured_values": [
+    {
+      "dps": {
+        "152": "BAgGEHs="
+      },
+      "source": "1775234936971_152.json",
+      "note": "START_GOHOME seq=123"
+    }
+  ]
+}

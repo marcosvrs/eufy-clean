@@ -1,0 +1,38 @@
+{
+  "description": "Real captured: StationResponse idle (connected but no active state)",
+  "raw_payload": {
+    "head": {
+      "version": "1.0.0.2",
+      "client_id": "android-anon-openudid-anon_user-0",
+      "sess_id": "android-anon-openudid-anon_user-0",
+      "msg_seq": 14375,
+      "cmd": 65537,
+      "cmd_status": 1,
+      "sign_code": 0,
+      "seed": "null",
+      "timestamp": 85,
+      "tz_offset": 100
+    },
+    "payload": {
+      "protocol": 1,
+      "t": 1773459294582,
+      "account_id": "ANON_USER_001",
+      "device_sn": "TXXX_ANON_001",
+      "data": {
+        "173": "LAokCgwKBggBGgIIGRIAGAESBAgBEgAyDgoCCAESBAgCGA8aAggBEgAqAggr"
+      }
+    }
+  },
+  "dps": {
+    "173": "LAokCgwKBggBGgIIGRIAGAESBAgBEgAyDgoCCAESBAgCGA8aAggBEgAqAggr"
+  },
+  "expected_state": {
+    "dock_status": "Idle"
+  },
+  "additional_captured_values": [
+    {
+      "description": "Idle variant with different varint length prefix (Lg vs LA) — semantically identical",
+      "dps": { "173": "LgokCgwKBggBGgIIGRIAGAESBAgBEgAyDgoCCAESBAgCGA8aAggBEgAqAggr" }
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "description": "DPS 163: battery level 100% (plain int string)",
+  "dps": {
+    "163": "100"
+  },
+  "expected_state": {
+    "battery_level": 100
+  }
+}

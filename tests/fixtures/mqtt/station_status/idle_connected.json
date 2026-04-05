@@ -1,0 +1,118 @@
+{
+  "description": "Real captured: StationResponse idle, connected=True, clean_water=43",
+  "raw_payload": {
+    "head": {
+      "version": "1.0.0.2",
+      "client_id": "android-anon-openudid-anon_user-0",
+      "sess_id": "android-anon-openudid-anon_user-0",
+      "msg_seq": 14380,
+      "cmd": 65537,
+      "cmd_status": 1,
+      "sign_code": 0,
+      "seed": "null",
+      "timestamp": 86,
+      "tz_offset": 100
+    },
+    "payload": {
+      "protocol": 1,
+      "t": 1773459295776,
+      "account_id": "ANON_USER_001",
+      "device_sn": "TXXX_ANON_001",
+      "data": {
+        "173": "LgokCgwKBggBGgIIGRIAGAESBAgBEgAyDgoCCAESBAgCGA8aAggBEgIIASoCCCs="
+      }
+    }
+  },
+  "dps": {
+    "173": "LgokCgwKBggBGgIIGRIAGAESBAgBEgAyDgoCCAESBAgCGA8aAggBEgIIASoCCCs="
+  },
+  "expected_state": {
+    "dock_status": "Idle"
+  },
+  "additional_captured_values": [
+    {
+      "dps": {
+        "173": "LgokCgwKBggBGgIIGRIAGAESBAgBEgAyDgoCCAESBAgCGA8aAggBEgIIASoCCCo="
+      },
+      "source": "1775234589504_173.json",
+      "note": "idle connected, water=42"
+    },
+    {
+      "dps": {
+        "173": "LgokCgwKBggBGgIIGRIAGAESBAgBEgAyDgoCCAESBAgCGA8aAggBEgIIASoCCCg="
+      },
+      "source": "1775234605017_173.json",
+      "note": "idle connected, water=40"
+    },
+    {
+      "dps": {
+        "173": "LgokCgwKBggBGgIIGRIAGAESBAgBEgAyDgoCCAESBAgCGA8aAggBEgIIASoCCCU="
+      },
+      "source": "1775257963880_173.json",
+      "note": "Session 2: idle, water=37"
+    },
+    {
+      "dps": {
+        "173": "LgokCgwKBggBGgIIGRIAGAESBAgBEgAyDgoCCAESBAgCGA8aAggBEgIIASoCCCQ="
+      },
+      "source": "1775258034398_173.json",
+      "note": "Session 2: idle, water=36"
+    },
+    {
+      "dps": {
+        "173": "LgokCgwKBggBGgIIGRIAGAESBAgBEgAyDgoCCAESBAgCGA8aAggBEgIIASoCCCI="
+      },
+      "source": "1775258053973_173.json",
+      "note": "Session 2: idle, water=34"
+    },
+    {
+      "dps": {
+        "173": "LgokCgwKBggBGgIIGRIAGAESBAgBEgAyDgoCCAESBAgCGA8aAggBEgIIASoCCB4="
+      },
+      "source": "1775258106807_173.json",
+      "note": "Session 2: idle, water=30"
+    },
+    {
+      "dps": {
+        "173": "LAokCgwKBggBGgIIGRIAGAESBAgBEgAyDgoCCAESBAgCGA8aAggBEgAqAgge"
+      },
+      "source": "1775258139937_173.json",
+      "note": "Session 2: idle, water=30"
+    },
+    {
+      "dps": {
+        "173": "LAokCgwKBggBGgIIGRIAGAESBAgBEgAyDgoCCAESBAgCGA8aAggBEgIIASoA"
+      },
+      "source": "eufy_anon_3/1775291967456_173.json",
+      "note": "Session 3/4: idle variant"
+    },
+    {
+      "dps": {
+        "173": "LAomCgwKBggBGgIIGRIAGAESBAgBEgAyEAoCCAESBggBEA8YDxoCCAESACoA"
+      },
+      "source": "eufy_anon_3/1775292251485_173.json",
+      "note": "Session 3/4: idle variant"
+    },
+    {
+      "dps": {
+        "173": "LAomCgwKBggBGgIIGRIAGAESBAgBEgAyEAoCCAESBggCEA8YDxoCCAESACoA"
+      },
+      "source": "eufy_anon_3/1775292249152_173.json",
+      "note": "Session 3/4: idle variant"
+    },
+    {
+      "dps": {
+        "173": "LgomCgwKBggBGgIIGRIAGAESBAgBEgAyEAoCCAESBggCEA8YDxoCCAESAggBKgA="
+      },
+      "source": "eufy_anon_4/1775292545579_173.json",
+      "note": "Session 3/4: idle variant"
+    },
+    {
+      "dps": {
+        "173": "LgooCgwKBggBGgIIGRIAGAESBggBEgIIATIQCgIIARIGCAIQDxgPGgIIARIAKgA="
+      },
+      "source": "eufy_anon_3/1775292257492_173.json",
+      "note": "Session 3/4: idle variant"
+    }
+  ]
+}

@@ -1,0 +1,4 @@
+scapy>=2.5.0
+Pillow>=10.0.0
+tinytuya>=1.13.0
+pycryptodome>=3.19.0

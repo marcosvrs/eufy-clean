@@ -1,0 +1,895 @@
+{
+  "description": "Real captured: DPS 179 telemetry — position update with x,y coordinates (29-byte format)",
+  "raw_payload": {
+    "head": {
+      "version": "1.0.0.2",
+      "client_id": "android-anon-openudid-anon_user-0",
+      "sess_id": "android-anon-openudid-anon_user-0",
+      "msg_seq": 14378,
+      "cmd": 65537,
+      "cmd_status": 1,
+      "sign_code": 0,
+      "seed": "null",
+      "timestamp": 85,
+      "tz_offset": 100
+    },
+    "payload": {
+      "protocol": 1,
+      "t": 1773459294843,
+      "account_id": "ANON_USER_001",
+      "device_sn": "TXXX_ANON_001",
+      "data": {
+        "179": "HBIaOhgI4du/zgYQZBhkIJl9KM0aMgay3gKY6AI="
+      }
+    }
+  },
+  "dps": {
+    "179": "HBIaOhgI4du/zgYQZBhkIJl9KM0aMgay3gKY6AI="
+  },
+  "expected_state": {
+    "_note": "Parsed by _parse_robot_telemetry() — extracts x,y position from nested proto fields"
+  },
+  "additional_captured_values": [
+    {
+      "dps": {
+        "179": "HRIbOhkI5tu/zgYQZBhkIJ+AASimBzIGlLsCnMYC"
+      },
+      "source": "1775234537422_179.json",
+      "note": "30-byte position update"
+    },
+    {
+      "dps": {
+        "179": "HBIaOhgIu9y/zgYQZBhkIO58KL8hMgbq6QKW9gI="
+      },
+      "source": "1775234622324_179.json",
+      "note": "29-byte position update"
+    },
+    {
+      "dps": {
+        "179": "GxIZOhcIgd2/zgYQZBhkIPl/KEEyBvzGAsTSAg=="
+      },
+      "source": "1775234691922_179.json",
+      "note": "28-byte position update"
+    },
+    {
+      "dps": {
+        "179": "HBIaOhgIgt2/zgYQZBhkIIiKASgzMgbexwKq0wI="
+      },
+      "source": "1775234692925_179.json",
+      "note": "29-byte position update"
+    },
+    {
+      "dps": {
+        "179": "HBIaOhgIgt2/zgYQZBhkIMh/KMEBMgaQyALE1AI="
+      },
+      "source": "1775234693023_179.json",
+      "note": "29-byte position update"
+    },
+    {
+      "dps": {
+        "179": "HBIaOhgI196/zgYQZBhkIM98KK8eMgbM5gL49AI="
+      },
+      "source": "1775234905730_179.json",
+      "note": "29-byte position update"
+    },
+    {
+      "dps": {
+        "179": "HBIaOhgI5N6/zgYQZBhkILp8KPsdMgbS5AK88gI="
+      },
+      "source": "1775234918529_179.json",
+      "note": "29-byte position update"
+    },
+    {
+      "dps": {
+        "179": "HBIaOhgI5t6/zgYQZBhkIMV8KNscMga25QLq8AI="
+      },
+      "source": "1775234921339_179.json",
+      "note": "29-byte position update"
+    },
+    {
+      "dps": {
+        "179": "HBIaOhgI6N6/zgYQZBhkILd8KNUdMgbM5gKe8QI="
+      },
+      "source": "1775234923349_179.json",
+      "note": "29-byte position update"
+    },
+    {
+      "dps": {
+        "179": "HBIaOhgI7d6/zgYQZBhkILV8KJEdMgag5AKm8wI="
+      },
+      "source": "1775234927526_179.json",
+      "note": "29-byte position update"
+    },
+    {
+      "dps": {
+        "179": "HBIaOhgI8N6/zgYQZBhkIKx8KLcdMgbo5QLw8gI="
+      },
+      "source": "1775234931236_179.json",
+      "note": "29-byte position update"
+    },
+    {
+      "dps": {
+        "179": "HBIaOhgInt+/zgYQZBhkIJN/KOgBMgb8xgL40gI="
+      },
+      "source": "1775234976633_179.json",
+      "note": "29-byte position update"
+    },
+    {
+      "dps": {
+        "179": "HBIaOhgI2N+/zgYQZBhkIKZ9KP0YMgbo5QLw8gI="
+      },
+      "source": "1775235035032_179.json",
+      "note": "29-byte position update"
+    },
+    {
+      "dps": {
+        "179": "HBIaOhgI05DBzgYQZBhkIIJ9KKMcMgbEzALg1wI="
+      },
+      "source": "1775257686825_179.json",
+      "note": "Session 2: position update"
+    },
+    {
+      "dps": {
+        "179": "HBIaOhgI05DBzgYQZBhkIJZ9KI0bMgaqzQL22AI="
+      },
+      "source": "1775257686929_179.json",
+      "note": "Session 2: position update"
+    },
+    {
+      "dps": {
+        "179": "HBIaOhgI05DBzgYQZBhkIJd9KJcbMgaqywLg1wI="
+      },
+      "source": "1775257687051_179.json",
+      "note": "Session 2: position update"
+    },
+    {
+      "dps": {
+        "179": "HBIaOhgI5ZDBzgYQZBhkINN/KOEDMgaktQKgwQI="
+      },
+      "source": "1775257704726_179.json",
+      "note": "Session 2: position update"
+    },
+    {
+      "dps": {
+        "179": "HBIaOhgI5ZDBzgYQZBhkINN/KOEDMgbYtQLSwQI="
+      },
+      "source": "1775257704828_179.json",
+      "note": "Session 2: position update"
+    },
+    {
+      "dps": {
+        "179": "HBIaOhgI55DBzgYQZBhkIPx7KMMpMga43AKm7AI="
+      },
+      "source": "1775257707023_179.json",
+      "note": "Session 2: position update"
+    },
+    {
+      "dps": {
+        "179": "HBIaOhgI6JDBzgYQZBhkIJF9KJEZMgbqvQL2ygI="
+      },
+      "source": "1775257708125_179.json",
+      "note": "Session 2: position update"
+    },
+    {
+      "dps": {
+        "179": "HBIaOhgI75DBzgYQZBhkIIN8KL8nMgbO3QKC6QI="
+      },
+      "source": "1775257715524_179.json",
+      "note": "Session 2: position update"
+    },
+    {
+      "dps": {
+        "179": "HBIaOhgI85DBzgYQZBhkIOJ9KLkTMgauvwLcywI="
+      },
+      "source": "1775257719472_179.json",
+      "note": "Session 2: position update"
+    },
+    {
+      "dps": {
+        "179": "HBIaOhgI9ZDBzgYQZBhkIK97KNMsMgaA3gKI6wI="
+      },
+      "source": "1775257721427_179.json",
+      "note": "Session 2: position update"
+    },
+    {
+      "dps": {
+        "179": "HBIaOhgI9pDBzgYQZBhkIOZ8KLkbMgaOwAL2ygI="
+      },
+      "source": "1775257721826_179.json",
+      "note": "Session 2: position update"
+    },
+    {
+      "dps": {
+        "179": "HBIaOhgI9pDBzgYQZBhkILR7KOUrMgaA3gK+6wI="
+      },
+      "source": "1775257722526_179.json",
+      "note": "Session 2: position update"
+    },
+    {
+      "dps": {
+        "179": "HBIaOhgI+JDBzgYQZBhkILJ8KPseMgbqvQL2ygI="
+      },
+      "source": "1775257724226_179.json",
+      "note": "Session 2: position update"
+    },
+    {
+      "dps": {
+        "179": "HBIaOhgI/JDBzgYQZBhkINJ7KK0pMga43AKg6gI="
+      },
+      "source": "1775257727626_179.json",
+      "note": "Session 2: position update"
+    },
+    {
+      "dps": {
+        "179": "HBIaOhgI/JDBzgYQZBhkIKh+KP8MMgaavgKoyQI="
+      },
+      "source": "1775257728425_179.json",
+      "note": "Session 2: position update"
+    },
+    {
+      "dps": {
+        "179": "HBIaOhgIwpHBzgYQZBhkIKl/KOUDMgaMtgKCwgI="
+      },
+      "source": "1775257798226_179.json",
+      "note": "Session 2: position update"
+    },
+    {
+      "dps": {
+        "179": "HBIaOhgIwpHBzgYQZBhkIKx/KMkDMgaMtgLSwQI="
+      },
+      "source": "1775257798429_179.json",
+      "note": "Session 2: position update"
+    },
+    {
+      "dps": {
+        "179": "HBIaOhgI55HBzgYQZBhkINB9KKUSMgbYxAL40AI="
+      },
+      "source": "1775257835426_179.json",
+      "note": "Session 2: position update"
+    },
+    {
+      "dps": {
+        "179": "HBIaOhgI55HBzgYQZBhkINp9KMsRMgbkwgKqzwI="
+      },
+      "source": "1775257835542_179.json",
+      "note": "Session 2: position update"
+    },
+    {
+      "dps": {
+        "179": "HBIaOhgI65HBzgYQZBhkIJV/KPMDMgaMtgKCwgI="
+      },
+      "source": "1775257839035_179.json",
+      "note": "Session 2: position update"
+    },
+    {
+      "dps": {
+        "179": "HBIaOhgI65HBzgYQZBhkIJd/KOcDMgaMtgLSwQI="
+      },
+      "source": "1775257839151_179.json",
+      "note": "Session 2: position update"
+    },
+    {
+      "dps": {
+        "179": "HBIaOhgI/5HBzgYQZBhkIKh8KJ0eMgbEzgKG3AI="
+      },
+      "source": "1775257859027_179.json",
+      "note": "Session 2: position update"
+    },
+    {
+      "dps": {
+        "179": "HBIaOhgIgpLBzgYQZBhkIKl8KM0dMgbezwLw2gI="
+      },
+      "source": "1775257861625_179.json",
+      "note": "Session 2: position update"
+    },
+    {
+      "dps": {
+        "179": "HBIaOhgIlZLBzgYQZBhkIIp/KOcDMgbytgLkwgI="
+      },
+      "source": "1775257880926_179.json",
+      "note": "Session 2: position update"
+    },
+    {
+      "dps": {
+        "179": "HBIaOhgIlZLBzgYQZBhkII1/KOUDMgbytgK0wgI="
+      },
+      "source": "1775257881145_179.json",
+      "note": "Session 2: position update"
+    },
+    {
+      "dps": {
+        "179": "HBIaOhgIqpLBzgYQZBhkINl9KPkPMgagwQLczQI="
+      },
+      "source": "1775257902126_179.json",
+      "note": "Session 2: position update"
+    },
+    {
+      "dps": {
+        "179": "HBIaOhgI0ZLBzgYQZBhkIIN+KKkMMgb8vgKoyQI="
+      },
+      "source": "1775257940829_179.json",
+      "note": "Session 2: position update"
+    },
+    {
+      "dps": {
+        "179": "HBIaOhgI/JPBzgYQZBhkIKKLASgfMga+tAKuvwI="
+      },
+      "source": "1775258111733_179.json",
+      "note": "Session 2: position update"
+    },
+    {
+      "dps": {
+        "179": "HBIaOhgI/JPBzgYQZBhkILN/KJUBMgbytALevwI="
+      },
+      "source": "1775258111831_179.json",
+      "note": "Session 2: position update"
+    },
+    {
+      "dps": {
+        "179": "HBIaOhgImJTBzgYQZBhkIIV8KL8hMgas1QKQ4QI="
+      },
+      "source": "1775258139732_179.json",
+      "note": "Session 2: position update"
+    },
+    {
+      "dps": {
+        "179": "HBIaOhgImZTBzgYQZBhkII9+KNMMMgaKtAKuvwI="
+      },
+      "source": "1775258141437_179.json",
+      "note": "Session 2: position update"
+    },
+    {
+      "dps": {
+        "179": "DhIMOgoI/J/DzgYyAgAA"
+      },
+      "source": "eufy_anon_4/1775292413147_179.json",
+      "note": "Session 3/4: telemetry variant"
+    },
+    {
+      "dps": {
+        "179": "DhIMOgoI/p/DzgYyAgAA"
+      },
+      "source": "eufy_anon_4/1775292415750_179.json",
+      "note": "Session 3/4: telemetry variant"
+    },
+    {
+      "dps": {
+        "179": "DhIMOgoI15/DzgYyAgAA"
+      },
+      "source": "eufy_anon_3/1775292375968_179.json",
+      "note": "Session 3/4: telemetry variant"
+    },
+    {
+      "dps": {
+        "179": "DhIMOgoI1J/DzgYyAgAA"
+      },
+      "source": "eufy_anon_3/1775292373202_179.json",
+      "note": "Session 3/4: telemetry variant"
+    },
+    {
+      "dps": {
+        "179": "DhIMOgoI35zDzgYyAgAA"
+      },
+      "source": "eufy_anon_3/1775292000571_179.json",
+      "note": "Session 3/4: telemetry variant"
+    },
+    {
+      "dps": {
+        "179": "DhIMOgoI85vDzgYyAgAA"
+      },
+      "source": "eufy_anon_3/1775291892764_179.json",
+      "note": "Session 3/4: telemetry variant"
+    },
+    {
+      "dps": {
+        "179": "DhIMOgoI8pvDzgYyAgAA"
+      },
+      "source": "eufy_anon_3/1775291890972_179.json",
+      "note": "Session 3/4: telemetry variant"
+    },
+    {
+      "dps": {
+        "179": "DhIMOgoI9J/DzgYyAgAA"
+      },
+      "source": "eufy_anon_4/1775292405144_179.json",
+      "note": "Session 3/4: telemetry variant"
+    },
+    {
+      "dps": {
+        "179": "DhIMOgoI9JvDzgYyAgAA"
+      },
+      "source": "eufy_anon_3/1775291893784_179.json",
+      "note": "Session 3/4: telemetry variant"
+    },
+    {
+      "dps": {
+        "179": "DhIMOgoI9ZvDzgYyAgAA"
+      },
+      "source": "eufy_anon_3/1775291894786_179.json",
+      "note": "Session 3/4: telemetry variant"
+    },
+    {
+      "dps": {
+        "179": "DhIMOgoIg6DDzgYyAgAA"
+      },
+      "source": "eufy_anon_4/1775292420690_179.json",
+      "note": "Session 3/4: telemetry variant"
+    },
+    {
+      "dps": {
+        "179": "DhIMOgoIhqDDzgYyAgAA"
+      },
+      "source": "eufy_anon_4/1775292423321_179.json",
+      "note": "Session 3/4: telemetry variant"
+    },
+    {
+      "dps": {
+        "179": "DhIMOgoIiaDDzgYyAgAA"
+      },
+      "source": "eufy_anon_4/1775292426391_179.json",
+      "note": "Session 3/4: telemetry variant"
+    },
+    {
+      "dps": {
+        "179": "DhIMOgoIj6DDzgYyAgAA"
+      },
+      "source": "eufy_anon_4/1775292431903_179.json",
+      "note": "Session 3/4: telemetry variant"
+    },
+    {
+      "dps": {
+        "179": "DhIMOgoIk5zDzgYyAgAA"
+      },
+      "source": "eufy_anon_3/1775291924627_179.json",
+      "note": "Session 3/4: telemetry variant"
+    },
+    {
+      "dps": {
+        "179": "DhIMOgoIkKDDzgYyAgAA"
+      },
+      "source": "eufy_anon_4/1775292433614_179.json",
+      "note": "Session 3/4: telemetry variant"
+    },
+    {
+      "dps": {
+        "179": "DhIMOgoIkaDDzgYyAgAA"
+      },
+      "source": "eufy_anon_4/1775292434469_179.json",
+      "note": "Session 3/4: telemetry variant"
+    },
+    {
+      "dps": {
+        "179": "DhIMOgoIlKDDzgYyAgAA"
+      },
+      "source": "eufy_anon_4/1775292436909_179.json",
+      "note": "Session 3/4: telemetry variant"
+    },
+    {
+      "dps": {
+        "179": "DhIMOgoIlqDDzgYyAgAA"
+      },
+      "source": "eufy_anon_4/1775292439377_179.json",
+      "note": "Session 3/4: telemetry variant"
+    },
+    {
+      "dps": {
+        "179": "DhIMOgoImJ7DzgYyAgAA"
+      },
+      "source": "eufy_anon_3/1775292184806_179.json",
+      "note": "Session 3/4: telemetry variant"
+    },
+    {
+      "dps": {
+        "179": "DhIMOgoImp7DzgYyAgAA"
+      },
+      "source": "eufy_anon_3/1775292187510_179.json",
+      "note": "Session 3/4: telemetry variant"
+    },
+    {
+      "dps": {
+        "179": "DhIMOgoImqDDzgYyAgAA"
+      },
+      "source": "eufy_anon_4/1775292442980_179.json",
+      "note": "Session 3/4: telemetry variant"
+    },
+    {
+      "dps": {
+        "179": "DhIMOgoInqDDzgYyAgAA"
+      },
+      "source": "eufy_anon_4/1775292447216_179.json",
+      "note": "Session 3/4: telemetry variant"
+    },
+    {
+      "dps": {
+        "179": "DhIMOgoIpqDDzgYyAgAA"
+      },
+      "source": "eufy_anon_4/1775292455677_179.json",
+      "note": "Session 3/4: telemetry variant"
+    },
+    {
+      "dps": {
+        "179": "DhIMOgoIr6DDzgYyAgAA"
+      },
+      "source": "eufy_anon_4/1775292464297_179.json",
+      "note": "Session 3/4: telemetry variant"
+    },
+    {
+      "dps": {
+        "179": "DhIMOgoIrKDDzgYyAgAA"
+      },
+      "source": "eufy_anon_4/1775292461706_179.json",
+      "note": "Session 3/4: telemetry variant"
+    },
+    {
+      "dps": {
+        "179": "DhIMOgoItqDDzgYyAgAA"
+      },
+      "source": "eufy_anon_4/1775292471575_179.json",
+      "note": "Session 3/4: telemetry variant"
+    },
+    {
+      "dps": {
+        "179": "DhIMOgoIv6DDzgYyAgAA"
+      },
+      "source": "eufy_anon_4/1775292480816_179.json",
+      "note": "Session 3/4: telemetry variant"
+    },
+    {
+      "dps": {
+        "179": "DhIMOgoIvaDDzgYyAgAA"
+      },
+      "source": "eufy_anon_4/1775292479071_179.json",
+      "note": "Session 3/4: telemetry variant"
+    },
+    {
+      "dps": {
+        "179": "DhIMOgoIwqDDzgYyAgAA"
+      },
+      "source": "eufy_anon_4/1775292483086_179.json",
+      "note": "Session 3/4: telemetry variant"
+    },
+    {
+      "dps": {
+        "179": "FRITEhEItgQQASiKnMPOBjC/nMPOBg=="
+      },
+      "source": "eufy_anon_3/1775291968056_179.json",
+      "note": "Session 3/4: telemetry variant"
+    },
+    {
+      "dps": {
+        "179": "FRITEhEItwQQASiiosPOBjD/osPOBg=="
+      },
+      "source": "eufy_anon_4/1775292800717_179.json",
+      "note": "Session 3/4: telemetry variant"
+    },
+    {
+      "dps": {
+        "179": "FRITEhEItwQQASjEoMPOBjCBocPOBg=="
+      },
+      "source": "eufy_anon_4/1775292546240_179.json",
+      "note": "Session 3/4: telemetry variant"
+    },
+    {
+      "dps": {
+        "179": "GxIZOhcIgaHDzgYQZBhkINR/KCsyBta8A8LHAw=="
+      },
+      "source": "eufy_anon_4/1775292546127_179.json",
+      "note": "Session 3/4: telemetry variant"
+    },
+    {
+      "dps": {
+        "179": "HBIaOhgI/5/DzgYQZBhkIOh8KNsdMgbS5QOK7gM="
+      },
+      "source": "eufy_anon_4/1775292415819_179.json",
+      "note": "Session 3/4: telemetry variant"
+    },
+    {
+      "dps": {
+        "179": "HBIaOhgI/J/DzgYQZBhkIOl8KP0dMgaI5gOs7wM="
+      },
+      "source": "eufy_anon_4/1775292413258_179.json",
+      "note": "Session 3/4: telemetry variant"
+    },
+    {
+      "dps": {
+        "179": "HBIaOhgI1J/DzgYQZBhkIJx9KMkdMgaa4gOe7QM="
+      },
+      "source": "eufy_anon_3/1775292373233_179.json",
+      "note": "Session 3/4: telemetry variant"
+    },
+    {
+      "dps": {
+        "179": "HBIaOhgI353DzgYQZBhkILV/KKUIMgaS0wP62QM="
+      },
+      "source": "eufy_anon_3/1775292128315_179.json",
+      "note": "Session 3/4: telemetry variant"
+    },
+    {
+      "dps": {
+        "179": "HBIaOhgI35zDzgYyCAAA3s4DkMcDSgYyBAiZgAE="
+      },
+      "source": "eufy_anon_3/1775292000616_179.json",
+      "note": "Session 3/4: telemetry variant"
+    },
+    {
+      "dps": {
+        "179": "HBIaOhgI85vDzgYQZBhkINp9KI0eMgb27gO29AM="
+      },
+      "source": "eufy_anon_3/1775291891812_179.json",
+      "note": "Session 3/4: telemetry variant"
+    },
+    {
+      "dps": {
+        "179": "HBIaOhgI8pvDzgYQZBhkIM99KIkfMgae7QPI8wM="
+      },
+      "source": "eufy_anon_3/1775291891061_179.json",
+      "note": "Session 3/4: telemetry variant"
+    },
+    {
+      "dps": {
+        "179": "HBIaOhgI9J/DzgYQZBhkIO58KP0dMgb44wOy7AM="
+      },
+      "source": "eufy_anon_4/1775292405232_179.json",
+      "note": "Session 3/4: telemetry variant"
+    },
+    {
+      "dps": {
+        "179": "HBIaOhgI9JvDzgYQZBhkINt9KPsdMgbo7APE9gM="
+      },
+      "source": "eufy_anon_3/1775291892809_179.json",
+      "note": "Session 3/4: telemetry variant"
+    },
+    {
+      "dps": {
+        "179": "HBIaOhgI9ZvDzgYQZBhkIL99KJEgMgbi7wO29AM="
+      },
+      "source": "eufy_anon_3/1775291893815_179.json",
+      "note": "Session 3/4: telemetry variant"
+    },
+    {
+      "dps": {
+        "179": "HBIaOhgI9pvDzgYQZBhkIMN9KM0fMgae7QPs9AM="
+      },
+      "source": "eufy_anon_3/1775291894815_179.json",
+      "note": "Session 3/4: telemetry variant"
+    },
+    {
+      "dps": {
+        "179": "HBIaOhgIg6DDzgYQZBhkIN98KKceMgac5QOE8QM="
+      },
+      "source": "eufy_anon_4/1775292420722_179.json",
+      "note": "Session 3/4: telemetry variant"
+    },
+    {
+      "dps": {
+        "179": "HBIaOhgIg6PDzgYQZBhjIIp/KPAFMgayqgPitgM="
+      },
+      "source": "eufy_anon_4/1775292804429_179.json",
+      "note": "Session 3/4: telemetry variant"
+    },
+    {
+      "dps": {
+        "179": "HBIaOhgIhqDDzgYQZBhkINV8KO8eMgaw5AOe7QM="
+      },
+      "source": "eufy_anon_4/1775292423351_179.json",
+      "note": "Session 3/4: telemetry variant"
+    },
+    {
+      "dps": {
+        "179": "HBIaOhgIiaDDzgYQZBhkIN98KPcdMgaq4QPi7wM="
+      },
+      "source": "eufy_anon_4/1775292426422_179.json",
+      "note": "Session 3/4: telemetry variant"
+    },
+    {
+      "dps": {
+        "179": "HBIaOhgIj6DDzgYQZBhkIMx8KPseMgb44wOK7gM="
+      },
+      "source": "eufy_anon_4/1775292431932_179.json",
+      "note": "Session 3/4: telemetry variant"
+    },
+    {
+      "dps": {
+        "179": "HBIaOhgIk5zDzgYQZBhkINl+KOUPMgbu3QPm5AM="
+      },
+      "source": "eufy_anon_3/1775291924713_179.json",
+      "note": "Session 3/4: telemetry variant"
+    },
+    {
+      "dps": {
+        "179": "HBIaOhgIkKDDzgYQZBhkIM98KO8eMgaq5wPo7AM="
+      },
+      "source": "eufy_anon_4/1775292433646_179.json",
+      "note": "Session 3/4: telemetry variant"
+    },
+    {
+      "dps": {
+        "179": "HBIaOhgIkaDDzgYQZBhkINl8KNsdMgaI4wOQ6wM="
+      },
+      "source": "eufy_anon_4/1775292434525_179.json",
+      "note": "Session 3/4: telemetry variant"
+    },
+    {
+      "dps": {
+        "179": "HBIaOhgIlKDDzgYQZBhkINt8KM0dMgb44wP27gM="
+      },
+      "source": "eufy_anon_4/1775292436938_179.json",
+      "note": "Session 3/4: telemetry variant"
+    },
+    {
+      "dps": {
+        "179": "HBIaOhgIlqDDzgYQZBhkIM58KMEeMgb44wPc8gM="
+      },
+      "source": "eufy_anon_4/1775292439424_179.json",
+      "note": "Session 3/4: telemetry variant"
+    },
+    {
+      "dps": {
+        "179": "HBIaOhgImJ7DzgYQZBhkIKF9KPMdMgbG6wOE8QM="
+      },
+      "source": "eufy_anon_3/1775292184836_179.json",
+      "note": "Session 3/4: telemetry variant"
+    },
+    {
+      "dps": {
+        "179": "HBIaOhgImp7DzgYQZBhkIKd9KOccMgbM6AOE8QM="
+      },
+      "source": "eufy_anon_3/1775292187541_179.json",
+      "note": "Session 3/4: telemetry variant"
+    },
+    {
+      "dps": {
+        "179": "HBIaOhgImqDDzgYQZBhkIM18KMkeMgaw5AO68QM="
+      },
+      "source": "eufy_anon_4/1775292443020_179.json",
+      "note": "Session 3/4: telemetry variant"
+    },
+    {
+      "dps": {
+        "179": "HBIaOhgIn6HDzgYQZBhkIJd9KLUaMgbI3AO46QM="
+      },
+      "source": "eufy_anon_4/1775292576422_179.json",
+      "note": "Session 3/4: telemetry variant"
+    },
+    {
+      "dps": {
+        "179": "HBIaOhgInp7DzgYQZBhkIMB/KKEEMgb2yQPE0QM="
+      },
+      "source": "eufy_anon_3/1775292191117_179.json",
+      "note": "Session 3/4: telemetry variant"
+    },
+    {
+      "dps": {
+        "179": "HBIaOhgInqDDzgYQZBhkIN18KOscMgaq5wPa6gM="
+      },
+      "source": "eufy_anon_4/1775292447348_179.json",
+      "note": "Session 3/4: telemetry variant"
+    },
+    {
+      "dps": {
+        "179": "HBIaOhgIpqDDzgYQZBhkIM18KJEeMgbS5QOS8wM="
+      },
+      "source": "eufy_anon_4/1775292455723_179.json",
+      "note": "Session 3/4: telemetry variant"
+    },
+    {
+      "dps": {
+        "179": "HBIaOhgIr6DDzgYQZBhkIMh8KNEdMgbM3wPo7AM="
+      },
+      "source": "eufy_anon_4/1775292464332_179.json",
+      "note": "Session 3/4: telemetry variant"
+    },
+    {
+      "dps": {
+        "179": "HBIaOhgIrKDDzgYQZBhkIMV8KKseMgb44wPG6wM="
+      },
+      "source": "eufy_anon_4/1775292461736_179.json",
+      "note": "Session 3/4: telemetry variant"
+    },
+    {
+      "dps": {
+        "179": "HBIaOhgItqDDzgYQZBhkIMB8KK8eMgbQ4gOk6gM="
+      },
+      "source": "eufy_anon_4/1775292471627_179.json",
+      "note": "Session 3/4: telemetry variant"
+    },
+    {
+      "dps": {
+        "179": "HBIaOhgIu6LDzgYQZBhjIJ99KM8RMgbEywOs1wM="
+      },
+      "source": "eufy_anon_4/1775292732530_179.json",
+      "note": "Session 3/4: telemetry variant"
+    },
+    {
+      "dps": {
+        "179": "HBIaOhgIvaDDzgYQZBhkIKl8KPsfMgbg5wPO8AM="
+      },
+      "source": "eufy_anon_4/1775292479162_179.json",
+      "note": "Session 3/4: telemetry variant"
+    },
+    {
+      "dps": {
+        "179": "HBIaOhgIvp3DzgYQZBhkIMN9KOcfMgbA7gPE9gM="
+      },
+      "source": "eufy_anon_3/1775292095513_179.json",
+      "note": "Session 3/4: telemetry variant"
+    },
+    {
+      "dps": {
+        "179": "HBIaOhgIwKDDzgYQZBhkIK58KMkfMgbg5wOY8AM="
+      },
+      "source": "eufy_anon_4/1775292480848_179.json",
+      "note": "Session 3/4: telemetry variant"
+    },
+    {
+      "dps": {
+        "179": "HBIaOhgIwqDDzgYQZBhkIL98KO8dMgbM3wPi7wM="
+      },
+      "source": "eufy_anon_4/1775292483122_179.json",
+      "note": "Session 3/4: telemetry variant"
+    },
+    {
+      "dps": {
+        "179": "HBIaOhgIxp3DzgYQZBhkIL5+KM8TMgbEzwP01gM="
+      },
+      "source": "eufy_anon_3/1775292103221_179.json",
+      "note": "Session 3/4: telemetry variant"
+    },
+    {
+      "dps": {
+        "179": "HBIaOhgIzZ/DzgYQZBhkIOt8KL8jMgbA7gOw9wM="
+      },
+      "source": "eufy_anon_3/1775292366219_179.json",
+      "note": "Session 3/4: telemetry variant"
+    },
+    {
+      "dps": {
+        "179": "HRIbOhkI0KPDzgYQZBhkIJSAASjIETIG1JwDyKkD"
+      },
+      "source": "eufy_anon_4/1775292881536_179.json",
+      "note": "Session 3/4: telemetry variant"
+    },
+    {
+      "dps": {
+        "179": "HRIbOhkI35zDzgYQZBhkIJSAASioATIG3MgD+M8D"
+      },
+      "source": "eufy_anon_3/1775292000684_179.json",
+      "note": "Session 3/4: telemetry variant"
+    },
+    {
+      "dps": {
+        "179": "HRIbOhkIx53DzgYQZBhkIKqDASiNATIGkMkD3tAD"
+      },
+      "source": "eufy_anon_3/1775292104315_179.json",
+      "note": "Session 3/4: telemetry variant"
+    },
+    {
+      "dps": {
+        "179": "HRIbOhkIx53DzgYQZBhkIKuJASjdATIGkMcD3s4D"
+      },
+      "source": "eufy_anon_3/1775292104212_179.json",
+      "note": "Session 3/4: telemetry variant"
+    },
+    {
+      "dps": {
+        "179": "IBIeChwItwQYAzDsnMPOBjjDoMPOBkB4SAJQeFgIeP8C"
+      },
+      "source": "eufy_anon_4/1775292486051_179.json",
+      "note": "Session 3/4: telemetry variant"
+    },
+    {
+      "dps": {
+        "179": "bBJqCmjKAjIICBiGnMPOBiIAKh0I9A0QAhgCIJ/y/////////wEo+fH/////////ATD0DTgCQAJKAMoCMBi/nMPOBiIAKh0I0AkQBRgFIJ77/////////wEo9fH/////////ATDQCTgFQAVKAA=="
+      },
+      "source": "eufy_anon_3/1775291968088_179.json",
+      "note": "Session 3/4: telemetry variant"
+    },
+    {
+      "dps": {
+        "179": "cBJuCmzKAi4Y7ZzDzgYiACocCA0QAhgCIPP//////////wEo8///////////ATANOAJAAkoAygI4CAEYxKDDzgYiACofCPMFENcDGNcDIPf//////////wEo2e3/////////ATDzBTjXA0DXA0oCEAQ="
+      },
+      "source": "eufy_anon_4/1775292546270_179.json",
+      "note": "Session 3/4: telemetry variant"
+    }
+  ]
+}

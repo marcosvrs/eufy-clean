@@ -1,0 +1,76 @@
+[
+  {
+    "device": {
+      "id": 100001,
+      "device_sn": "TXXX_ANON_001",
+      "device_name": "Robovac",
+      "device_type": 0,
+      "is_integrated": 0,
+      "device_model": "T2351",
+      "device_channel": 0,
+      "main_sw_version": "v3.4.85",
+      "sec_sw_version": "",
+      "main_sw_time": 1768861543,
+      "sec_sw_time": 0,
+      "time_zone": "Europe/Dublin",
+      "wifi_ssid": "ANON_WIFI",
+      "ip_addr": "",
+      "local_ip": "",
+      "wifi_mac": "AABBCCDDEEFF",
+      "device_status": 1,
+      "device_status_time": 1775186732563,
+      "cover_path": "",
+      "cover_time": 0,
+      "bt_mac": "",
+      "member": {
+        "id": 100002,
+        "app_id": "eufy_home",
+        "device_sn": "TXXX_ANON_001",
+        "admin_user_id": "ANON_USER_HASH_001",
+        "member_user_id": "ANON_USER_HASH_001",
+        "member_type": 2,
+        "member_avatar": "",
+        "member_nick": "",
+        "permissions": 0,
+        "extra": "",
+        "create_time": 1730894753,
+        "house_id": ""
+      },
+      "params": [
+        {
+          "param_name": "ota_auto_upgrade",
+          "param_value": "1",
+          "create_time": 1730894780,
+          "update_time": 1730894780
+        }
+      ],
+      "p2p_info": {
+        "p2p_conn": "",
+        "app_conn": "",
+        "wipn_enc_dec_key": "",
+        "wipn_ndt_aes128key": "",
+        "query_server_did": "",
+        "prefix": "",
+        "wakeup_key": "",
+        "p2p_did": "",
+        "p2p_license": "",
+        "wakeup_flag": 0,
+        "server_id": 0,
+        "p2p_status": 0
+      },
+      "device_group": {
+        "is_master_device": false
+      },
+      "dps": null,
+      "rate": 0,
+      "ota_info": null,
+      "paring_info": null,
+      "support_auto_upgrade": false,
+      "mqtt_info": {
+        "host": "aiot-mqtt-eu.anker.com",
+        "port": 8883
+      }
+    },
+    "sub_devices": null
+  }
+]

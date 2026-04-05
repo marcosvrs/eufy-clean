@@ -1,0 +1,90 @@
+{
+  "description": "Real captured: StationResponse state=WASHING, waste_water_recycling=True, clean_water=40",
+  "raw_payload": {
+    "head": {
+      "version": "1.0.0.2",
+      "client_id": "android-anon-openudid-anon_user-0",
+      "sess_id": "android-anon-openudid-anon_user-0",
+      "msg_seq": 14397,
+      "cmd": 65537,
+      "cmd_status": 1,
+      "sign_code": 0,
+      "seed": "null",
+      "timestamp": 158,
+      "tz_offset": 100
+    },
+    "payload": {
+      "protocol": 1,
+      "t": 1773459368476,
+      "account_id": "ANON_USER_001",
+      "device_sn": "TXXX_ANON_001",
+      "data": {
+        "173": "MgokCgwKBggBGgIIGRIAGAESBAgBEgAyDgoCCAESBAgCGA8aAggBEgYIARABKAEqAggo"
+      }
+    }
+  },
+  "dps": {
+    "173": "MgokCgwKBggBGgIIGRIAGAESBAgBEgAyDgoCCAESBAgCGA8aAggBEgYIARABKAEqAggo"
+  },
+  "expected_state": {
+    "dock_status": "Recycling waste water"
+  },
+  "additional_captured_values": [
+    {
+      "dps": {
+        "173": "MgokCgwKBggBGgIIGRIAGAESBAgBEgAyDgoCCAESBAgCGA8aAggBEgYIARABKAEqAggn"
+      },
+      "source": "1775234641776_173.json",
+      "note": "washing+waste_water, water=39"
+    },
+    {
+      "dps": {
+        "173": "MgokCgwKBggBGgIIGRIAGAESBAgBEgAyDgoCCAESBAgCGA8aAggBEgYIARABKAEqAggm"
+      },
+      "source": "1775234642958_173.json",
+      "note": "washing+waste_water, water=38"
+    },
+    {
+      "dps": {
+        "173": "MgokCgwKBggBGgIIGRIAGAESBAgBEgAyDgoCCAESBAgCGA8aAggBEgYIARABKAEqAggl"
+      },
+      "source": "1775234692165_173.json",
+      "note": "washing+waste_water, water=37"
+    },
+    {
+      "dps": {
+        "173": "MgokCgwKBggBGgIIGRIAGAESBAgBEgAyDgoCCAESBAgCGA8aAggBEgYIARABKAEqAggi"
+      },
+      "source": "1775258051965_173.json",
+      "note": "Session 2: recycling, water=34"
+    },
+    {
+      "dps": {
+        "173": "MgokCgwKBggBGgIIGRIAGAESBAgBEgAyDgoCCAESBAgCGA8aAggBEgYIARABKAEqAggg"
+      },
+      "source": "1775258086157_173.json",
+      "note": "Session 2: recycling, water=32"
+    },
+    {
+      "dps": {
+        "173": "MgokCgwKBggBGgIIGRIAGAESBAgBEgAyDgoCCAESBAgCGA8aAggBEgYIARABKAEqAggf"
+      },
+      "source": "1775258094155_173.json",
+      "note": "Session 2: recycling, water=31"
+    },
+    {
+      "dps": {
+        "173": "MgokCgwKBggBGgIIGRIAGAESBAgBEgAyDgoCCAESBAgCGA8aAggBEgYIARABKAEqAgge"
+      },
+      "source": "1775258110887_173.json",
+      "note": "Session 2: recycling, water=30"
+    },
+    {
+      "dps": {
+        "173": "MAokCgwKBggBGgIIGRIAGAESBAgBEgAyDgoCCAESBAgCGA8aAggBEgYIARABKAEqAA=="
+      },
+      "source": "eufy_anon_3/1775292077748_173.json",
+      "note": "Session 3/4: washing variant"
+    }
+  ]
+}

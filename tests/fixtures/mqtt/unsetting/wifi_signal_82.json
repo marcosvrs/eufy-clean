@@ -1,0 +1,33 @@
+{
+  "description": "Real captured: UnisettingResponse with ap_signal_strength=82, children_lock=False (stronger signal)",
+  "raw_payload": {
+    "head": {
+      "version": "1.0.0.2",
+      "client_id": "android-anon-openudid-anon_user-0",
+      "sess_id": "android-anon-openudid-anon_user-0",
+      "msg_seq": 14533,
+      "cmd": 65537,
+      "cmd_status": 1,
+      "sign_code": 0,
+      "seed": "null",
+      "timestamp": 490,
+      "tz_offset": 100
+    },
+    "payload": {
+      "protocol": 1,
+      "t": 1773459700276,
+      "account_id": "ANON_USER_001",
+      "device_sn": "TXXX_ANON_001",
+      "data": {
+        "176": "RwoAGgAiACoCCAEyAEIECKCZAkoAUg4KAggBEgIIASICCAFCAFhSagIIAXIAegCCAQIIAZIBAKoBALIBAggBugEGCgASABoA"
+      }
+    }
+  },
+  "dps": {
+    "176": "RwoAGgAiACoCCAEyAEIECKCZAkoAUg4KAggBEgIIASICCAFCAFhSagIIAXIAegCCAQIIAZIBAKoBALIBAggBugEGCgASABoA"
+  },
+  "expected_state": {
+    "wifi_signal": -59.0,
+    "child_lock": false
+  }
+}

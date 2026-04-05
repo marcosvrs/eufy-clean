@@ -1,0 +1,12 @@
+{
+  "description": "Edge case: WorkStatus state=1 (idle/sleep) — state=1 never captured on X10 Pro Omni (only state=0/STANDBY observed)",
+  "dps": {
+    "153": "AhAB"
+  },
+  "expected_state": {
+    "activity": "idle",
+    "task_status": "Idle",
+    "charging": false,
+    "trigger_source": "unknown"
+  }
+}

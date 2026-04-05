@@ -1,0 +1,32 @@
+{
+  "description": "Real captured: PromptCode value=45 (dock return complete)",
+  "raw_payload": {
+    "head": {
+      "version": "1.0.0.2",
+      "client_id": "android-anon-openudid-anon_user-0",
+      "sess_id": "android-anon-openudid-anon_user-0",
+      "msg_seq": 23011,
+      "cmd": 65537,
+      "cmd_status": 1,
+      "sign_code": 0,
+      "seed": "null",
+      "timestamp": 121,
+      "tz_offset": 100
+    },
+    "payload": {
+      "protocol": 1,
+      "t": 1773516623079,
+      "account_id": "ANON_USER_001",
+      "device_sn": "TXXX_ANON_001",
+      "data": {
+        "178": "CwjDx8X/jJAvEgEt"
+      }
+    }
+  },
+  "dps": {
+    "178": "CwjDx8X/jJAvEgEt"
+  },
+  "expected_state": {
+    "_note": "DPS 178 PromptCode: codes=[45] — dock return complete"
+  }
+}

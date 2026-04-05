@@ -1,0 +1,46 @@
+{
+  "description": "Real captured: ErrorCode with error=[7002] (wheel stuck / obstacle during zone clean)",
+  "raw_payload": {
+    "head": {
+      "version": "1.0.0.2",
+      "client_id": "android-anon-openudid-anon_user-0",
+      "sess_id": "android-anon-openudid-anon_user-0",
+      "msg_seq": 14814,
+      "cmd": 65537,
+      "cmd_status": 1,
+      "sign_code": 0,
+      "seed": "null",
+      "timestamp": 96,
+      "tz_offset": 100
+    },
+    "payload": {
+      "protocol": 1,
+      "t": 1773482425833,
+      "account_id": "ANON_USER_001",
+      "device_sn": "TXXX_ANON_001",
+      "data": {
+        "177": "FAivkczP+6snEgLaNiIAUgQKAto2"
+      }
+    }
+  },
+  "dps": {
+    "177": "FAivkczP+6snEgLaNiIAUgQKAto2"
+  },
+  "expected_state": {
+    "_note": "BUG: parser only checks warn[] field, not error[] field. Real error=[7002] is ignored.",
+    "error_code": 0,
+    "error_message": ""
+  },
+  "additional_captured_values": [
+    {
+      "dps": {"177": "EAjXlOfNh6wnEgLaNiIAUgA="},
+      "source": "1775257690202_177.json",
+      "note": "error=[7002], same error repeated"
+    },
+    {
+      "dps": {"177": "EAiLr7SinKwnEgLaNiIAUgA="},
+      "source": "1775257695746_177.json",
+      "note": "error=[7002], same error repeated"
+    }
+  ]
+}

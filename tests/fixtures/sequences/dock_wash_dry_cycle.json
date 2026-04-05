@@ -1,0 +1,70 @@
+{
+  "description": "Real captured dock wash+dry cycle: docked → washing → dock confirms washing → drying → dock confirms drying → emptying dust → dock idle",
+  "messages": [
+    {
+      "dps": {
+        "153": "DBADGgIaAHICIgB6AA=="
+      },
+      "expected_state_after": {
+        "activity": "docked"
+      },
+      "delay_seconds": 0
+    },
+    {
+      "dps": {
+        "153": "FBAFGgIaADoCEAFyBgoCCAEiAHoA"
+      },
+      "expected_state_after": {
+        "activity": "docked",
+        "dock_status": "Washing"
+      },
+      "delay_seconds": 7
+    },
+    {
+      "dps": {
+        "173": "MgokCgwKBggBGgIIGRIAGAESBAgBEgAyDgoCCAESBAgCGA8aAggBEgYIARABIAEqAggr"
+      },
+      "expected_state_after": {
+        "dock_status": "Adding clean water"
+      },
+      "delay_seconds": 45
+    },
+    {
+      "dps": {
+        "153": "FBAFGgIaADoCEAJyBhoCCAEiAHoA"
+      },
+      "expected_state_after": {
+        "activity": "docked",
+        "dock_status": "Drying"
+      },
+      "delay_seconds": 165
+    },
+    {
+      "dps": {
+        "173": "MAokCgwKBggBGgIIGRIAGAESBAgBEgAyDgoCCAESBAgCGA8aAggBEgQIARACKgIIJQ=="
+      },
+      "expected_state_after": {
+        "dock_status": "Drying"
+      },
+      "delay_seconds": 1
+    },
+    {
+      "dps": {
+        "173": "MAokCgwKBggBGgIIGRIAGAESBAgBEgAyDgoCCAESBAgCGA8aAggBEgQIARgBKgIIJQ=="
+      },
+      "expected_state_after": {
+        "dock_status": "Emptying dust"
+      },
+      "delay_seconds": 33
+    },
+    {
+      "dps": {
+        "173": "LgokCgwKBggBGgIIGRIAGAESBAgBEgAyDgoCCAESBAgCGA8aAggBEgIIASoCCCU="
+      },
+      "expected_state_after": {
+        "dock_status": "Idle"
+      },
+      "delay_seconds": 31
+    }
+  ]
+}

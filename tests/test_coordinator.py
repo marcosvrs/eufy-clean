@@ -1,14 +1,18 @@
 """Unit tests for the EufyCleanCoordinator."""
 
+# Removed: test_coordinator_init — covered by tests/integration/test_coordinator.py
+# Removed: test_coordinator_initialize_success — covered by tests/integration/test_coordinator.py
+# Removed: test_handle_mqtt_message — covered by tests/integration/test_coordinator.py
+# Removed: test_async_send_command — covered by tests/integration/test_coordinator.py
+
 # pylint: disable=redefined-outer-name
 
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 from homeassistant.helpers.update_coordinator import UpdateFailed
 
 from custom_components.robovac_mqtt.coordinator import EufyCleanCoordinator
-from custom_components.robovac_mqtt.models import VacuumState
 
 
 @pytest.fixture
@@ -26,63 +30,6 @@ def mock_login():
     return login
 
 
-def test_coordinator_init(mock_hass, mock_login):
-    """Test coordinator initialization."""
-    device_info = {
-        "deviceId": "test_id",
-        "deviceModel": "T2118",
-        "deviceName": "Test Vac",
-        "dps": {"152": "test_dps"},  # Some initial DPS
-    }
-
-    with patch(
-        "custom_components.robovac_mqtt.coordinator.update_state"
-    ) as mock_update:
-        mock_update.return_value = (VacuumState(battery_level=100), {})
-
-        coordinator = EufyCleanCoordinator(mock_hass, mock_login, device_info)
-
-        assert coordinator.device_id == "test_id"
-        assert coordinator.device_name == "Test Vac"
-        # Verify initial DPS processing
-        mock_update.assert_called_once()
-        assert coordinator.data.battery_level == 100
-
-
-@pytest.mark.asyncio
-async def test_coordinator_initialize_success(mock_hass, mock_login):
-    """Test successful initialization of the coordinator."""
-    device_info = {
-        "deviceId": "test_id",
-        "deviceModel": "T2118",
-        "deviceName": "Test Vac",
-    }
-
-    mock_login.mqtt_credentials = {
-        "user_id": "uid",
-        "app_name": "app",
-        "thing_name": "thing",
-        "certificate_pem": "cert",
-        "private_key": "key",
-        "endpoint_addr": "endpoint",
-    }
-
-    coordinator = EufyCleanCoordinator(mock_hass, mock_login, device_info)
-
-    with patch(
-        "custom_components.robovac_mqtt.coordinator.EufyCleanClient"
-    ) as mock_client_cls:
-        mock_client = mock_client_cls.return_value
-        mock_client.connect = AsyncMock()
-
-        await coordinator.initialize()
-
-        mock_login.checkLogin.assert_not_called()  # Creds existed
-        mock_client_cls.assert_called_once()
-        mock_client.connect.assert_called_once()
-        assert coordinator.client == mock_client
-
-
 @pytest.mark.asyncio
 async def test_coordinator_initialize_failed_creds(mock_hass, mock_login):
     """Test initialization failure when no credentials."""
@@ -93,7 +40,6 @@ async def test_coordinator_initialize_failed_creds(mock_hass, mock_login):
     }
     mock_login.mqtt_credentials = None
 
-    # Even after checkLogin, still None
     async def side_effect_check():
         mock_login.mqtt_credentials = None
 
@@ -105,53 +51,6 @@ async def test_coordinator_initialize_failed_creds(mock_hass, mock_login):
         await coordinator.initialize()
 
     mock_login.checkLogin.assert_called_once()
-
-
-def test_handle_mqtt_message(mock_hass, mock_login):
-    """Test handling of MQTT messages."""
-    device_info = {
-        "deviceId": "test_id",
-        "deviceModel": "T2118",
-        "deviceName": "Test Vac",
-    }
-    coordinator = EufyCleanCoordinator(mock_hass, mock_login, device_info)
-    coordinator.async_set_updated_data = MagicMock()
-
-    # Create dummy payload: {"payload": {"data": {"dps_key": "dps_val"}}}
-    payload_str = '{"payload": {"data": {"101": "val"}}}'
-    payload_bytes = payload_str.encode()
-
-    with patch(
-        "custom_components.robovac_mqtt.coordinator.update_state"
-    ) as mock_update:
-        new_state = VacuumState(battery_level=50)
-        mock_update.return_value = (new_state, {})
-
-        coordinator._handle_mqtt_message(payload_bytes)
-
-        mock_update.assert_called()
-        coordinator.async_set_updated_data.assert_called_with(new_state)
-
-
-@pytest.mark.asyncio
-async def test_async_send_command(mock_hass, mock_login):
-    """Test sending commands."""
-    device_info = {
-        "deviceId": "test_id",
-        "deviceModel": "T2118",
-        "deviceName": "Test Vac",
-    }
-    coordinator = EufyCleanCoordinator(mock_hass, mock_login, device_info)
-
-    # Mock client
-    mock_client = MagicMock()
-    mock_client.send_command = AsyncMock()
-    coordinator.client = mock_client
-
-    cmd = {"some": "cmd"}
-    await coordinator.async_send_command(cmd)
-
-    mock_client.send_command.assert_called_with(cmd)
 
 
 def test_async_shutdown_timers_cancels_both(mock_hass, mock_login):
@@ -188,7 +87,6 @@ def test_async_shutdown_timers_noop_when_no_timers(mock_hass, mock_login):
     assert coordinator._dock_idle_cancel is None
     assert coordinator._segment_update_cancel is None
 
-    # Should not raise
     coordinator.async_shutdown_timers()
 
     assert coordinator._dock_idle_cancel is None
@@ -206,5 +104,4 @@ async def test_async_send_command_no_client_logs_warning(mock_hass, mock_login):
     coordinator = EufyCleanCoordinator(mock_hass, mock_login, device_info)
     coordinator.client = None
 
-    # Should not raise any exception
     await coordinator.async_send_command({"some": "cmd"})

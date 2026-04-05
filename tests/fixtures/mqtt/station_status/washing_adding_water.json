@@ -1,0 +1,90 @@
+{
+  "description": "Real captured: StationResponse washing + adding clean water, clean_water=43",
+  "raw_payload": {
+    "head": {
+      "version": "1.0.0.2",
+      "client_id": "android-anon-openudid-anon_user-0",
+      "sess_id": "android-anon-openudid-anon_user-0",
+      "msg_seq": 14390,
+      "cmd": 65537,
+      "cmd_status": 1,
+      "sign_code": 0,
+      "seed": "null",
+      "timestamp": 138,
+      "tz_offset": 100
+    },
+    "payload": {
+      "protocol": 1,
+      "t": 1773459347951,
+      "account_id": "ANON_USER_001",
+      "device_sn": "TXXX_ANON_001",
+      "data": {
+        "173": "MgokCgwKBggBGgIIGRIAGAESBAgBEgAyDgoCCAESBAgCGA8aAggBEgYIARABIAEqAggr"
+      }
+    }
+  },
+  "dps": {
+    "173": "MgokCgwKBggBGgIIGRIAGAESBAgBEgAyDgoCCAESBAgCGA8aAggBEgYIARABIAEqAggr"
+  },
+  "expected_state": {
+    "dock_status": "Adding clean water"
+  },
+  "additional_captured_values": [
+    {
+      "dps": {
+        "173": "MgokCgwKBggBGgIIGRIAGAESBAgBEgAyDgoCCAESBAgCGA8aAggBEgYIARABIAEqAggq"
+      },
+      "source": "1775234586693_173.json",
+      "note": "washing+clear_water, water=42"
+    },
+    {
+      "dps": {
+        "173": "MgokCgwKBggBGgIIGRIAGAESBAgBEgAyDgoCCAESBAgCGA8aAggBEgYIARABIAEqAggp"
+      },
+      "source": "1775234595853_173.json",
+      "note": "washing+clear_water, water=41"
+    },
+    {
+      "dps": {
+        "173": "MgokCgwKBggBGgIIGRIAGAESBAgBEgAyDgoCCAESBAgCGA8aAggBEgYIARABIAEqAggo"
+      },
+      "source": "1775234602876_173.json",
+      "note": "washing+clear_water, water=40"
+    },
+    {
+      "dps": {
+        "173": "MgokCgwKBggBGgIIGRIAGAESBAgBEgAyDgoCCAESBAgCGA8aAggBEgYIARABIAEqAggl"
+      },
+      "source": "1775258029284_173.json",
+      "note": "Session 2: adding water, water=37"
+    },
+    {
+      "dps": {
+        "173": "MgokCgwKBggBGgIIGRIAGAESBAgBEgAyDgoCCAESBAgCGA8aAggBEgYIARABIAEqAggk"
+      },
+      "source": "1775258032984_173.json",
+      "note": "Session 2: adding water, water=36"
+    },
+    {
+      "dps": {
+        "173": "MgokCgwKBggBGgIIGRIAGAESBAgBEgAyDgoCCAESBAgCGA8aAggBEgYIARABIAEqAggj"
+      },
+      "source": "1775258041426_173.json",
+      "note": "Session 2: adding water, water=35"
+    },
+    {
+      "dps": {
+        "173": "NAokCgwKBggBGgIIGRIAGAESBAgBEgAyDgoCCAESBAgCGA8aAggBEggIARABIAEoASoCCCI="
+      },
+      "source": "1775258049865_173.json",
+      "note": "Session 2: adding water, water=34"
+    },
+    {
+      "dps": {
+        "173": "MAokCgwKBggBGgIIGRIAGAESBAgBEgAyDgoCCAESBAgCGA8aAggBEgYIARABIAEqAA=="
+      },
+      "source": "eufy_anon_3/1775292057146_173.json",
+      "note": "Session 3/4: washing variant"
+    }
+  ]
+}

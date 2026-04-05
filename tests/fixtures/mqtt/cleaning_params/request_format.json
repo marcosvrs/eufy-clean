@@ -1,0 +1,11 @@
+{
+  "description": "SYNTHETIC: CleanParamRequest fallback format — no real CleanParamRequest captured",
+  "dps": {
+    "154": "DAoKCgIIASICCAIyAA=="
+  },
+  "expected_state": {
+    "cleaning_mode": "Mop",
+    "fan_speed": "Quiet",
+    "mop_water_level": "High"
+  }
+}

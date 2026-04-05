@@ -1,0 +1,76 @@
+{
+  "description": "Real captured: DPS 178 unknown small proto (12 bytes raw, stored in raw_dps)",
+  "raw_payload": {
+    "head": {
+      "version": "1.0.0.2",
+      "client_id": "android-anon-openudid-anon_user-0",
+      "sess_id": "android-anon-openudid-anon_user-0",
+      "msg_seq": 14421,
+      "cmd": 65537,
+      "cmd_status": 1,
+      "sign_code": 0,
+      "seed": "null",
+      "timestamp": 256,
+      "tz_offset": 100
+    },
+    "payload": {
+      "protocol": 1,
+      "t": 1773459466376,
+      "account_id": "ANON_USER_001",
+      "device_sn": "TXXX_ANON_001",
+      "data": {
+        "178": "Cwi39JDdio8iEgEn"
+      }
+    }
+  },
+  "dps": {
+    "178": "Cwi39JDdio8iEgEn"
+  },
+  "expected_state": {
+    "_note": "DPS 178 is unhandled — parser logs and stores in raw_dps"
+  },
+  "additional_captured_values": [
+    {
+      "dps": {
+        "178": "CwjIhqzQ2awnEgEf"
+      },
+      "source": "1775257712225_178.json",
+      "note": "Session 2: DPS 178 variant"
+    },
+    {
+      "dps": {
+        "178": "CwiQ6qq34q8nEgEf"
+      },
+      "source": "1775257817661_178.json",
+      "note": "Session 2: DPS 178 variant"
+    },
+    {
+      "dps": {
+        "178": "CwiCgpn6irEnEgEt"
+      },
+      "source": "1775257862925_178.json",
+      "note": "Session 2: DPS 178 variant"
+    },
+    {
+      "dps": {
+        "178": "CwivrdqHzrQnEgFV"
+      },
+      "source": "1775257984030_178.json",
+      "note": "Session 2: DPS 178 variant"
+    },
+    {
+      "dps": {
+        "178": "Cwid+dbmkKcvEgEo"
+      },
+      "source": "eufy_anon_4/1775292709201_177_178.json",
+      "note": "Session 3/4: DPS 178 prompt code variant"
+    },
+    {
+      "dps": {
+        "178": "CwjhhNXC7qkvEgF4"
+      },
+      "source": "eufy_anon_4/1775292800870_178.json",
+      "note": "Session 3/4: DPS 178 prompt code variant"
+    }
+  ]
+}

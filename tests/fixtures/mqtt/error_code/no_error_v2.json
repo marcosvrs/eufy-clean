@@ -1,0 +1,168 @@
+{
+  "description": "Real captured: ErrorCode no active errors, with setting={} (different timestamp from no_error.json)",
+  "raw_payload": {
+    "head": {
+      "version": "1.0.0.2",
+      "client_id": "android-anon-openudid-anon_user-0",
+      "sess_id": "android-anon-openudid-anon_user-0",
+      "msg_seq": 14298,
+      "cmd": 65537,
+      "cmd_status": 1,
+      "sign_code": 0,
+      "seed": "null",
+      "timestamp": 35,
+      "tz_offset": 100
+    },
+    "payload": {
+      "protocol": 1,
+      "t": 1773459245080,
+      "account_id": "ANON_USER_001",
+      "device_sn": "TXXX_ANON_001",
+      "data": {
+        "177": "DAiLzp2p0ogiIgBSAA=="
+      }
+    }
+  },
+  "dps": {
+    "177": "DAiLzp2p0ogiIgBSAA=="
+  },
+  "expected_state": {
+    "error_code": 0,
+    "error_message": ""
+  },
+  "additional_captured_values": [
+    {
+      "dps": {
+        "177": "CgiD7vP4nYgiUgA="
+      },
+      "source": "1775234467890_167_177.json",
+      "note": "no error, no mask (short format)"
+    },
+    {
+      "dps": {
+        "177": "DAji2+CU8ogiIgBSAA=="
+      },
+      "source": "1775234490457_177.json",
+      "note": "no error, no mask"
+    },
+    {
+      "dps": {
+        "177": "DAiT7tGSiYoiIgBSAA=="
+      },
+      "source": "1775234531059_177.json",
+      "note": "no error, no mask"
+    },
+    {
+      "dps": {
+        "177": "DAj28ILepooiIgBSAA=="
+      },
+      "source": "1775234538926_177.json",
+      "note": "no error, no mask"
+    },
+    {
+      "dps": {
+        "177": "DAjogZnMvZQiIgBSAA=="
+      },
+      "source": "1775234888672_177.json",
+      "note": "no error, no mask"
+    },
+    {
+      "dps": {
+        "177": "DAjXifza8ZUiIgBSAA=="
+      },
+      "source": "1775234937109_177.json",
+      "note": "no error, no mask"
+    },
+    {
+      "dps": {
+        "177": "DAjaqqzI8JYiIgBSAA=="
+      },
+      "source": "1775234971175_177.json",
+      "note": "no error, no mask"
+    },
+    {
+      "dps": {
+        "177": "DAiC1ern1JgiIgBSAA=="
+      },
+      "source": "1775235032378_177.json",
+      "note": "no error, no mask"
+    },
+    {
+      "dps": {
+        "177": "DAiPucSUh6snIgBSAA=="
+      },
+      "source": "1775257655714_177.json",
+      "note": "Session 2: no error, no mask"
+    },
+    {
+      "dps": {
+        "177": "DAjzzo7inKwnIgBSAA=="
+      },
+      "source": "1775257695919_177.json",
+      "note": "Session 2: no error, no mask"
+    },
+    {
+      "dps": {
+        "177": "DAiH3pSSvqwnIgBSAA=="
+      },
+      "source": "1775257704919_177.json",
+      "note": "Session 2: no error, no mask"
+    },
+    {
+      "dps": {
+        "177": "DAixhtTWmq8nIgBSAA=="
+      },
+      "source": "1775257798489_177.json",
+      "note": "Session 2: no error, no mask"
+    },
+    {
+      "dps": {
+        "177": "DAiD8orHsrAnIgBSAA=="
+      },
+      "source": "1775257839182_177.json",
+      "note": "Session 2: no error, no mask"
+    },
+    {
+      "dps": {
+        "177": "DAihkfXXzrEnIgBSAA=="
+      },
+      "source": "1775257881172_177.json",
+      "note": "Session 2: no error, no mask"
+    },
+    {
+      "dps": {
+        "177": "DAjV98Cc/bMnIgBSAA=="
+      },
+      "source": "1775257962329_177.json",
+      "note": "Session 2: no error, no mask"
+    },
+    {
+      "dps": {
+        "177": "DAidleKozbQnIgBSAA=="
+      },
+      "source": "1775257983830_177.json",
+      "note": "Session 2: no error, no mask"
+    },
+    {
+      "dps": {
+        "177": "DAjinbH53LgnIgBSAA=="
+      },
+      "source": "1775258125437_177.json",
+      "note": "Session 2: no error, no mask"
+    },
+    {
+      "dps": {
+        "177": "DAi0ytn7kLknIgBSAA=="
+      },
+      "source": "1775258139451_177.json",
+      "note": "Session 2: no error, no mask"
+    },
+    {
+      "dps": {
+        "177": "DAiw+8+noJQvIgBSAA=="
+      },
+      "source": "eufy_anon_3/1775292058277_177.json",
+      "note": "Session 3/4: no-error heartbeat"
+    }
+  ]
+}

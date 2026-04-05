@@ -1,0 +1,33 @@
+{
+  "description": "Real captured: WorkStatus mode=SPOT (physical button starts spot clean) — trigger.source not set on this device",
+  "raw_payload": {
+    "head": {
+      "version": "1.0.0.2",
+      "client_id": "android-anon-openudid-anon_user-0",
+      "sess_id": "android-anon-openudid-anon_user-0",
+      "msg_seq": 14976,
+      "cmd": 65537,
+      "cmd_status": 1,
+      "sign_code": 0,
+      "seed": "null",
+      "timestamp": 248,
+      "tz_offset": 100
+    },
+    "payload": {
+      "protocol": 1,
+      "t": 1773482578270,
+      "account_id": "ANON_USER_001",
+      "device_sn": "TXXX_ANON_001",
+      "data": {
+        "153": "DgoCCAMQBTIAcgIiAHoA"
+      }
+    }
+  },
+  "dps": {
+    "153": "DgoCCAMQBTIAcgIiAHoA"
+  },
+  "expected_state": {
+    "activity": "cleaning",
+    "work_mode": "Spot"
+  }
+}

@@ -1,0 +1,132 @@
+{
+  "description": "Real captured: ModeCtrlRequest PAUSE_TASK (method=13, seq=105)",
+  "raw_payload": {
+    "head": {
+      "version": "1.0.0.2",
+      "client_id": "android-anon-openudid-anon_user-0",
+      "sess_id": "android-anon-openudid-anon_user-0",
+      "msg_seq": 14294,
+      "cmd": 65537,
+      "cmd_status": 1,
+      "sign_code": 0,
+      "seed": "null",
+      "timestamp": 31,
+      "tz_offset": 100
+    },
+    "payload": {
+      "protocol": 1,
+      "t": 1773459241250,
+      "account_id": "ANON_USER_001",
+      "device_sn": "TXXX_ANON_001",
+      "data": {
+        "152": "BAgNEGk="
+      }
+    }
+  },
+  "dps": {
+    "152": "BAgNEGk="
+  },
+  "expected_state": {
+    "_note": "Pause echo — parser preserves existing active targets"
+  },
+  "additional_captured_values": [
+    {
+      "dps": {
+        "152": "BAgNEGs="
+      },
+      "source": "1775234486598_152.json",
+      "note": "PAUSE_TASK seq=107"
+    },
+    {
+      "dps": {
+        "152": "BAgNEHo="
+      },
+      "source": "1775234931477_152.json",
+      "note": "PAUSE_TASK seq=122"
+    },
+    {
+      "dps": {
+        "152": "BAgCEGw="
+      },
+      "source": "1775257654377_152.json",
+      "note": "Session 2: DPS 152 variant"
+    },
+    {
+      "dps": {
+        "152": "BAgNEHI="
+      },
+      "source": "1775257862739_152.json",
+      "note": "Session 2: DPS 152 variant"
+    },
+    {
+      "dps": {
+        "152": "BQgGEIMB"
+      },
+      "source": "1775258125389_152.json",
+      "note": "Session 2: DPS 152 variant"
+    },
+    {
+      "dps": {
+        "152": "BQgBELgB"
+      },
+      "source": "eufy_anon_3/1775292013531_152.json",
+      "note": "Session 3/4: DPS 152 play_pause echo"
+    },
+    {
+      "dps": {
+        "152": "BQgDEK4B"
+      },
+      "source": "eufy_anon_3/1775291910412_152.json",
+      "note": "Session 3/4: DPS 152 play_pause echo"
+    },
+    {
+      "dps": {
+        "152": "BQgGELAB"
+      },
+      "source": "eufy_anon_3/1775291915502_152.json",
+      "note": "Session 3/4: DPS 152 play_pause echo"
+    },
+    {
+      "dps": {
+        "152": "BQgGEOMB"
+      },
+      "source": "eufy_anon_4/1775292484618_152.json",
+      "note": "Session 3/4: DPS 152 play_pause echo"
+    },
+    {
+      "dps": {
+        "152": "BQgJEOcB"
+      },
+      "source": "eufy_anon_4/1775292573805_152.json",
+      "note": "Session 3/4: DPS 152 play_pause echo"
+    },
+    {
+      "dps": {
+        "152": "BQgNELsB"
+      },
+      "source": "eufy_anon_3/1775292131130_152.json",
+      "note": "Session 3/4: DPS 152 play_pause echo"
+    },
+    {
+      "dps": {
+        "152": "BQgNEMMB"
+      },
+      "source": "eufy_anon_3/1775292189427_152.json",
+      "note": "Session 3/4: DPS 152 play_pause echo"
+    },
+    {
+      "dps": {
+        "152": "BQgOELwB"
+      },
+      "source": "eufy_anon_3/1775292151201_152.json",
+      "note": "Session 3/4: DPS 152 play_pause echo"
+    },
+    {
+      "dps": {
+        "152": "BQgOENoB"
+      },
+      "source": "eufy_anon_3/1775292364546_152.json",
+      "note": "Session 3/4: DPS 152 play_pause echo"
+    }
+  ]
+}

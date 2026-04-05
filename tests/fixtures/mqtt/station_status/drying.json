@@ -1,0 +1,35 @@
+{
+  "description": "Real captured: StationResponse status.state=DRYING",
+  "raw_payload": {
+    "head": {
+      "version": "1.0.0.2",
+      "client_id": "android-anon-openudid-anon_user-0",
+      "sess_id": "android-anon-openudid-anon_user-0",
+      "msg_seq": 14424,
+      "cmd": 65537,
+      "cmd_status": 1,
+      "sign_code": 0,
+      "seed": "null",
+      "timestamp": 260,
+      "tz_offset": 100
+    },
+    "payload": {
+      "protocol": 1,
+      "t": 1773459469858,
+      "account_id": "ANON_USER_001",
+      "device_sn": "TXXX_ANON_001",
+      "data": {
+        "173": "MAokCgwKBggBGgIIGRIAGAESBAgBEgAyDgoCCAESBAgCGA8aAggBEgQIARACKgIIJQ=="
+      }
+    }
+  },
+  "dps": {
+    "173": "MAokCgwKBggBGgIIGRIAGAESBAgBEgAyDgoCCAESBAgCGA8aAggBEgQIARACKgIIJQ=="
+  },
+  "expected_state": {
+    "dock_status": "Drying"
+  },
+  "additional_captured_values": [
+    {"dps": {"173": "MAokCgwKBggBGgIIGRIAGAESBAgBEgAyDgoCCAESBAgCGA8aAggBEgQIARACKgIIHg=="}, "source": "1775258144415_173.json", "note": "Session 2: drying, water=30"}
+  ]
+}

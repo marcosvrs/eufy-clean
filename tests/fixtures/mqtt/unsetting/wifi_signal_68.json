@@ -1,0 +1,119 @@
+{
+  "description": "Real captured: UnisettingResponse with ap_signal_strength=68, children_lock=False, water_level_sw=True",
+  "raw_payload": {
+    "head": {
+      "version": "1.0.0.2",
+      "client_id": "android-anon-openudid-anon_user-0",
+      "sess_id": "android-anon-openudid-anon_user-0",
+      "msg_seq": 14492,
+      "cmd": 65537,
+      "cmd_status": 1,
+      "sign_code": 0,
+      "seed": "null",
+      "timestamp": 475,
+      "tz_offset": 100
+    },
+    "payload": {
+      "protocol": 1,
+      "t": 1773459685276,
+      "account_id": "ANON_USER_001",
+      "device_sn": "TXXX_ANON_001",
+      "data": {
+        "176": "RwoAGgAiACoCCAEyAEIECKCZAkoAUg4KAggBEgIIASICCAFCAFhEagIIAXIAegCCAQIIAZIBAKoBALIBAggBugEGCgASABoA"
+      }
+    }
+  },
+  "dps": {
+    "176": "RwoAGgAiACoCCAEyAEIECKCZAkoAUg4KAggBEgIIASICCAFCAFhEagIIAXIAegCCAQIIAZIBAKoBALIBAggBugEGCgASABoA"
+  },
+  "expected_state": {
+    "wifi_signal": -66.0,
+    "child_lock": false
+  },
+  "additional_captured_values": [
+    {
+      "dps": {
+        "176": "RwoAGgAiACoCCAEyAEIECKCZAkoAUg4KAggBEgIIASICCAFCAFhUagIIAXIAegCCAQIIAZIBAKoBALIBAggBugEGCgASABoA"
+      },
+      "source": "1775257788275_176.json",
+      "note": "Session 2: unsetting variant, ap_signal=84"
+    },
+    {
+      "dps": {
+        "176": "RwoAGgAiACoCCAEyAEIECKCZAkoAUg4KAggBEgIIASICCAFCAFhAagIIAXIAegCCAQIIAZIBAKoBALIBAggBugEGCgASABoA"
+      },
+      "source": "1775257798324_176.json",
+      "note": "Session 2: unsetting variant, ap_signal=64"
+    },
+    {
+      "dps": {
+        "176": "RwoAGgAiACoCCAEyAEIECKCZAkoAUg4KAggBEgIIASICCAFCAFhOagIIAXIAegCCAQIIAZIBAKoBALIBAggBugEGCgASABoA"
+      },
+      "source": "1775257848279_176.json",
+      "note": "Session 2: unsetting variant, ap_signal=78"
+    },
+    {
+      "dps": {
+        "176": "SQoAGgAiAggBKgIIATIAQgQIoJkCSgBSDgoCCAESAggBIgIIAUIAWERqAggBcgB6AIIBAggBkgEAqgEAsgECCAG6AQYKABIAGgA="
+      },
+      "source": "eufy_anon_3/1775292375024_176.json",
+      "note": "Session 3/4: unsetting variant"
+    },
+    {
+      "dps": {
+        "176": "SQoAGgAiAggBKgIIATIAQgQIoJkCSgBSDgoCCAESAggBIgIIAUIAWFJqAggBcgB6AIIBAggBkgEAqgEAsgECCAG6AQYKABIAGgA="
+      },
+      "source": "eufy_anon_3/1775292327502_176.json",
+      "note": "Session 3/4: unsetting variant"
+    },
+    {
+      "dps": {
+        "176": "SwoAGgIIASICCAEqAggBMgBCBAigmQJKAFIOCgIIARICCAEiAggBQgBYQmoCCAFyAHoAggECCAGSAQCqAQCyAQIIAboBBgoAEgAaAA=="
+      },
+      "source": "eufy_anon_4/1775292706337_176.json",
+      "note": "Session 3/4: unsetting variant"
+    },
+    {
+      "dps": {
+        "176": "SwoAGgIIASICCAEqAggBMgBCBAigmQJKAFIOCgIIARICCAEiAggBQgBYUmoCCAFyAHoAggECCAGSAQCqAQCyAQIIAboBBgoAEgAaAA=="
+      },
+      "source": "eufy_anon_4/1775292562723_176.json",
+      "note": "Session 3/4: unsetting variant"
+    },
+    {
+      "dps": {
+        "176": "SwoCCAEaACICCAEqAggBMgBCBAigmQJKAFIOCgIIARICCAEiAggBQgBYRGoCCAFyAHoAggECCAGSAQCqAQCyAQIIAboBBgoAEgAaAA=="
+      },
+      "source": "eufy_anon_4/1775292423950_176.json",
+      "note": "Session 3/4: unsetting variant"
+    },
+    {
+      "dps": {
+        "176": "TQoAGgIIASICCAEqAggBMgBCBAigmQJKAFIQCgIIARICCAEaACICCAFCAFhCagIIAXIAegCCAQIIAZIBAKoBALIBAggBugEGCgASABoA"
+      },
+      "source": "eufy_anon_4/1775292645060_176.json",
+      "note": "Session 3/4: unsetting variant"
+    },
+    {
+      "dps": {
+        "176": "TQoAGgIIASICCAEqAggBMgBCBAigmQJKAFIQCgIIARICCAEaACICCAFCAFhSagIIAXIAegCCAQIIAZIBAKoBALIBAggBugEGCgASABoA"
+      },
+      "source": "eufy_anon_4/1775292582210_176.json",
+      "note": "Session 3/4: unsetting variant"
+    },
+    {
+      "dps": {
+        "176": "TQoCCAEaAggBIgIIASoCCAEyAEIECKCZAkoAUg4KAggBEgIIASICCAFCAFhEagIIAXIAegCCAQIIAZIBAKoBALIBAggBugEGCgASABoA"
+      },
+      "source": "eufy_anon_4/1775292452937_176.json",
+      "note": "Session 3/4: unsetting variant"
+    },
+    {
+      "dps": {
+        "176": "TQoCCAEaAggBIgIIASoCCAEyAEIECKCZAkoAUg4KAggBEgIIASICCAFCAFhSagIIAXIAegCCAQIIAZIBAKoBALIBAggBugEGCgASABoA"
+      },
+      "source": "eufy_anon_4/1775292540004_176.json",
+      "note": "Session 3/4: unsetting variant"
+    }
+  ]
+}

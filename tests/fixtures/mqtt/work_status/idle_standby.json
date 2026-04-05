@@ -1,0 +1,33 @@
+{
+  "description": "Real captured: WorkStatus state=STANDBY (0) — real standby after returning to dock",
+  "raw_payload": {
+    "head": {
+      "version": "1.0.0.2",
+      "client_id": "android-anon-openudid-anon_user-0",
+      "sess_id": "android-anon-openudid-anon_user-0",
+      "msg_seq": 15010,
+      "cmd": 65537,
+      "cmd_status": 1,
+      "sign_code": 0,
+      "seed": "null",
+      "timestamp": 272,
+      "tz_offset": 100
+    },
+    "payload": {
+      "protocol": 1,
+      "t": 1773482601673,
+      "account_id": "ANON_USER_001",
+      "device_sn": "TXXX_ANON_001",
+      "data": {
+        "153": "BnICIgB6AA=="
+      }
+    }
+  },
+  "dps": {
+    "153": "BnICIgB6AA=="
+  },
+  "expected_state": {
+    "activity": "idle",
+    "task_status": "Idle"
+  }
+}

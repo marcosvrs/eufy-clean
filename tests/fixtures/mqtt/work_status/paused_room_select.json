@@ -1,0 +1,41 @@
+{
+  "description": "Real captured: WorkStatus state=CLEANING, mode=SELECT_ROOM, cleaning.state=PAUSED",
+  "raw_payload": {
+    "head": {
+      "version": "1.0.0.2",
+      "client_id": "android-anon-openudid-anon_user-0",
+      "sess_id": "android-anon-openudid-anon_user-0",
+      "msg_seq": 14295,
+      "cmd": 65537,
+      "cmd_status": 1,
+      "sign_code": 0,
+      "seed": "null",
+      "timestamp": 31,
+      "tz_offset": 100
+    },
+    "payload": {
+      "protocol": 1,
+      "t": 1773459241474,
+      "account_id": "ANON_USER_001",
+      "device_sn": "TXXX_ANON_001",
+      "data": {
+        "153": "EAoCCAEQBTICCAFyAiIAegA="
+      }
+    }
+  },
+  "dps": {
+    "153": "EAoCCAEQBTICCAFyAiIAegA="
+  },
+  "expected_state": {
+    "activity": "paused",
+    "work_mode": "Room",
+    "task_status": "Paused"
+  },
+  "additional_captured_values": [
+    {
+      "dps": {"153": "EAoCCAIQBTICCAFyAiIAegA="},
+      "source": "1775257695869_153.json",
+      "note": "Session 2: zone clean paused (mode=SELECT_ZONE, cleaning.state=PAUSED)"
+    }
+  ]
+}

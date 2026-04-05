@@ -1,0 +1,32 @@
+{
+  "description": "Real captured: ModeCtrlRequest RESUME_TASK (method=14, seq=106)",
+  "raw_payload": {
+    "head": {
+      "version": "1.0.0.2",
+      "client_id": "android-anon-openudid-anon_user-0",
+      "sess_id": "android-anon-openudid-anon_user-0",
+      "msg_seq": 14296,
+      "cmd": 65537,
+      "cmd_status": 1,
+      "sign_code": 0,
+      "seed": "null",
+      "timestamp": 35,
+      "tz_offset": 100
+    },
+    "payload": {
+      "protocol": 1,
+      "t": 1773459244957,
+      "account_id": "ANON_USER_001",
+      "device_sn": "TXXX_ANON_001",
+      "data": {
+        "152": "BAgOEGo="
+      }
+    }
+  },
+  "dps": {
+    "152": "BAgOEGo="
+  },
+  "expected_state": {
+    "_note": "Resume echo \u2014 parser preserves existing active targets"
+  }
+}

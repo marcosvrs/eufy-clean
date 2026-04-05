@@ -1,0 +1,32 @@
+{
+  "description": "Real captured: FIND_ROBOT=true (beeper activated)",
+  "raw_payload": {
+    "head": {
+      "version": "1.0.0.2",
+      "client_id": "android-anon-openudid-anon_user-0",
+      "sess_id": "android-anon-openudid-anon_user-0",
+      "msg_seq": 23301,
+      "cmd": 65537,
+      "cmd_status": 1,
+      "sign_code": 0,
+      "seed": "null",
+      "timestamp": 369,
+      "tz_offset": 100
+    },
+    "payload": {
+      "protocol": 1,
+      "t": 1773516870380,
+      "account_id": "ANON_USER_001",
+      "device_sn": "TXXX_ANON_001",
+      "data": {
+        "160": true
+      }
+    }
+  },
+  "dps": {
+    "160": true
+  },
+  "expected_state": {
+    "find_robot": true
+  }
+}

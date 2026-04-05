@@ -1,0 +1,314 @@
+{
+  "description": "Real captured: ConsumableResponse mid-session (sensor=404, dustbag=6828)",
+  "raw_payload": {
+    "head": {
+      "version": "1.0.0.2",
+      "client_id": "android-anon-openudid-anon_user-0",
+      "sess_id": "android-anon-openudid-anon_user-0",
+      "msg_seq": 14436,
+      "cmd": 65537,
+      "cmd_status": 1,
+      "sign_code": 0,
+      "seed": "null",
+      "timestamp": 429,
+      "tz_offset": 100
+    },
+    "payload": {
+      "protocol": 1,
+      "t": 1773459638976,
+      "account_id": "ANON_USER_001",
+      "device_sn": "TXXX_ANON_001",
+      "data": {
+        "168": "pAEKoQEKAggJEgIICRoCCAkiAggJKgMIlAMyAggGOgMIrDVaAwi6AWIDCLoBagMIugF6Awi6AYoBAJoBAwiQAqABqMeXkePWudEYwgJYCgYICRAzGBQSBggJEDMYFBoGCAkQMxgUIgYICRAzGBQyBggPEC4YBzoGCAkQMxgUQgYIBhAYGBRKBAgwEANSBAgwEANaBAgwEANiBggGEBgYFGoECDAQAw=="
+      }
+    }
+  },
+  "dps": {
+    "168": "pAEKoQEKAggJEgIICRoCCAkiAggJKgMIlAMyAggGOgMIrDVaAwi6AWIDCLoBagMIugF6Awi6AYoBAJoBAwiQAqABqMeXkePWudEYwgJYCgYICRAzGBQSBggJEDMYFBoGCAkQMxgUIgYICRAzGBQyBggPEC4YBzoGCAkQMxgUQgYIBhAYGBRKBAgwEANSBAgwEANaBAgwEANiBggGEBgYFGoECDAQAw=="
+  },
+  "expected_state": {
+    "_note": "sensor=404h, dustbag=6828h — differs from early_session (6826) and late_session (405)"
+  },
+  "additional_captured_values": [
+    {
+      "dps": {
+        "168": "pAEKoQEKAggJEgIICRoCCAkiAggJKgMIlAMyAggGOgMIrDVaAwi6AWIDCLoBagMIugF6Awi6AYoBAJoBAwiQAqABuLK87N3XudEYwgJYCgYICRAzGCgSBggJEDMYKBoGCAkQMxgoIgYICRAzGCgyBggPEC4YBzoGCAkQMxgoQgYIBhAYGBRKBAgwEANSBAgwEANaBAgwEANiBggGEBgYFGoECDAQAw=="
+      },
+      "source": "1775234908733_168.json",
+      "note": "same accessory values, different timestamp"
+    },
+    {
+      "dps": {
+        "168": "mgEKlwEKAggJEgIICRoCCAkiAggJKgMIlAMyAggGOgMIrDVaAwi6AWIDCLoBagMIugF6Awi6AYoBAJoBAwiQAqAB+PnHrajYudEYwgJOCgQICRA0EgQICRA0GgQICRA0IgQICRA0MgYIDxAuGAc6BAgJEDRCBggGEBgYFEoECDAQA1IECDAQA1oECDAQA2IGCAYQGBgUagQIMBAD"
+      },
+      "source": "1775234928751_168.json",
+      "note": "same accessory values, different timestamp"
+    },
+    {
+      "dps": {
+        "168": "mgEKlwEKAggJEgIICRoCCAkiAggJKgMIlQMyAggGOgMIrDVaAwi6AWIDCLoBagMIugF6Awi6AYoBAJoBAwiQAqABiLXkt6fuvtEYwgJOCgQICRA1EgQICRA1GgQICRA1IgQICRA1MgYIDxAuGAc6BAgJEDVCBggGEBgYFEoECDAQA1IECDAQA1oECDAQA2IGCAYQGBgUagQIMBAD"
+      },
+      "source": "1775257675784_168.json",
+      "note": "Session 2: consumable variant"
+    },
+    {
+      "dps": {
+        "168": "pAEKoQEKAggJEgIICRoCCAkiAggJKgMIlQMyAggGOgMIrDVaAwi6AWIDCLoBagMIugF6Awi6AYoBAJoBAwiQAqABgICMl97vvtEYwgJYCgYICRA1GBQSBggJEDUYFBoGCAkQNRgUIgYICRA1GBQyBggPEC4YBzoGCAkQNRgUQgYIBhAYGBRKBAgwEANSBAgwEANaBAgwEANiBggGEBgYFGoECDAQAw=="
+      },
+      "source": "1775257724921_168.json",
+      "note": "Session 2: consumable variant"
+    },
+    {
+      "dps": {
+        "168": "pAEKoQEKAggJEgIICRoCCAkiAggJKgMIlQMyAggGOgMIrDVaAwi6AWIDCLoBagMIugF6Awi6AYoBAJoBAwiQAqAB0IOG4KjwvtEYwgJYCgYICRA1GCgSBggJEDUYKBoGCAkQNRgoIgYICRA1GCgyBggPEC4YBzoGCAkQNRgoQgYIBhAYGBRKBAgwEANSBAgwEANaBAgwEANiBggGEBgYFGoECDAQAw=="
+      },
+      "source": "1775257744856_168.json",
+      "note": "Session 2: consumable variant"
+    },
+    {
+      "dps": {
+        "168": "mgEKlwEKAggJEgIICRoCCAkiAggJKgMIlQMyAggGOgMIrDVaAwi6AWIDCLoBagMIugF6Awi6AYoBAJoBAwiQAqABuOmtqvPwvtEYwgJOCgQICRA2EgQICRA2GgQICRA2IgQICRA2MgYIDxAuGAc6BAgJEDZCBggGEBgYFEoECDAQA1IECDAQA1oECDAQA2IGCAYQGBgUagQIMBAD"
+      },
+      "source": "1775257764884_168.json",
+      "note": "Session 2: consumable variant"
+    },
+    {
+      "dps": {
+        "168": "pAEKoQEKAggJEgIICRoCCAkiAggJKgMIlQMyAggGOgMIrDVaAwi6AWIDCLoBagMIugF6Awi6AYoBAJoBAwiQAqAB2LqO2bryvtEYwgJYCgYICRA2GBQSBggJEDYYFBoGCAkQNhgUIgYICRA2GBQyBggPEC4YBzoGCAkQNhgUQgYIBhAYGBRKBAgwEANSBAgwEANaBAgwEANiBggGEBgYFGoECDAQAw=="
+      },
+      "source": "1775257818425_168.json",
+      "note": "Session 2: consumable variant"
+    },
+    {
+      "dps": {
+        "168": "pAEKoQEKAggJEgIICRoCCAkiAggJKgMIlQMyAggGOgMIrDVaAwi6AWIDCLoBagMIugF6Awi6AYoBAJoBAwiQAqAB4Pr/otPzvtEYwgJYCgYICRA2GCgSBggJEDYYKBoGCAkQNhgoIgYICRA2GCgyBggPEC4YBzoGCAkQNhgoQgYIBhAYGBRKBAgwEANSBAgwEANaBAgwEANiBggGEBgYFGoECDAQAw=="
+      },
+      "source": "1775257859424_168.json",
+      "note": "Session 2: consumable variant"
+    },
+    {
+      "dps": {
+        "168": "mgEKlwEKAggJEgIICRoCCAkiAggJKgMIlQMyAggGOgMIrDVaAwi6AWIDCLoBagMIugF6Awi6AYoBAJoBAwiQAqABgLjA1+70vtEYwgJOCgQICRA3EgQICRA3GgQICRA3IgQICRA3MgYIDxAuGAc6BAgJEDdCBggGEBgYFEoECDAQA1IECDAQA1oECDAQA2IGCAYQGBgUagQIMBAD"
+      },
+      "source": "1775257901071_168.json",
+      "note": "Session 2: consumable variant"
+    },
+    {
+      "dps": {
+        "168": "pAEKoQEKAggJEgIICRoCCAkiAggJKgMIlQMyAggGOgMIrDVaAwi6AWIDCLoBagMIugF6Awi6AYoBAJoBAwiQAqABmM+Rm7n1vtEYwgJYCgYICRA3GBQSBggJEDcYFBoGCAkQNxgUIgYICRA3GBQyBggPEC4YBzoGCAkQNxgUQgYIBhAYGBRKBAgwEANSBAgwEANaBAgwEANiBggGEBgYFGoECDAQAw=="
+      },
+      "source": "1775257921077_168.json",
+      "note": "Session 2: consumable variant"
+    },
+    {
+      "dps": {
+        "168": "pAEKoQEKAggJEgIICRoCCAkiAggJKgMIlQMyAggGOgMIrDVaAwi6AWIDCLoBagMIugF6Awi6AYoBAJoBAwiQAqAB4IDS34P2vtEYwgJYCgYICRA3GCgSBggJEDcYKBoGCAkQNxgoIgYICRA3GCgyBggPEC4YBzoGCAkQNxgoQgYIBhAYGBRKBAgwEANSBAgwEANaBAgwEANiBggGEBgYFGoECDAQAw=="
+      },
+      "source": "1775257941128_168.json",
+      "note": "Session 2: consumable variant"
+    },
+    {
+      "dps": {
+        "168": "mgEKlwEKAggJEgIICRoCCAkiAggJKgMIlQMyAggGOgMIrDVaAwi6AWIDCLoBagMIugF6Awi6AYoBAJoBAwiQAqABkOylps72vtEYwgJOCgQICRA4EgQICRA4GgQICRA4IgQICRA4MgYIDxAuGAc6BAgJEDhCBggGEBgYFEoECDAQA1IECDAQA1oECDAQA2IGCAYQGBgUagQIMBAD"
+      },
+      "source": "1775257961102_168.json",
+      "note": "Session 2: consumable variant"
+    },
+    {
+      "dps": {
+        "168": "pAEKoQEKAggJEgIICRoCCAkiAggJKgMIlQMyAggGOgMIrDVaAwi6AWIDCLoBagMIugF6Awi6AYoBAJoBAwiQAqABiPm6zO33vtEYwgJYCgYICRA4GBQSBggJEDgYFBoGCAkQOBgUIgYICRA4GBQyBggPEC4YBzoGCAkQOBgUQgYIBhAYGBRKBAgwEANSBAgwEANaBAgwEANiBggGEBgYFGoECDAQAw=="
+      },
+      "source": "1775258003863_168.json",
+      "note": "Session 2: consumable variant"
+    },
+    {
+      "dps": {
+        "168": "pAEKoQEKAggJEgIICRoCCAkiAggJKgMIlQMyAggGOgMIrDVaAwi6AWIDCLoBagMIugF6Awi6AYoBAJoBAwiQAqABuOqAl7j4vtEYwgJYCgYICRA4GCgSBggJEDgYKBoGCAkQOBgoIgYICRA4GCgyBggPEC4YBzoGCAkQOBgoQgYIBhAYGBRKBAgwEANSBAgwEANaBAgwEANiBggGEBgYFGoECDAQAw=="
+      },
+      "source": "1775258023890_168.json",
+      "note": "Session 2: consumable variant"
+    },
+    {
+      "dps": {
+        "168": "mgEKlwEKAggJEgIICRoCCAkiAggJKgMIlQMyAggGOgMIrDVaAwi6AWIDCLoBagMIugF6Awi6AYoBAJoBAwiQAqAB0L243IL5vtEYwgJOCgQICRA5EgQICRA5GgQICRA5IgQICRA5MgYIDxAuGAc6BAgJEDlCBggGEBgYFEoECDAQA1IECDAQA1oECDAQA2IGCAYQGBgUagQIMBAD"
+      },
+      "source": "1775258043898_168.json",
+      "note": "Session 2: consumable variant"
+    },
+    {
+      "dps": {
+        "168": "pAEKoQEKAggJEgIICRoCCAkiAggJKgMIlQMyAggGOgMIrDVaAwi6AWIDCLoBagMIugF6Awi6AYoBAJoBAwiQAqAB0MOyo835vtEYwgJYCgYICRA5GBQSBggJEDkYFBoGCAkQORgUIgYICRA5GBQyBggPEC4YBzoGCAkQORgUQgYIBhAYGBRKBAgwEANSBAgwEANaBAgwEANiBggGEBgYFGoECDAQAw=="
+      },
+      "source": "1775258063910_168.json",
+      "note": "Session 2: consumable variant"
+    },
+    {
+      "dps": {
+        "168": "rAEKqQEKAggJEgIICRoCCAkiAggJKgMIlQMyAggGOgMIrDVaAwi6AWIDCLoBagMIugF6Awi6AYoBAJoBAwiQAqABuMmX5Jf6vtEYwgJgCgYICRA5GCgSBggJEDkYKBoGCAkQORgoIgYICRA5GCgyBggPEC4YBzoGCAkQORgoQgYIBhAYGChKBggwEAMYFFIGCDAQAxgUWgYIMBADGBRiBggGEBgYKGoGCDAQAxgU"
+      },
+      "source": "1775258083935_168.json",
+      "note": "Session 2: consumable variant"
+    },
+    {
+      "dps": {
+        "168": "ngEKmwEKAggJEgIICRoCCAkiAggJKgMIlQMyAggGOgMIrDVaAwi6AWIDCLoBagMIugF6Awi6AYoBAJoBAwiQAqABqO7JqOL6vtEYwgJSCgQICRA6EgQICRA6GgQICRA6IgQICRA6MgYIDxAuGAc6BAgJEDpCBAgGEBlKBggwEAMYKFIGCDAQAxgoWgYIMBADGChiBAgGEBlqBggwEAMYKA=="
+      },
+      "source": "1775258103920_168.json",
+      "note": "Session 2: consumable variant"
+    },
+    {
+      "dps": {
+        "168": "qAEKpQEKAggJEgIICRoCCAkiAggJKgMIlQMyAggGOgMIrDVaAwi6AWIDCLoBagMIugF6Awi6AYoBAJoBAwiQAqABqMTi6qz7vtEYwgJcCgYICRA6GBQSBggJEDoYFBoGCAkQOhgUIgYICRA6GBQyBggPEC4YBzoGCAkQOhgUQgQIBhAZSgYIMBADGChSBggwEAMYKFoGCDAQAxgoYgQIBhAZagYIMBADGCg="
+      },
+      "source": "1775258123937_168.json",
+      "note": "Session 2: consumable variant"
+    },
+    {
+      "dps": {
+        "168": "lAEKkQEKAggLEgIICxoCCAsiAggLKgMIlgMyAggGOgMItDVaAwi6AWIDCLoBagMIugF6Awi6AYoBAJoBAwiRAqABoPWvi6vWxtEYwgJICgIICxICCAsaAggLIgIICzIGCA8QNRg0OgIIC0IECAYQM0oGCDAQHRgoUgYIMBAdGChaBggwEB0YKGIECAYQM2oGCDAQHRgo"
+      },
+      "source": "eufy_anon_3/1775292033691_168.json",
+      "note": "Session 3/4: consumable variant"
+    },
+    {
+      "dps": {
+        "168": "ngEKmwEKAggKEgIIChoCCAoiAggKKgMIlgMyAggGOgMItDVaAwi6AWIDCLoBagMIugF6Awi6AYoBAJoBAwiRAqAByNSquLHSxtEYwgJSCgQIChA7EgQIChA7GgQIChA7IgQIChA7MgYIDxA1GDQ6BAgKEDtCBAgGEDNKBggwEB0YKFIGCDAQHRgoWgYIMBAdGChiBAgGEDNqBggwEB0YKA=="
+      },
+      "source": "eufy_anon_3/1775291897950_168.json",
+      "note": "Session 3/4: consumable variant"
+    },
+    {
+      "dps": {
+        "168": "ngEKmwEKAggLEgIICxoCCAsiAggLKgMIlgMyAggGOgMItDVaAwi6AWIDCLoBagMIugF6Awi6AYoBAJoBAwiRAqABiOi6lcDXxtEYwgJSCgQICxgoEgQICxgoGgQICxgoIgQICxgoMgYIDxA1GDQ6BAgLGChCBAgGEDNKBggwEB0YKFIGCDAQHRgoWgYIMBAdGChiBAgGEDNqBggwEB0YKA=="
+      },
+      "source": "eufy_anon_3/1775292073711_168.json",
+      "note": "Session 3/4: consumable variant"
+    },
+    {
+      "dps": {
+        "168": "ngEKmwEKAggLEgIICxoCCAsiAggLKgMIlgMyAggGOgMItDVaAwi6AWIDCLoBagMIugF6Awi6AYoBAJoBAwiRAqABiPKF0vXWxtEYwgJSCgQICxgUEgQICxgUGgQICxgUIgQICxgUMgYIDxA1GDQ6BAgLGBRCBAgGEDNKBggwEB0YKFIGCDAQHRgoWgYIMBAdGChiBAgGEDNqBggwEB0YKA=="
+      },
+      "source": "eufy_anon_3/1775292053703_168.json",
+      "note": "Session 3/4: consumable variant"
+    },
+    {
+      "dps": {
+        "168": "ngEKmwEKAggLEgIICxoCCAsiAggLKgMIlgMyAggGOgMItDVaAwi6AWIDCLoBagMIugF6Awi6AYoBAJoBAwiRAqABwP2K3YrYxtEYwgJSCgQICxABEgQICxABGgQICxABIgQICxABMgYIDxA1GDQ6BAgLEAFCBAgGEDNKBggwEB0YKFIGCDAQHRgoWgYIMBAdGChiBAgGEDNqBggwEB0YKA=="
+      },
+      "source": "eufy_anon_3/1775292093735_168.json",
+      "note": "Session 3/4: consumable variant"
+    },
+    {
+      "dps": {
+        "168": "ngEKmwEKAggLEgIICxoCCAsiAggLKgMIlgMyAggGOgMItDVaAwi6AWIDCLoBagMIugF6Awi6AYoBAJoBAwiSAqAB4MjF+KXixtEYwgJSCgQICxADEgQICxADGgQICxADIgQICxADMgYIDxA1GDQ6BAgLEANCBAgGEDNKBggwEB0YKFIGCDAQHRgoWgYIMBAdGChiBAgGEDNqBggwEB0YKA=="
+      },
+      "source": "eufy_anon_4/1775292444648_168.json",
+      "note": "Session 3/4: consumable variant"
+    },
+    {
+      "dps": {
+        "168": "ngEKmwEKAggLEgIICxoCCAsiAggLKgMIlgMyAggGOgMItDVaAwi6AWIDCLoBagMIugF6Awi6AYoBAJoBAwiSAqABgJf10sHqxtEYwgJSCgQICxAFEgQICxAFGgQICxAFIgQICxAFMgYIDxA1GDQ6BAgLEAVCBAgGEDNKBggwEB0YKFIGCDAQHRgoWgYIMBAdGChiBAgGEDNqBggwEB0YKA=="
+      },
+      "source": "eufy_anon_4/1775292726976_168.json",
+      "note": "Session 3/4: consumable variant"
+    },
+    {
+      "dps": {
+        "168": "ngEKmwEKAggLEgIICxoCCAsiAggLKgMIlgMyAggGOgMItDVaAwi6AWIDCLoBagMIugF6Awi6AYoBAJoBAwiSAqABoIWmp6HsxtEYwgJSCgQICxAGEgQICxAGGgQICxAGIgQICxAGMgYIDxA1GDQ6BAgLEAZCBAgGEDNKBggwEB0YKFIGCDAQHRgoWgYIMBAdGChiBAgGEDNqBggwEB0YKA=="
+      },
+      "source": "eufy_anon_4/1775292787015_168.json",
+      "note": "Session 3/4: consumable variant"
+    },
+    {
+      "dps": {
+        "168": "ngEKmwEKAggLEgIICxoCCAsiAggLKgMIlgMyAggGOgMItDVaAwi6AWIDCLoBagMIugF6Awi6AYoBAJoBAwiSAqABuO/LqobkxtEYwgJSCgQICxAEEgQICxAEGgQICxAEIgQICxAEMgYIDxA1GDQ6BAgLEARCBAgGEDNKBggwEB0YKFIGCDAQHRgoWgYIMBAdGChiBAgGEDNqBggwEB0YKA=="
+      },
+      "source": "eufy_anon_4/1775292504883_168.json",
+      "note": "Session 3/4: consumable variant"
+    },
+    {
+      "dps": {
+        "168": "qAEKpQEKAggKEgIIChoCCAoiAggKKgMIlgMyAggGOgMItDVaAwi6AWIDCLoBagMIugF6Awi6AYoBAJoBAwiRAqABwM+WmYjUxtEYwgJcCgYIChA7GCgSBggKEDsYKBoGCAoQOxgoIgYIChA7GCgyBggPEDUYNDoGCAoQOxgoQgQIBhAzSgYIMBAdGChSBggwEB0YKFoGCDAQHRgoYgQIBhAzagYIMBAdGCg="
+      },
+      "source": "eufy_anon_3/1775291955602_168.json",
+      "note": "Session 3/4: consumable variant"
+    },
+    {
+      "dps": {
+        "168": "qAEKpQEKAggKEgIIChoCCAoiAggKKgMIlgMyAggGOgMItDVaAwi6AWIDCLoBagMIugF6Awi6AYoBAJoBAwiRAqAByJmz1L3TxtEYwgJcCgYIChA7GBQSBggKEDsYFBoGCAoQOxgUIgYIChA7GBQyBggPEDUYNDoGCAoQOxgUQgQIBhAzSgYIMBAdGChSBggwEB0YKFoGCDAQHRgoYgQIBhAzagYIMBAdGCg="
+      },
+      "source": "eufy_anon_3/1775291935591_168.json",
+      "note": "Session 3/4: consumable variant"
+    },
+    {
+      "dps": {
+        "168": "qAEKpQEKAggLEgIICxoCCAsiAggLKgMIlgMyAggGOgMItDVaAwi6AWIDCLoBagMIugF6Awi6AYoBAJoBAwiRAqAB+Miey6vaxtEYwgJcCgYICxABGCgSBggLEAEYKBoGCAsQARgoIgYICxABGCgyBggPEDUYNDoGCAsQARgoQgQIBhAzSgYIMBAdGChSBggwEB0YKFoGCDAQHRgoYgQIBhAzagYIMBAdGCg="
+      },
+      "source": "eufy_anon_3/1775292171270_168.json",
+      "note": "Session 3/4: consumable variant"
+    },
+    {
+      "dps": {
+        "168": "qAEKpQEKAggLEgIICxoCCAsiAggLKgMIlgMyAggGOgMItDVaAwi6AWIDCLoBagMIugF6Awi6AYoBAJoBAwiRAqABkPiQo9XYxtEYwgJcCgYICxABGBQSBggLEAEYFBoGCAsQARgUIgYICxABGBQyBggPEDUYNDoGCAsQARgUQgQIBhAzSgYIMBAdGChSBggwEB0YKFoGCDAQHRgoYgQIBhAzagYIMBAdGCg="
+      },
+      "source": "eufy_anon_3/1775292113739_168.json",
+      "note": "Session 3/4: consumable variant"
+    },
+    {
+      "dps": {
+        "168": "qAEKpQEKAggLEgIICxoCCAsiAggLKgMIlgMyAggGOgMItDVaAwi6AWIDCLoBagMIugF6Awi6AYoBAJoBAwiSAqAB+L6Y7pDhxtEYwgJcCgYICxACGBQSBggLEAIYFBoGCAsQAhgUIgYICxACGBQyBggPEDUYNDoGCAsQAhgUQgQIBhAzSgYIMBAdGChSBggwEB0YKFoGCDAQHRgoYgQIBhAzagYIMBAdGCg="
+      },
+      "source": "eufy_anon_4/1775292404625_168.json",
+      "note": "Session 3/4: consumable variant"
+    },
+    {
+      "dps": {
+        "168": "qAEKpQEKAggLEgIICxoCCAsiAggLKgMIlgMyAggGOgMItDVaAwi6AWIDCLoBagMIugF6Awi6AYoBAJoBAwiSAqAB6PHT69DkxtEYwgJcCgYICxAEGBQSBggLEAQYFBoGCAsQBBgUIgYICxAEGBQyBggPEDUYNDoGCAsQBBgUQgQIBhAzSgYIMBAdGChSBggwEB0YKFoGCDAQHRgoYgQIBhAzagYIMBAdGCg="
+      },
+      "source": "eufy_anon_4/1775292524885_168.json",
+      "note": "Session 3/4: consumable variant"
+    },
+    {
+      "dps": {
+        "168": "qAEKpQEKAggLEgIICxoCCAsiAggLKgMIlgMyAggGOgMItDVaAwi6AWIDCLoBagMIugF6Awi6AYoBAJoBAwiSAqAB8IHg3tbrxtEYwgJcCgYICxAFGCgSBggLEAUYKBoGCAsQBRgoIgYICxAFGCgyBggPEDUYNDoGCAsQBRgoQgQIBhAzSgYIMBAdGChSBggwEB0YKFoGCDAQHRgoYgQIBhAzagYIMBAdGCg="
+      },
+      "source": "eufy_anon_4/1775292766998_168.json",
+      "note": "Session 3/4: consumable variant"
+    },
+    {
+      "dps": {
+        "168": "qAEKpQEKAggLEgIICxoCCAsiAggLKgMIlgMyAggGOgMItDVaAwi6AWIDCLoBagMIugF6Awi6AYoBAJoBAwiSAqABiKP2/7rjxtEYwgJcCgYICxADGCgSBggLEAMYKBoGCAsQAxgoIgYICxADGCgyBggPEDUYNDoGCAsQAxgoQgQIBhAzSgYIMBAdGChSBggwEB0YKFoGCDAQHRgoYgQIBhAzagYIMBAdGCg="
+      },
+      "source": "eufy_anon_4/1775292484752_167_168_177.json",
+      "note": "Session 3/4: consumable variant"
+    },
+    {
+      "dps": {
+        "168": "qAEKpQEKAggLEgIICxoCCAsiAggLKgMIlgMyAggGOgMItDVaAwi6AWIDCLoBagMIugF6Awi6AYoBAJoBAwiSAqABmIO/tJvlxtEYwgJcCgYICxAEGCgSBggLEAQYKBoGCAsQBBgoIgYICxAEGCgyBggPEDUYNDoGCAsQBBgoQgQIBhAzSgYIMBAdGChSBggwEB0YKFoGCDAQHRgoYgQIBhAzagYIMBAdGCg="
+      },
+      "source": "eufy_anon_4/1775292544956_168_169.json",
+      "note": "Session 3/4: consumable variant"
+    },
+    {
+      "dps": {
+        "168": "qAEKpQEKAggLEgIICxoCCAsiAggLKgMIlgMyAggGOgMItDVaAwi6AWIDCLoBagMIugF6Awi6AYoBAJoBAwiSAqABoJqhm4zrxtEYwgJcCgYICxAFGBQSBggLEAUYFBoGCAsQBRgUIgYICxAFGBQyBggPEDUYNDoGCAsQBRgUQgQIBhAzSgYIMBAdGChSBggwEB0YKFoGCDAQHRgoYgQIBhAzagYIMBAdGCg="
+      },
+      "source": "eufy_anon_4/1775292746991_168.json",
+      "note": "Session 3/4: consumable variant"
+    },
+    {
+      "dps": {
+        "168": "qAEKpQEKAggLEgIICxoCCAsiAggLKgMIlgMyAggGOgMItDVaAwi6AWIDCLoBagMIugF6Awi6AYoBAJoBAwiSAqABsOiOtdvhxtEYwgJcCgYICxACGCgSBggLEAIYKBoGCAsQAhgoIgYICxACGCgyBggPEDUYNDoGCAsQAhgoQgQIBhAzSgYIMBAdGChSBggwEB0YKFoGCDAQHRgoYgQIBhAzagYIMBAdGCg="
+      },
+      "source": "eufy_anon_4/1775292424637_168.json",
+      "note": "Session 3/4: consumable variant"
+    },
+    {
+      "dps": {
+        "168": "qAEKpQEKAggLEgIICxoCCAsiAggLKgMIlgMyAggGOgMItDVaAwi6AWIDCLoBagMIugF6Awi6AYoBAJoBAwiSAqABsOieu/DixtEYwgJcCgYICxADGBQSBggLEAMYFBoGCAsQAxgUIgYICxADGBQyBggPEDUYNDoGCAsQAxgUQgQIBhAzSgYIMBAdGChSBggwEB0YKFoGCDAQHRgoYgQIBhAzagYIMBAdGCg="
+      },
+      "source": "eufy_anon_4/1775292464651_168.json",
+      "note": "Session 3/4: consumable variant"
+    }
+  ]
+}

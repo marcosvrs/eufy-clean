@@ -1,0 +1,4 @@
+============================= test session starts ==============================
+tests/integration/test_ha_lifecycle.py::test_storage_save_and_load_roundtrip PASSED [ 50%]
+tests/integration/test_ha_lifecycle.py::test_storage_load_empty_does_not_overwrite PASSED [100%]
+============================== 2 passed in 1.84s ===============================

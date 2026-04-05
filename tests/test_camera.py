@@ -86,6 +86,22 @@ class TestCameraImage:
         assert result[:4] == b"\x89PNG"
 
     @pytest.mark.asyncio
+    async def test_passes_dock_position_when_path_has_points(self, camera, mock_coordinator):
+        camera._path = [(100, 200), (150, 250)]
+        camera._dock_position = (100, 200)
+
+        with patch("custom_components.robovac_mqtt.camera.render_path") as mock_render:
+            mock_render.return_value = b"\x89PNG\r\n\x1a\n" + b"\x00" * 100
+            result = await camera.async_camera_image()
+
+        assert result is not None
+        mock_render.assert_called_once_with(
+            positions=[(100, 200), (150, 250)],
+            dock_position=(100, 200),
+            rooms=None,
+        )
+
+    @pytest.mark.asyncio
     async def test_passes_none_rooms_when_empty(self, camera, mock_coordinator):
         mock_coordinator.data = VacuumState(rooms=[])
         result = await camera.async_camera_image()

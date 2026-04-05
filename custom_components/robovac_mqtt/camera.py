@@ -8,7 +8,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .api.map_renderer import render_path
+from custom_components.robovac_mqtt.api.map_renderer import render_path
 from .const import DOMAIN
 from .coordinator import EufyCleanCoordinator
 
@@ -39,11 +39,12 @@ class RoboVacMapCamera(CoordinatorEntity[EufyCleanCoordinator], Camera):
 
     def __init__(self, coordinator: EufyCleanCoordinator) -> None:
         """Initialize the map camera."""
-        CoordinatorEntity.__init__(self, coordinator)
+        CoordinatorEntity.__init__(self, coordinator)  # type: ignore[arg-type]
         Camera.__init__(self)
         self._attr_unique_id = f"{coordinator.device_id}_map_camera"
         self._attr_device_info = coordinator.device_info
         self._path: list[tuple[int, int]] = []
+        self._dock_position: tuple[int, int] | None = None
         self._last_activity: str = "idle"
 
     def _handle_coordinator_update(self) -> None:
@@ -57,6 +58,7 @@ class RoboVacMapCamera(CoordinatorEntity[EufyCleanCoordinator], Camera):
             "returning",
         ):
             self._path = []
+            self._dock_position = None
             _LOGGER.debug("Cleaning session started — path reset")
 
         self._last_activity = current_activity
@@ -68,6 +70,8 @@ class RoboVacMapCamera(CoordinatorEntity[EufyCleanCoordinator], Camera):
             if x or y:  # skip (0, 0) as likely uninitialized
                 if not self._path or self._path[-1] != (x, y):
                     self._path.append((x, y))
+                    if self._dock_position is None:
+                        self._dock_position = (x, y)
 
         super()._handle_coordinator_update()
 
@@ -79,5 +83,6 @@ class RoboVacMapCamera(CoordinatorEntity[EufyCleanCoordinator], Camera):
         rooms = state.rooms if state.rooms else None
         return render_path(
             positions=list(self._path),
+            dock_position=self._dock_position,
             rooms=rooms,
         )

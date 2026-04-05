@@ -220,6 +220,9 @@ class EufyCleanClient:
                 topic = f"cmd/eufy_home/{self.device_model}/{self.device_id}/res"
                 _LOGGER.debug("Subscribing to %s", topic)
                 client.subscribe(topic)
+                smart_mb_topic = f"smart/mb/in/{self.device_id}"
+                _LOGGER.debug("Subscribing to %s", smart_mb_topic)
+                client.subscribe(smart_mb_topic)
         else:
             _LOGGER.error("Failed to connect to MQTT, return code %d", rc)
 

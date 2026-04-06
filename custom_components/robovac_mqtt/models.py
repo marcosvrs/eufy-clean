@@ -87,6 +87,10 @@ class VacuumState:
     corner_cleaning: str = "Normal"  # Mop corner cleaning from DPS 154
     smart_mode: bool = False  # Smart mode switch from DPS 154
 
+    # Plain-value DPS fields (not protobuf-wrapped)
+    boost_iq: bool = False  # DPS 159: auto-boost suction on carpet
+    volume: int = 50  # DPS 161: voice volume 0-100
+
     # Device settings (from DPS 176 UnisettingResponse)
     wifi_signal: float = -100.0  # AP signal strength in dBm (converted from 0-100%)
     child_lock: bool = False  # Children lock switch

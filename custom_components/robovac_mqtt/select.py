@@ -17,8 +17,10 @@ from .api.commands import build_command
 from .const import (
     DOMAIN,
     DRY_DURATION_MAP,
+    EUFY_CLEAN_CARPET_STRATEGIES,
     EUFY_CLEAN_CLEANING_INTENSITIES,
     EUFY_CLEAN_CLEANING_MODES,
+    EUFY_CLEAN_CORNER_CLEANING_MODES,
     EUFY_CLEAN_NOVEL_CLEAN_SPEED,
     EUFY_CLEAN_WATER_LEVELS,
 )
@@ -78,6 +80,8 @@ async def async_setup_entry(
         entities.append(WaterLevelSelectEntity(coordinator))
         entities.append(MopIntensitySelectEntity(coordinator))
         entities.append(CleaningIntensitySelectEntity(coordinator))
+        entities.append(CarpetStrategySelectEntity(coordinator))
+        entities.append(CornerCleaningSelectEntity(coordinator))
         entities.append(SceneSelectEntity(coordinator))
         entities.append(RoomSelectEntity(coordinator))
 
@@ -528,3 +532,41 @@ class CleaningIntensitySelectEntity(_StateBackedSelectEntity):
     def __init__(self, coordinator: EufyCleanCoordinator) -> None:
         """Initialize cleaning intensity select."""
         super().__init__(coordinator, "cleaning_intensity")
+
+
+class CarpetStrategySelectEntity(_StateBackedSelectEntity):
+    """Select entity for adjusting carpet cleaning strategy."""
+
+    _attr_has_entity_name = True
+    _attr_name = "Carpet Strategy"
+    _attr_icon = "mdi:rug"
+    _attr_options = EUFY_CLEAN_CARPET_STRATEGIES
+    _attr_entity_category = EntityCategory.CONFIG
+    _command_name = "set_carpet_strategy"
+    _command_arg_name = "carpet_strategy"
+    _state_field = "carpet_strategy"
+    _available_field = "carpet_strategy"
+    _log_label = "Carpet strategy"
+
+    def __init__(self, coordinator: EufyCleanCoordinator) -> None:
+        """Initialize carpet strategy select."""
+        super().__init__(coordinator, "carpet_strategy")
+
+
+class CornerCleaningSelectEntity(_StateBackedSelectEntity):
+    """Select entity for adjusting corner cleaning mode."""
+
+    _attr_has_entity_name = True
+    _attr_name = "Corner Cleaning"
+    _attr_icon = "mdi:rounded-corner"
+    _attr_options = EUFY_CLEAN_CORNER_CLEANING_MODES
+    _attr_entity_category = EntityCategory.CONFIG
+    _command_name = "set_corner_cleaning"
+    _command_arg_name = "corner_cleaning"
+    _state_field = "corner_cleaning"
+    _available_field = "corner_cleaning"
+    _log_label = "Corner cleaning"
+
+    def __init__(self, coordinator: EufyCleanCoordinator) -> None:
+        """Initialize corner cleaning select."""
+        super().__init__(coordinator, "corner_cleaning")

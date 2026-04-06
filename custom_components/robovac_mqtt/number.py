@@ -3,6 +3,7 @@ from __future__ import annotations
 import copy
 import logging
 from collections.abc import Callable
+from dataclasses import replace
 from typing import Any
 
 from homeassistant.components.number import NumberEntity
@@ -50,6 +51,8 @@ async def async_setup_entry(
                 icon="mdi:clock-time-four-outline",
             )
         )
+
+        entities.append(VolumeNumberEntity(coordinator))
 
     async_add_entities(entities)
 
@@ -123,3 +126,41 @@ class DockNumberEntity(CoordinatorEntity[EufyCleanCoordinator], NumberEntity):
 
         command = build_command("set_auto_cfg", cfg=cfg)
         await self.coordinator.async_send_command(command)
+
+
+class VolumeNumberEntity(CoordinatorEntity[EufyCleanCoordinator], NumberEntity):
+    """Number entity for device voice volume (DPS 161)."""
+
+    _attr_has_entity_name = True
+    _attr_name = "Volume"
+    _attr_icon = "mdi:volume-high"
+    _attr_native_min_value = 0
+    _attr_native_max_value = 100
+    _attr_native_step = 1
+    _attr_entity_category = EntityCategory.CONFIG
+
+    def __init__(self, coordinator: EufyCleanCoordinator) -> None:
+        """Initialize the volume number entity."""
+        super().__init__(coordinator)
+        self._attr_unique_id = f"{coordinator.device_id}_volume"
+        self._attr_device_info = coordinator.device_info
+
+    @property
+    def available(self) -> bool:
+        """Return whether the entity is available."""
+        return (
+            super().available and "volume" in self.coordinator.data.received_fields
+        )
+
+    @property
+    def native_value(self) -> float | None:
+        """Return the current volume."""
+        return self.coordinator.data.volume
+
+    async def async_set_native_value(self, value: float) -> None:
+        """Set the volume."""
+        command = build_command("set_volume", volume=int(value))
+        await self.coordinator.async_send_command(command)
+        self.coordinator.async_set_updated_data(
+            replace(self.coordinator.data, volume=int(value))
+        )

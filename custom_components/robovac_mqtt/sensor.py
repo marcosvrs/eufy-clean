@@ -154,6 +154,21 @@ async def async_setup_entry(
             )
         )
 
+        # Waste water level sensor (Station Waste Water)
+        entities.append(
+            RoboVacSensor(
+                coordinator,
+                "waste_water_level",
+                "Waste Water Level",
+                lambda s: s.station_waste_water,
+                device_class=None,
+                unit=PERCENTAGE,
+                state_class=SensorStateClass.MEASUREMENT,
+                icon="mdi:water-minus",
+                availability_fn=lambda s: "dock_status" in s.received_fields,
+            )
+        )
+
         # Dock status sensor
         entities.append(
             RoboVacSensor(

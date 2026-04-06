@@ -61,6 +61,8 @@ async def async_setup_entry(
         entities.append(DoNotDisturbSwitchEntity(coordinator))
         entities.append(ChildLockSwitchEntity(coordinator))
         entities.append(FindRobotSwitchEntity(coordinator))
+        entities.append(SmartModeSwitchEntity(coordinator))
+        entities.append(BoostIQSwitchEntity(coordinator))
 
     async_add_entities(entities)
 
@@ -277,4 +279,88 @@ class DoNotDisturbSwitchEntity(CoordinatorEntity[EufyCleanCoordinator], SwitchEn
         await self.coordinator.async_send_command(command)
         self.coordinator.async_set_updated_data(
             replace(self.coordinator.data, dnd_enabled=state)
+        )
+
+
+class SmartModeSwitchEntity(CoordinatorEntity[EufyCleanCoordinator], SwitchEntity):
+    """Switch for the smart mode cleaning setting."""
+
+    def __init__(self, coordinator: EufyCleanCoordinator) -> None:
+        """Initialize the smart mode switch."""
+        super().__init__(coordinator)
+        self._attr_unique_id = f"{coordinator.device_id}_smart_mode"
+        self._attr_has_entity_name = True
+        self._attr_name = "Smart Mode"
+        self._attr_icon = "mdi:brain"
+        self._attr_entity_category = EntityCategory.CONFIG
+        self._attr_device_info = coordinator.device_info
+
+    @property
+    def is_on(self) -> bool | None:
+        """Return true if smart mode is enabled."""
+        return self.coordinator.data.smart_mode
+
+    @property
+    def available(self) -> bool:
+        """Return whether the entity is available."""
+        return (
+            super().available and "smart_mode" in self.coordinator.data.received_fields
+        )
+
+    async def async_turn_on(self, **kwargs: Any) -> None:
+        """Enable smart mode."""
+        await self._set_state(True)
+
+    async def async_turn_off(self, **kwargs: Any) -> None:
+        """Disable smart mode."""
+        await self._set_state(False)
+
+    async def _set_state(self, state: bool) -> None:
+        """Send smart mode command and optimistically update state."""
+        command = build_command("set_smart_mode", active=state)
+        await self.coordinator.async_send_command(command)
+        self.coordinator.async_set_updated_data(
+            replace(self.coordinator.data, smart_mode=state)
+        )
+
+
+class BoostIQSwitchEntity(CoordinatorEntity[EufyCleanCoordinator], SwitchEntity):
+    """Switch for the Boost IQ setting."""
+
+    def __init__(self, coordinator: EufyCleanCoordinator) -> None:
+        """Initialize the boost IQ switch."""
+        super().__init__(coordinator)
+        self._attr_unique_id = f"{coordinator.device_id}_boost_iq"
+        self._attr_has_entity_name = True
+        self._attr_name = "Boost IQ"
+        self._attr_icon = "mdi:speedometer"
+        self._attr_entity_category = EntityCategory.CONFIG
+        self._attr_device_info = coordinator.device_info
+
+    @property
+    def is_on(self) -> bool | None:
+        """Return true if boost IQ is enabled."""
+        return self.coordinator.data.boost_iq
+
+    @property
+    def available(self) -> bool:
+        """Return whether the entity is available."""
+        return (
+            super().available and "boost_iq" in self.coordinator.data.received_fields
+        )
+
+    async def async_turn_on(self, **kwargs: Any) -> None:
+        """Enable boost IQ."""
+        await self._set_state(True)
+
+    async def async_turn_off(self, **kwargs: Any) -> None:
+        """Disable boost IQ."""
+        await self._set_state(False)
+
+    async def _set_state(self, state: bool) -> None:
+        """Send boost IQ command and optimistically update state."""
+        command = build_command("set_boost_iq", active=state)
+        await self.coordinator.async_send_command(command)
+        self.coordinator.async_set_updated_data(
+            replace(self.coordinator.data, boost_iq=state)
         )

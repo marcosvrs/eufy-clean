@@ -4,8 +4,10 @@ import logging
 from typing import Any, cast
 
 from ..const import (
+    CARPET_STRATEGY_REVERSE,
     CLEAN_EXTENT_MAP,
     CLEAN_TYPE_MAP,
+    CORNER_CLEANING_REVERSE,
     DPS_MAP,
     EUFY_CLEAN_CONTROL,
     EUFY_CLEAN_NOVEL_CLEAN_SPEED,
@@ -317,6 +319,51 @@ def build_set_undisturbed_command(
     return {DPS_MAP["UNDISTURBED"]: value}
 
 
+def build_set_carpet_strategy_command(carpet_strategy: str) -> dict[str, str]:
+    """Build command to set carpet cleaning strategy."""
+    strategy_val = CARPET_STRATEGY_REVERSE.get(carpet_strategy)
+    if strategy_val is None:
+        _LOGGER.warning("Invalid carpet_strategy '%s' ignored", carpet_strategy)
+        return {}
+    req = CleanParamRequest(
+        clean_param=CleanParam(clean_carpet={"strategy": strategy_val}),
+    )
+    value = encode_message(req)
+    return {DPS_MAP["CLEANING_PARAMETERS"]: value}
+
+
+def build_set_corner_cleaning_command(corner_cleaning: str) -> dict[str, str]:
+    """Build command to set corner cleaning mode."""
+    corner_val = CORNER_CLEANING_REVERSE.get(corner_cleaning)
+    if corner_val is None:
+        _LOGGER.warning("Invalid corner_cleaning '%s' ignored", corner_cleaning)
+        return {}
+    req = CleanParamRequest(
+        clean_param=CleanParam(mop_mode={"corner_clean": corner_val}),
+    )
+    value = encode_message(req)
+    return {DPS_MAP["CLEANING_PARAMETERS"]: value}
+
+
+def build_set_smart_mode_command(active: bool) -> dict[str, str]:
+    """Build command to toggle smart mode."""
+    req = CleanParamRequest(
+        clean_param=CleanParam(smart_mode_sw={"value": active}),
+    )
+    value = encode_message(req)
+    return {DPS_MAP["CLEANING_PARAMETERS"]: value}
+
+
+def build_set_boost_iq_command(active: bool) -> dict[str, Any]:
+    """Build command to toggle boost IQ."""
+    return {DPS_MAP["BOOST_IQ"]: active}
+
+
+def build_set_volume_command(volume: int) -> dict[str, Any]:
+    """Build command to set voice volume."""
+    return {DPS_MAP["VOLUME"]: volume}
+
+
 def build_command(command: str, **kwargs: Any) -> dict[str, Any]:
     """Unified command builder."""
     cmd = command.lower()
@@ -391,5 +438,19 @@ def build_command(command: str, **kwargs: Any) -> dict[str, Any]:
             int(kwargs.get("end_hour", 8)),
             int(kwargs.get("end_minute", 0)),
         )
+    if cmd == "set_carpet_strategy":
+        return build_set_carpet_strategy_command(
+            kwargs.get("carpet_strategy", "")
+        )
+    if cmd == "set_corner_cleaning":
+        return build_set_corner_cleaning_command(
+            kwargs.get("corner_cleaning", "")
+        )
+    if cmd == "set_smart_mode":
+        return build_set_smart_mode_command(bool(kwargs.get("active", True)))
+    if cmd == "set_boost_iq":
+        return build_set_boost_iq_command(bool(kwargs.get("active", True)))
+    if cmd == "set_volume":
+        return build_set_volume_command(int(kwargs.get("volume", 50)))
 
     return {}

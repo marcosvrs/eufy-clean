@@ -179,6 +179,12 @@ CORNER_CLEANING_NAMES = {
     1: "Deep",
 }
 
+EUFY_CLEAN_CARPET_STRATEGIES = list(CARPET_STRATEGY_NAMES.values())
+EUFY_CLEAN_CORNER_CLEANING_MODES = list(CORNER_CLEANING_NAMES.values())
+
+CARPET_STRATEGY_REVERSE = {v: k for k, v in CARPET_STRATEGY_NAMES.items()}
+CORNER_CLEANING_REVERSE = {v: k for k, v in CORNER_CLEANING_NAMES.items()}
+
 FAN_SUCTION_NAMES = {
     0: "Quiet",
     1: "Standard",
@@ -523,6 +529,8 @@ DPS_MAP = {
     "MULTI_MAP_MANAGE": "172",
     "APP_DEV_INFO": "169",
     "UNDISTURBED": "157",
+    "BOOST_IQ": "159",
+    "VOLUME": "161",
 }
 
 # DPS keys that are known but intentionally not parsed.
@@ -536,8 +544,6 @@ KNOWN_UNPROCESSED_DPS: frozenset[str] = frozenset(
         DPS_MAP["MAP_EDIT_REQUEST"],  # 170 - map_edit: MapEditRequest echo
         "150",  # proto: reserved, not used
         "151",  # power: Send false=shutdown, Report true=just booted
-        "159",  # boost_iq: auto-boost suction on carpet
-        "161",  # volume: voice volume 0-100
         "162",  # user_language: LanguageRequest/LanguageResponse
         "171",  # multi_maps_ctrl: MultiMapsCtrlRequest/Response
         "174",  # media_manager: MediaManagerRequest/Response

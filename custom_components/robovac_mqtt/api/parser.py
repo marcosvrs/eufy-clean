@@ -537,6 +537,16 @@ def _process_other_dps(
                     changes["robot_position_y"] = raw_y
                     _track_field(state, changes, "robot_position")
 
+            elif key == DPS_MAP.get("BOOST_IQ"):
+                if isinstance(value, bool):
+                    changes["boost_iq"] = value
+                    _track_field(state, changes, "boost_iq")
+
+            elif key == DPS_MAP.get("VOLUME"):
+                if isinstance(value, (int, float)):
+                    changes["volume"] = int(value)
+                    _track_field(state, changes, "volume")
+
             elif key in KNOWN_UNPROCESSED_DPS:
                 _LOGGER.debug(
                     "Known unprocessed DPS %s: %s (value stored in raw_dps)",

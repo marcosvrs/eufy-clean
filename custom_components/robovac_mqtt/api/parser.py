@@ -460,8 +460,8 @@ def _process_other_dps(
                 _LOGGER.debug("Received SCENE_INFO: %s", value)
                 changes["scenes"] = _parse_scene_info(value)
 
-            elif key == DPS_MAP["MAP_DATA"]:
-                _LOGGER.debug("Received MAP_DATA: %s", value)
+            elif key == DPS_MAP["RESERVED2"]:
+                _LOGGER.debug("Received RESERVED2: %s", value)
                 map_info = _parse_map_data(value)
                 if map_info:
                     changes["map_id"] = map_info.get("map_id", 0)
@@ -475,7 +475,7 @@ def _process_other_dps(
             elif key == DPS_MAP["FIND_ROBOT"]:
                 changes["find_robot"] = str(value).lower() == "true"
 
-            elif key == DPS_MAP["MAP_MANAGE"]:
+            elif key == DPS_MAP["APP_DEV_INFO"]:
                 # DPS 169 carries DeviceInfo proto (not map data despite the name).
                 # Contains firmware version, WiFi SSID/IP, station firmware, MAC.
                 # Firmware version is already in the HA device registry via

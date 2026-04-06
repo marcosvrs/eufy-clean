@@ -501,7 +501,7 @@ MOP_LEVEL_MAP = {
 
 DPS_MAP = {
     "PLAY_PAUSE": "152",
-    "DIRECTION": "155",
+    "REMOTE_CTRL": "155",
     "WORK_MODE": "153",
     "WORK_STATUS": "153",
     "CLEANING_PARAMETERS": "154",
@@ -514,14 +514,14 @@ DPS_MAP = {
     "STATION_STATUS": "173",
     "ERROR_CODE": "177",
     "SCENE_INFO": "180",
-    "MAP_DATA": "165",
-    "MAP_EDIT": "164",
-    "MULTI_MAP_SW": "156",
-    "MAP_STREAM": "166",
+    "RESERVED2": "165",
+    "TIMING": "164",
+    "PAUSE_JOB": "156",
+    "LOG_DEBUG": "166",
     "UNSETTING": "176",
     "MAP_EDIT_REQUEST": "170",
     "MULTI_MAP_MANAGE": "172",
-    "MAP_MANAGE": "169",
+    "APP_DEV_INFO": "169",
     "UNDISTURBED": "157",
 }
 
@@ -529,28 +529,24 @@ DPS_MAP = {
 # Values are already stored in raw_dps for diagnostics.
 KNOWN_UNPROCESSED_DPS: frozenset[str] = frozenset(
     {
-        DPS_MAP["DIRECTION"],  # 155 - RemoteCtrl echo
-        DPS_MAP["MULTI_MAP_SW"],  # 156 - multi-map toggle (also in DPS 176)
-        DPS_MAP["MAP_EDIT"],  # 164 - MapEditResponse ack
-        DPS_MAP[
-            "MAP_STREAM"
-        ],  # 166 - debug/metadata on T2351 (map data is local P2P only)
-        # Note: DPS 169 (MAP_MANAGE) is now parsed as DeviceInfo
-        DPS_MAP["MAP_EDIT_REQUEST"],  # 170 - MapEditRequest echo
-        # Unknown DPS keys observed in the wild:
-        "150",  # Unknown, value: None
-        "151",  # Unknown, value: True
-        "159",  # Unknown, value: True
-        "161",  # Unknown, likely volume (value: 80)
-        "162",  # Unknown protobuf, timing config
-        "171",  # Unknown, value: None
-        "174",  # Unknown, value: None
-        "175",  # Unknown, value: None
-        "178",  # Unknown protobuf, timestamp/event log
+        DPS_MAP["REMOTE_CTRL"],  # 155 - remote_ctrl: remote control echo
+        DPS_MAP["PAUSE_JOB"],  # 156 - pause_job: pause current job
+        DPS_MAP["TIMING"],  # 164 - timing: TimerRequest/TimerResponse
+        DPS_MAP["LOG_DEBUG"],  # 166 - log_debug: DebugRequest/DebugResponse
+        DPS_MAP["MAP_EDIT_REQUEST"],  # 170 - map_edit: MapEditRequest echo
+        "150",  # proto: reserved, not used
+        "151",  # power: Send false=shutdown, Report true=just booted
+        "159",  # boost_iq: auto-boost suction on carpet
+        "161",  # volume: voice volume 0-100
+        "162",  # user_language: LanguageRequest/LanguageResponse
+        "171",  # multi_maps_ctrl: MultiMapsCtrlRequest/Response
+        "174",  # media_manager: MediaManagerRequest/Response
+        "175",  # reserved3: reserved
+        "178",  # toast: PromptCode notification messages
     }
 )
 
-# DPS 179 key (no named entry in DPS_MAP — undocumented telemetry channel)
+# DPS 179 - analysis: AnalysisRequest/AnalysisResponse (robot position telemetry)
 DPS_ROBOT_TELEMETRY = "179"
 
 

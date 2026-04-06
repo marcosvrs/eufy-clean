@@ -527,7 +527,7 @@ class TestMapEditFixture:
         fixture = load_fixture("mqtt/map_data/map_edit_request.json")
         state = make_vacuum_state()
         new_state, _ = update_state(state, fixture["dps"])
-        assert DPS_MAP["MAP_EDIT"] in new_state.raw_dps
+        assert DPS_MAP["TIMING"] in new_state.raw_dps
 
     def test_map_edit_request_170_stored_in_raw_dps(self):
         fixture = load_fixture("mqtt/map_data/map_edit_request_170.json")
@@ -780,7 +780,7 @@ class TestPreExistingFixtures:
         fixture = load_fixture("mqtt/map_data/room_params.json")
         state = make_vacuum_state()
         new_state, _ = update_state(state, fixture["dps"])
-        assert DPS_MAP["MAP_DATA"] in new_state.raw_dps
+        assert DPS_MAP["RESERVED2"] in new_state.raw_dps
         assert new_state.map_id == 8
         assert len(new_state.rooms) == 8
         room_names = [r["name"] for r in new_state.rooms]
@@ -791,7 +791,7 @@ class TestPreExistingFixtures:
         fixture = load_fixture("mqtt/map_data/universal_data_response.json")
         state = make_vacuum_state()
         new_state, _ = update_state(state, fixture["dps"])
-        assert DPS_MAP["MAP_DATA"] in new_state.raw_dps
+        assert DPS_MAP["RESERVED2"] in new_state.raw_dps
 
     def test_scene_info_list(self):
         fixture = load_fixture("mqtt/scene_info/scenes_list.json")

@@ -541,6 +541,68 @@ DEFAULT_DPS_MAP = {
 }
 DPS_MAP = DEFAULT_DPS_MAP  # backward-compatible alias
 
+CLOUD_CODE_TO_FUNC: dict[str, list[str]] = {
+    "mode_ctrl": ["PLAY_PAUSE"],
+    "work_status": ["WORK_MODE", "WORK_STATUS"],
+    "clean_params": ["CLEANING_PARAMETERS"],
+    "remote_ctrl": ["REMOTE_CTRL"],
+    "pause_job": ["PAUSE_JOB"],
+    "dnd": ["UNDISTURBED"],
+    "suction_level": ["CLEAN_SPEED"],
+    "boost_iq": ["BOOST_IQ"],
+    "calling_robot": ["FIND_ROBOT"],
+    "volume": ["VOLUME"],
+    "bat_level": ["BATTERY_LEVEL"],
+    "timing": ["TIMING"],
+    "reserved2": ["RESERVED2"],
+    "log_debug": ["LOG_DEBUG"],
+    "clean_statistics": ["CLEANING_STATISTICS"],
+    "consumables": ["ACCESSORIES_STATUS"],
+    "app_dev_info": ["APP_DEV_INFO"],
+    "map_edit": ["MAP_EDIT_REQUEST"],
+    "multi_maps_mng": ["MULTI_MAP_MANAGE"],
+    "station": ["GO_HOME", "STATION_STATUS"],
+    "unisetting": ["UNSETTING"],
+    "error_warning": ["ERROR_CODE"],
+    "scenes": ["SCENE_INFO"],
+}
+
+
+def build_dps_map_from_catalog(catalog: list[dict]) -> dict[str, str]:
+    """Build a DPS map from a cloud catalog, falling back to DEFAULT_DPS_MAP for missing entries."""
+    if not catalog:
+        return dict(DEFAULT_DPS_MAP)
+    result = dict(DEFAULT_DPS_MAP)
+    for item in catalog:
+        dp_id = item.get("dp_id")
+        code = item.get("code")
+        if dp_id is None or code is None:
+            _LOGGER.warning("Skipping malformed catalog entry: %r", item)
+            continue
+        func_names = CLOUD_CODE_TO_FUNC.get(code)
+        if func_names is None:
+            _LOGGER.debug("Unknown cloud code %r in catalog (dp_id=%s), skipping", code, dp_id)
+            continue
+        for func_name in func_names:
+            result[func_name] = str(dp_id)
+    return result
+
+
+def supported_dps_from_catalog(catalog: list[dict]) -> frozenset[str]:
+    """Return frozenset of functional DPS names supported by this device's catalog."""
+    if not catalog:
+        return frozenset(DEFAULT_DPS_MAP.keys())
+    supported: set[str] = set()
+    for item in catalog:
+        code = item.get("code")
+        if code is None:
+            continue
+        func_names = CLOUD_CODE_TO_FUNC.get(code)
+        if func_names:
+            supported.update(func_names)
+    return frozenset(supported)
+
+
 # DPS keys that are known but intentionally not parsed.
 # Values are already stored in raw_dps for diagnostics.
 KNOWN_UNPROCESSED_DPS: frozenset[str] = frozenset(
@@ -562,6 +624,60 @@ KNOWN_UNPROCESSED_DPS: frozenset[str] = frozenset(
 
 # DPS 179 - analysis: AnalysisRequest/AnalysisResponse (robot position telemetry)
 DPS_ROBOT_TELEMETRY = "179"
+
+HANDLED_DPS_IDS: frozenset[str] = frozenset({
+    DEFAULT_DPS_MAP["PLAY_PAUSE"],           # "152" - ModeCtrlRequest proto
+    DEFAULT_DPS_MAP["WORK_STATUS"],          # "153" - WorkStatus proto
+    DEFAULT_DPS_MAP["CLEANING_PARAMETERS"],  # "154" - CleanParam proto
+    DEFAULT_DPS_MAP["UNDISTURBED"],          # "157" - UndisturbedRequest proto
+    DEFAULT_DPS_MAP["RESERVED2"],            # "165" - reserved proto
+    DEFAULT_DPS_MAP["CLEANING_STATISTICS"],  # "167" - CleanStatistics proto
+    DEFAULT_DPS_MAP["ACCESSORIES_STATUS"],   # "168" - ConsumableResponse proto
+    DEFAULT_DPS_MAP["APP_DEV_INFO"],         # "169" - DeviceInfo proto
+    DEFAULT_DPS_MAP["MAP_EDIT_REQUEST"],     # "170" - MapEditResponse proto
+    DEFAULT_DPS_MAP["MULTI_MAP_MANAGE"],     # "172" - MultiMapsManage proto
+    DEFAULT_DPS_MAP["GO_HOME"],              # "173" - StationRequest/Response proto
+    DEFAULT_DPS_MAP["UNSETTING"],            # "176" - UnisettingResponse proto
+    DEFAULT_DPS_MAP["ERROR_CODE"],           # "177" - ErrorCode proto
+    DEFAULT_DPS_MAP["SCENE_INFO"],           # "180" - SceneResponse proto
+    DPS_ROBOT_TELEMETRY,                     # "179" - analysis raw
+})
+
+AUTO_ENTITY_OVERRIDES: dict[str, dict[str, Any]] = {
+    "bat_level": {
+        "name": "Battery",
+        "device_class": "battery",
+        "unit": "%",
+        "state_class": "measurement",
+        "enabled_default": True,
+        "entity_category": None,
+    },
+    "suction_level": {
+        "name": "Suction Level",
+        "icon": "mdi:fan",
+        "options_map": {0: "Quiet", 1: "Standard", 2: "Turbo", 3: "Max", 4: "Boost_IQ"},
+        "enabled_default": True,
+    },
+    "boost_iq": {
+        "name": "Boost IQ",
+        "icon": "mdi:car-turbocharger",
+        "enabled_default": True,
+    },
+    "calling_robot": {
+        "name": "Find Robot",
+        "icon": "mdi:magnify",
+        "enabled_default": True,
+        "entity_category": None,
+    },
+    "volume": {
+        "name": "Volume",
+        "icon": "mdi:volume-high",
+        "min": 0,
+        "max": 100,
+        "step": 1,
+        "enabled_default": True,
+    },
+}
 
 
 ACCESSORY_MAX_LIFE = {

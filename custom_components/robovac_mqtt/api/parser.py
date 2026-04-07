@@ -147,6 +147,7 @@ def update_state(
     *,
     dps_map: dict[str, str] | None = None,
     catalog_types: dict[str, str] | None = None,
+    dps_catalog: dict[str, dict[str, Any]] | None = None,
 ) -> tuple[VacuumState, dict[str, Any]]:
     """Update VacuumState with new DPS data.
 
@@ -169,7 +170,7 @@ def update_state(
     _process_station_status(state, dps, changes, dps_map)
     _process_work_status(state, dps, changes, dps_map)
     _process_play_pause(state, dps, changes, dps_map)
-    _process_other_dps(state, dps, changes, dps_map, catalog_types)
+    _process_other_dps(state, dps, changes, dps_map, catalog_types, dps_catalog)
 
     # Log received_fields for debugging sensor availability
     if "received_fields" in changes:
@@ -471,10 +472,40 @@ def _process_play_pause(
         _LOGGER.warning("Error parsing Play/Pause DPS: %s", e, exc_info=True)
 
 
+def _truncate_value(value: Any, max_len: int = 200) -> str:
+    """Format a DPS value for logging, preserving full base64 up to max_len."""
+    if value is None:
+        return "None"
+    s = str(value)
+    if len(s) <= max_len:
+        return s
+    return f"{s[:max_len]}... ({len(s)} chars)"
+
+
+def _catalog_summary(key: str, dps_catalog: dict[str, dict[str, Any]] | None) -> str:
+    """Build a one-line catalog summary for debug logging."""
+    if not dps_catalog or key not in dps_catalog:
+        return "catalog=N/A"
+    entry = dps_catalog[key]
+    parts = [
+        f"code={entry.get('code', '?')}",
+        f"type={entry.get('data_type', '?')}",
+        f"mode={entry.get('mode', '?')}",
+    ]
+    prop = entry.get("property", "{}")
+    if prop and prop != "{}":
+        parts.append(f"property={prop}")
+    desc = entry.get("desc", "")
+    if desc:
+        parts.append(f"desc={desc}")
+    return " | ".join(parts)
+
+
 def _process_other_dps(
     state: VacuumState, dps: dict[str, Any], changes: dict[str, Any],
     dps_map: dict[str, str],
     catalog_types: dict[str, str] | None = None,
+    dps_catalog: dict[str, dict[str, Any]] | None = None,
 ) -> None:
     """Process other DPS items."""
     for key, value in dps.items():
@@ -785,32 +816,30 @@ def _process_other_dps(
                         changes["dynamic_values"] = new_dynamic
                 else:
                     _LOGGER.debug(
-                    "UNKNOWN_DPS | key=%s | value=%r | value_type=%s | catalog_type=%s | in_catalog=%s",
-                    key,
-                    value,
-                    type(value).__name__,
-                    catalog_types.get(key, "N/A") if catalog_types else "no_catalog",
-                    key in (catalog_types or {}),
-                )
+                        "UNKNOWN_DPS | key=%s | value=%s | value_type=%s | %s",
+                        key,
+                        _truncate_value(value),
+                        type(value).__name__,
+                        _catalog_summary(key, dps_catalog),
+                    )
 
             elif key in KNOWN_UNPROCESSED_DPS:
                 _LOGGER.debug(
-                    "KNOWN_UNPROCESSED_DPS | key=%s | value=%r | value_type=%s | value_len=%s | catalog_type=%s",
+                    "KNOWN_UNPROCESSED_DPS | key=%s | value=%s | value_type=%s | %s",
                     key,
-                    value,
+                    _truncate_value(value),
                     type(value).__name__,
-                    len(str(value)),
-                    catalog_types.get(key, "N/A") if catalog_types else "no_catalog",
+                    _catalog_summary(key, dps_catalog),
                 )
 
             else:
                 _LOGGER.debug(
-                    "UNHANDLED_DPS | key=%s | value=%r | value_type=%s | in_handled=%s | in_known_unprocessed=%s",
+                    "UNHANDLED_DPS | key=%s | value=%s | value_type=%s | in_handled=%s | %s",
                     key,
-                    value,
+                    _truncate_value(value),
                     type(value).__name__,
                     key in HANDLED_DPS_IDS,
-                    key in KNOWN_UNPROCESSED_DPS,
+                    _catalog_summary(key, dps_catalog),
                 )
 
         except Exception as e:

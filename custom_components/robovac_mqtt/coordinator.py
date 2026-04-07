@@ -95,7 +95,9 @@ class EufyCleanCoordinator(DataUpdateCoordinator[VacuumState]):
 
         if dps := device_info.get("dps"):
             self.data, _ = update_state(
-                self.data, dps, dps_map=self.dps_map, catalog_types=self.catalog_types
+                self.data, dps, dps_map=self.dps_map,
+                catalog_types=self.catalog_types,
+                dps_catalog=self.dps_catalog,
             )
 
     @property
@@ -185,7 +187,9 @@ class EufyCleanCoordinator(DataUpdateCoordinator[VacuumState]):
             if dps := payload_data.get("data"):
                 # Calculate new state based on connection
                 new_state, changes = update_state(
-                    self.data, dps, dps_map=self.dps_map, catalog_types=self.catalog_types
+                    self.data, dps, dps_map=self.dps_map,
+                    catalog_types=self.catalog_types,
+                    dps_catalog=self.dps_catalog,
                 )
 
                 # Only consider debounce if dock_status was explicitly set in this message

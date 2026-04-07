@@ -684,9 +684,7 @@ class RoboVacSensor(CoordinatorEntity[EufyCleanCoordinator], SensorEntity):
         # Result: sensor.robovac_water_level (Safer, avoids collisions)
         self._attr_has_entity_name = True
         self._attr_name = name_suffix
-        self._attr_entity_registry_enabled_default = (
-            enabled_default if availability_fn is None else False
-        )
+        self._enabled_default = enabled_default
         self._attr_entity_registry_visible_default = False
 
         self._attr_device_info = coordinator.device_info
@@ -699,6 +697,12 @@ class RoboVacSensor(CoordinatorEntity[EufyCleanCoordinator], SensorEntity):
             self._attr_icon = icon
         if suggested_display_precision is not None:
             self._attr_suggested_display_precision = suggested_display_precision
+
+    @property
+    def entity_registry_enabled_default(self) -> bool:
+        if self._availability_fn is not None:
+            return False
+        return self._enabled_default
 
     @property
     def available(self) -> bool:

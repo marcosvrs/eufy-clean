@@ -57,6 +57,17 @@ async def test_get_device_list_returns_empty_without_user_info():
 
 
 @pytest.mark.asyncio
+async def test_get_product_data_points_returns_empty_without_user_info():
+    client = _make_client()
+    assert client.user_info is None
+    with patch("aiohttp.ClientSession") as mock_session:
+        result = await client.get_product_data_points("T2351")
+
+    mock_session.assert_not_called()
+    assert result == []
+
+
+@pytest.mark.asyncio
 async def test_get_cloud_device_list_returns_empty_without_session():
     """get_cloud_device_list() should return [] when session is not set."""
     client = _make_client()
@@ -120,6 +131,56 @@ async def test_login_validate_only():
 
         # get_user_info must NOT have been called
         mock_gui.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_get_product_data_points_returns_data_on_success():
+    mock_response = AsyncMock()
+    mock_response.status = 200
+    mock_response.json = AsyncMock(
+        return_value={
+            "data": {
+                "data_point_list": [
+                    {"dp_id": 158, "code": "suction_level"},
+                ]
+            }
+        }
+    )
+
+    mock_session = _mock_aiohttp_session(mock_response)
+
+    with patch("aiohttp.ClientSession", return_value=mock_session):
+        client = _make_client()
+        client.user_info = {"user_center_token": "tok", "gtoken": "g"}
+        result = await client.get_product_data_points("T2351")
+
+    assert result == [{"dp_id": 158, "code": "suction_level"}]
+
+
+@pytest.mark.asyncio
+async def test_get_product_data_points_returns_empty_on_failure():
+    mock_response = AsyncMock()
+    mock_response.status = 500
+    mock_response.json = AsyncMock(return_value={})
+
+    mock_session = _mock_aiohttp_session(mock_response)
+
+    with patch("aiohttp.ClientSession", return_value=mock_session):
+        client = _make_client()
+        client.user_info = {"user_center_token": "tok", "gtoken": "g"}
+        result = await client.get_product_data_points("T2351")
+
+    assert result == []
+
+
+@pytest.mark.asyncio
+async def test_get_product_data_points_returns_empty_on_exception():
+    with patch("aiohttp.ClientSession", side_effect=RuntimeError("boom")):
+        client = _make_client()
+        client.user_info = {"user_center_token": "tok", "gtoken": "g"}
+        result = await client.get_product_data_points("T2351")
+
+    assert result == []
 
 
 # --- Configuration test ---

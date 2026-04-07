@@ -347,179 +347,6 @@ def test_get_auto_binary_sensors_creates_for_bool_ro():
     assert entities[0]._dp_id == "200"
     assert entities[0]._attr_name == "Dust Full"
 
-
-# ── T8: Entity gating and auto-entity integration tests ─────────────────────
-
-
-def _make_setup_coordinator(supported_dps=None, catalog_entries=None):
-    """Helper: build a mock coordinator for platform setup tests."""
-    from unittest.mock import MagicMock
-    from custom_components.robovac_mqtt.models import VacuumState
-
-    entries = catalog_entries or []
-    coord = MagicMock()
-    coord.dps_catalog = {str(e["dp_id"]): e for e in entries}
-    coord.data = VacuumState()
-    coord.device_id = "test_device_abc"
-    coord.device_name = "Test Vacuum"
-    coord.device_info = {}
-    if supported_dps is not None:
-        coord.supported_dps = frozenset(supported_dps)
-    else:
-        coord.supported_dps = frozenset(DEFAULT_DPS_MAP.keys())
-    return coord
-
-
-@pytest.mark.asyncio
-async def test_sensor_entity_gating_excludes_station_sensors():
-    """Station sensors excluded when STATION_STATUS not in supported_dps."""
-    from unittest.mock import MagicMock
-    from custom_components.robovac_mqtt.const import DOMAIN
-    from custom_components.robovac_mqtt.sensor import async_setup_entry
-
-    coord = _make_setup_coordinator(
-        supported_dps={"PLAY_PAUSE", "WORK_STATUS", "BATTERY_LEVEL", "ERROR_CODE"}
-    )
-    hass = MagicMock()
-    config_entry = MagicMock()
-    config_entry.entry_id = "test_entry"
-    hass.data = {DOMAIN: {config_entry.entry_id: {"coordinators": [coord]}}}
-
-    added = []
-    await async_setup_entry(hass, config_entry, lambda ents: added.extend(ents))
-
-    unique_ids = [e._attr_unique_id for e in added if hasattr(e, "_attr_unique_id")]
-    assert "test_device_abc_water_level" not in unique_ids
-    assert "test_device_abc_waste_water_level" not in unique_ids
-    assert "test_device_abc_dock_status" not in unique_ids
-
-
-@pytest.mark.asyncio
-async def test_select_entity_gating_excludes_scene_when_unsupported():
-    """Scene select excluded when SCENE_INFO not in supported_dps."""
-    from unittest.mock import MagicMock
-    from custom_components.robovac_mqtt.const import DOMAIN
-    from custom_components.robovac_mqtt.select import async_setup_entry
-
-    coord = _make_setup_coordinator(
-        supported_dps={"PLAY_PAUSE", "WORK_STATUS", "CLEANING_PARAMETERS"}
-    )
-    hass = MagicMock()
-    config_entry = MagicMock()
-    config_entry.entry_id = "test_entry"
-    hass.data = {DOMAIN: {config_entry.entry_id: {"coordinators": [coord]}}}
-
-    added = []
-    await async_setup_entry(hass, config_entry, lambda ents: added.extend(ents))
-
-    unique_ids = [e._attr_unique_id for e in added if hasattr(e, "_attr_unique_id")]
-    assert "test_device_abc_scene_select" not in unique_ids
-
-
-@pytest.mark.asyncio
-async def test_switch_entity_gating_excludes_dock_switches():
-    """Dock switches excluded when STATION_STATUS not in supported_dps."""
-    from unittest.mock import MagicMock
-    from custom_components.robovac_mqtt.const import DOMAIN
-    from custom_components.robovac_mqtt.switch import async_setup_entry
-
-    coord = _make_setup_coordinator(
-        supported_dps={"PLAY_PAUSE", "WORK_STATUS"}
-    )
-    hass = MagicMock()
-    config_entry = MagicMock()
-    config_entry.entry_id = "test_entry"
-    hass.data = {DOMAIN: {config_entry.entry_id: {"coordinators": [coord]}}}
-
-    added = []
-    await async_setup_entry(hass, config_entry, lambda ents: added.extend(ents))
-
-    unique_ids = [e._attr_unique_id for e in added if hasattr(e, "_attr_unique_id")]
-    assert "test_device_abc_auto_empty" not in unique_ids
-    assert "test_device_abc_auto_wash" not in unique_ids
-
-
-@pytest.mark.asyncio
-async def test_sensor_setup_includes_auto_sensors():
-    """sensor.py setup appends auto-generated sensors from factory."""
-    from unittest.mock import MagicMock
-    from custom_components.robovac_mqtt.auto_entities import AutoSensor
-    from custom_components.robovac_mqtt.const import DOMAIN
-    from custom_components.robovac_mqtt.sensor import async_setup_entry
-
-    coord = _make_setup_coordinator(
-        catalog_entries=[
-            {"dp_id": 163, "code": "bat_level", "data_type": "Value", "mode": "ro"},
-        ]
-    )
-    hass = MagicMock()
-    config_entry = MagicMock()
-    config_entry.entry_id = "test_entry"
-    hass.data = {DOMAIN: {config_entry.entry_id: {"coordinators": [coord]}}}
-
-    added = []
-    await async_setup_entry(hass, config_entry, lambda ents: added.extend(ents))
-
-    auto_sensors = [e for e in added if isinstance(e, AutoSensor)]
-    assert len(auto_sensors) >= 1
-    assert any(e._cloud_code == "bat_level" for e in auto_sensors)
-
-
-@pytest.mark.asyncio
-async def test_select_setup_includes_auto_selects():
-    """select.py setup appends auto-generated selects from factory."""
-    from unittest.mock import MagicMock
-    from custom_components.robovac_mqtt.auto_entities import AutoSelect
-    from custom_components.robovac_mqtt.const import DOMAIN
-    from custom_components.robovac_mqtt.select import async_setup_entry
-
-    coord = _make_setup_coordinator(
-        catalog_entries=[
-            {"dp_id": 158, "code": "suction_level", "data_type": "Enum", "mode": "rw"},
-        ]
-    )
-    hass = MagicMock()
-    config_entry = MagicMock()
-    config_entry.entry_id = "test_entry"
-    hass.data = {DOMAIN: {config_entry.entry_id: {"coordinators": [coord]}}}
-
-    added = []
-    await async_setup_entry(hass, config_entry, lambda ents: added.extend(ents))
-
-    auto_selects = [e for e in added if isinstance(e, AutoSelect)]
-    assert len(auto_selects) >= 1
-    assert any(e._cloud_code == "suction_level" for e in auto_selects)
-
-
-@pytest.mark.asyncio
-async def test_switch_setup_includes_auto_switches():
-    """switch.py setup appends auto-generated switches from factory."""
-    from unittest.mock import MagicMock
-    from custom_components.robovac_mqtt.auto_entities import AutoSwitch
-    from custom_components.robovac_mqtt.const import DOMAIN
-    from custom_components.robovac_mqtt.switch import async_setup_entry
-
-    coord = _make_setup_coordinator(
-        catalog_entries=[
-            {"dp_id": 159, "code": "boost_iq", "data_type": "Bool", "mode": "rw"},
-            {"dp_id": 160, "code": "calling_robot", "data_type": "Bool", "mode": "rw"},
-        ]
-    )
-    hass = MagicMock()
-    config_entry = MagicMock()
-    config_entry.entry_id = "test_entry"
-    hass.data = {DOMAIN: {config_entry.entry_id: {"coordinators": [coord]}}}
-
-    added = []
-    await async_setup_entry(hass, config_entry, lambda ents: added.extend(ents))
-
-    auto_switches = [e for e in added if isinstance(e, AutoSwitch)]
-    assert len(auto_switches) >= 2
-    codes = {e._cloud_code for e in auto_switches}
-    assert "boost_iq" in codes
-    assert "calling_robot" in codes
-
-
 # ── T7: coordinator DPS catalog integration tests ─────────────────────────────
 
 
@@ -585,3 +412,169 @@ def test_coordinator_shutdown_cancels_catalog_timer():
     coord._catalog_refresh_cancel = mock_cancel
     coord.async_shutdown_timers()
     mock_cancel.assert_called_once()
+
+
+# ── T8: Entity gating and auto-entity integration tests ─────────────────────
+
+
+def _make_setup_coordinator(supported_dps=None, catalog_entries=None):
+    """Helper: build a mock coordinator for platform setup tests."""
+    from unittest.mock import MagicMock
+    from custom_components.robovac_mqtt.models import VacuumState
+
+    entries = catalog_entries or []
+    coord = MagicMock()
+    coord.dps_catalog = {str(e["dp_id"]): e for e in entries}
+    coord.data = VacuumState()
+    coord.device_id = "test_device_abc"
+    coord.device_name = "Test Vacuum"
+    coord.device_info = {}
+    if supported_dps is not None:
+        coord.supported_dps = frozenset(supported_dps)
+    else:
+        coord.supported_dps = frozenset(DEFAULT_DPS_MAP.keys())
+    return coord
+
+
+@pytest.mark.asyncio
+async def test_sensor_entity_gating_excludes_station_sensors():
+    from unittest.mock import MagicMock
+    from custom_components.robovac_mqtt.const import DOMAIN
+    from custom_components.robovac_mqtt.sensor import async_setup_entry
+
+    coord = _make_setup_coordinator(
+        supported_dps={"PLAY_PAUSE", "WORK_STATUS", "BATTERY_LEVEL", "ERROR_CODE"}
+    )
+    hass = MagicMock()
+    config_entry = MagicMock()
+    config_entry.entry_id = "test_entry"
+    hass.data = {DOMAIN: {config_entry.entry_id: {"coordinators": [coord]}}}
+
+    added = []
+    await async_setup_entry(hass, config_entry, lambda ents: added.extend(ents))
+
+    unique_ids = [e._attr_unique_id for e in added if hasattr(e, "_attr_unique_id")]
+    assert "test_device_abc_water_level" not in unique_ids
+    assert "test_device_abc_waste_water_level" not in unique_ids
+    assert "test_device_abc_dock_status" not in unique_ids
+
+
+@pytest.mark.asyncio
+async def test_select_entity_gating_excludes_scene_when_unsupported():
+    from unittest.mock import MagicMock
+    from custom_components.robovac_mqtt.const import DOMAIN
+    from custom_components.robovac_mqtt.select import async_setup_entry
+
+    coord = _make_setup_coordinator(
+        supported_dps={"PLAY_PAUSE", "WORK_STATUS", "CLEANING_PARAMETERS"}
+    )
+    hass = MagicMock()
+    config_entry = MagicMock()
+    config_entry.entry_id = "test_entry"
+    hass.data = {DOMAIN: {config_entry.entry_id: {"coordinators": [coord]}}}
+
+    added = []
+    await async_setup_entry(hass, config_entry, lambda ents: added.extend(ents))
+
+    unique_ids = [e._attr_unique_id for e in added if hasattr(e, "_attr_unique_id")]
+    assert "test_device_abc_scene_select" not in unique_ids
+
+
+@pytest.mark.asyncio
+async def test_switch_entity_gating_excludes_dock_switches():
+    from unittest.mock import MagicMock
+    from custom_components.robovac_mqtt.const import DOMAIN
+    from custom_components.robovac_mqtt.switch import async_setup_entry
+
+    coord = _make_setup_coordinator(
+        supported_dps={"PLAY_PAUSE", "WORK_STATUS"}
+    )
+    hass = MagicMock()
+    config_entry = MagicMock()
+    config_entry.entry_id = "test_entry"
+    hass.data = {DOMAIN: {config_entry.entry_id: {"coordinators": [coord]}}}
+
+    added = []
+    await async_setup_entry(hass, config_entry, lambda ents: added.extend(ents))
+
+    unique_ids = [e._attr_unique_id for e in added if hasattr(e, "_attr_unique_id")]
+    assert "test_device_abc_auto_empty" not in unique_ids
+    assert "test_device_abc_auto_wash" not in unique_ids
+
+
+@pytest.mark.asyncio
+async def test_sensor_setup_includes_auto_sensors():
+    from unittest.mock import MagicMock
+    from custom_components.robovac_mqtt.auto_entities import AutoSensor
+    from custom_components.robovac_mqtt.const import DOMAIN
+    from custom_components.robovac_mqtt.sensor import async_setup_entry
+
+    coord = _make_setup_coordinator(
+        catalog_entries=[
+            {"dp_id": 163, "code": "bat_level", "data_type": "Value", "mode": "ro"},
+        ]
+    )
+    hass = MagicMock()
+    config_entry = MagicMock()
+    config_entry.entry_id = "test_entry"
+    hass.data = {DOMAIN: {config_entry.entry_id: {"coordinators": [coord]}}}
+
+    added = []
+    await async_setup_entry(hass, config_entry, lambda ents: added.extend(ents))
+
+    auto_sensors = [e for e in added if isinstance(e, AutoSensor)]
+    assert len(auto_sensors) >= 1
+    assert any(e._cloud_code == "bat_level" for e in auto_sensors)
+
+
+@pytest.mark.asyncio
+async def test_select_setup_includes_auto_selects():
+    from unittest.mock import MagicMock
+    from custom_components.robovac_mqtt.auto_entities import AutoSelect
+    from custom_components.robovac_mqtt.const import DOMAIN
+    from custom_components.robovac_mqtt.select import async_setup_entry
+
+    coord = _make_setup_coordinator(
+        catalog_entries=[
+            {"dp_id": 158, "code": "suction_level", "data_type": "Enum", "mode": "rw"},
+        ]
+    )
+    hass = MagicMock()
+    config_entry = MagicMock()
+    config_entry.entry_id = "test_entry"
+    hass.data = {DOMAIN: {config_entry.entry_id: {"coordinators": [coord]}}}
+
+    added = []
+    await async_setup_entry(hass, config_entry, lambda ents: added.extend(ents))
+
+    auto_selects = [e for e in added if isinstance(e, AutoSelect)]
+    assert len(auto_selects) >= 1
+    assert any(e._cloud_code == "suction_level" for e in auto_selects)
+
+
+@pytest.mark.asyncio
+async def test_switch_setup_includes_auto_switches():
+    from unittest.mock import MagicMock
+    from custom_components.robovac_mqtt.auto_entities import AutoSwitch
+    from custom_components.robovac_mqtt.const import DOMAIN
+    from custom_components.robovac_mqtt.switch import async_setup_entry
+
+    coord = _make_setup_coordinator(
+        catalog_entries=[
+            {"dp_id": 159, "code": "boost_iq", "data_type": "Bool", "mode": "rw"},
+            {"dp_id": 160, "code": "calling_robot", "data_type": "Bool", "mode": "rw"},
+        ]
+    )
+    hass = MagicMock()
+    config_entry = MagicMock()
+    config_entry.entry_id = "test_entry"
+    hass.data = {DOMAIN: {config_entry.entry_id: {"coordinators": [coord]}}}
+
+    added = []
+    await async_setup_entry(hass, config_entry, lambda ents: added.extend(ents))
+
+    auto_switches = [e for e in added if isinstance(e, AutoSwitch)]
+    assert len(auto_switches) >= 2
+    codes = {e._cloud_code for e in auto_switches}
+    assert "boost_iq" in codes
+    assert "calling_robot" in codes

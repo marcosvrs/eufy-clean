@@ -179,7 +179,7 @@ class RestartButton(CoordinatorEntity[EufyCleanCoordinator], ButtonEntity):
         self._attr_name = "Restart"
         self._attr_icon = "mdi:restart"
         self._attr_device_info = coordinator.device_info
-        self._attr_entity_category = None
+        self._attr_entity_category = EntityCategory.CONFIG
         self._attr_entity_registry_visible_default = False
 
     async def async_press(self) -> None:
@@ -197,7 +197,7 @@ class ResumeFromBreakpointButton(CoordinatorEntity[EufyCleanCoordinator], Button
         self._attr_name = "Resume from Breakpoint"
         self._attr_icon = "mdi:play-circle"
         self._attr_device_info = coordinator.device_info
-        self._attr_entity_category = EntityCategory.CONFIG
+        self._attr_entity_category = None
         self._attr_entity_registry_visible_default = False
 
     async def async_press(self) -> None:

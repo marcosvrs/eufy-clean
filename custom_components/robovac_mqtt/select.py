@@ -512,6 +512,7 @@ class CleaningIntensitySelectEntity(_StateBackedSelectEntity):
     _attr_has_entity_name = True
     _attr_name = "Cleaning Intensity"
     _attr_icon = "mdi:tune-vertical"
+    _attr_entity_category = EntityCategory.CONFIG
     _attr_options = EUFY_CLEAN_CLEANING_INTENSITIES
     _command_name = "set_cleaning_intensity"
     _command_arg_name = "cleaning_intensity"

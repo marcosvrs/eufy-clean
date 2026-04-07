@@ -176,7 +176,7 @@ class VacuumState:
     battery_real_level: int = 0    # True battery percentage (0-100)
     battery_voltage: int = 0       # Battery voltage in mV
     battery_current: int = 0       # Battery current in mA (signed)
-    battery_temperature: float = 0.0  # Battery temperature in °C (from 0.1°C units)
+    battery_temperature: float = 0.0  # Battery temperature in °C (from millidegree units)
 
     last_clean_area: int = 0
     last_clean_time: int = 0

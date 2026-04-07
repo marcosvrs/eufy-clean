@@ -504,7 +504,7 @@ def _process_other_dps(
             elif key == dps_map["ERROR_CODE"]:
                 error_proto = decode(ErrorCode, value)
                 _LOGGER.debug("Decoded ErrorCode: %s", error_proto)
-                all_codes = list(error_proto.warn)
+                all_codes = list(error_proto.error) + list(error_proto.warn)
                 changes["error_codes_all"] = all_codes
                 changes["error_messages_all"] = [
                     EUFY_CLEAN_ERROR_CODES.get(c, f"Unknown ({c})") for c in all_codes
@@ -513,7 +513,7 @@ def _process_other_dps(
                     code = all_codes[0]
                     changes["error_code"] = code
                     changes["error_message"] = EUFY_CLEAN_ERROR_CODES.get(
-                        code, "Unknown Error"
+                        code, f"Unknown ({code})"
                     )
                 else:
                     changes["error_code"] = 0
@@ -1328,7 +1328,7 @@ def _parse_analysis_response(
             changes["battery_current"] = bat.current
             _track_field(state, changes, "battery_current")
         if bat.temperature:
-            changes["battery_temperature"] = round(bat.temperature[0] / 10.0, 1)
+            changes["battery_temperature"] = round(bat.temperature[0] / 1000.0, 1)
             _track_field(state, changes, "battery_temperature")
 
     if analysis.HasField("statistics"):

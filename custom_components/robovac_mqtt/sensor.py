@@ -14,6 +14,8 @@ from homeassistant.const import (
     PERCENTAGE,
     SIGNAL_STRENGTH_DECIBELS_MILLIWATT,
     EntityCategory,
+    UnitOfElectricCurrent,
+    UnitOfElectricPotential,
 )
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -68,7 +70,7 @@ async def async_setup_entry(
                 coordinator,
                 "error_message",
                 "Error Message",
-                lambda s: s.error_message,
+                lambda s: s.error_message or None,
                 device_class=None,
                 unit=None,
                 state_class=None,
@@ -193,7 +195,8 @@ async def async_setup_entry(
                 "battery_voltage",
                 "Battery Voltage",
                 lambda s: s.battery_voltage,
-                unit="mV",
+                device_class=SensorDeviceClass.VOLTAGE,
+                unit=UnitOfElectricPotential.MILLIVOLT,
                 state_class=SensorStateClass.MEASUREMENT,
                 icon="mdi:flash-triangle-outline",
                 category=EntityCategory.DIAGNOSTIC,
@@ -204,7 +207,8 @@ async def async_setup_entry(
                 "battery_current",
                 "Battery Current",
                 lambda s: s.battery_current,
-                unit="mA",
+                device_class=SensorDeviceClass.CURRENT,
+                unit=UnitOfElectricCurrent.MILLIAMPERE,
                 state_class=SensorStateClass.MEASUREMENT,
                 icon="mdi:current-dc",
                 category=EntityCategory.DIAGNOSTIC,
@@ -295,6 +299,7 @@ async def async_setup_entry(
                     unit="s",
                     state_class=SensorStateClass.MEASUREMENT,
                     icon="mdi:clock-outline",
+                    category=None,
                     availability_fn=lambda s: "cleaning_stats" in s.received_fields,
                 )
             )
@@ -309,6 +314,7 @@ async def async_setup_entry(
                     unit="m²",
                     state_class=SensorStateClass.MEASUREMENT,
                     icon="mdi:floor-plan",
+                    category=None,
                     availability_fn=lambda s: "cleaning_stats" in s.received_fields,
                 )
             )
@@ -385,6 +391,7 @@ async def async_setup_entry(
                     device_class=None,
                     unit=PERCENTAGE,
                     state_class=SensorStateClass.MEASUREMENT,
+                    category=None,
                     availability_fn=lambda s: "station_clean_water"
                     in s.received_fields,
                 )
@@ -400,6 +407,7 @@ async def async_setup_entry(
                     unit=PERCENTAGE,
                     state_class=SensorStateClass.MEASUREMENT,
                     icon="mdi:water-minus",
+                    category=None,
                     availability_fn=lambda s: "dock_status" in s.received_fields,
                 )
             )
@@ -413,7 +421,7 @@ async def async_setup_entry(
                     device_class=None,
                     unit=None,
                     state_class=None,
-                    category=EntityCategory.DIAGNOSTIC,
+                    category=None,
                     availability_fn=lambda s: "dock_status" in s.received_fields,
                 )
             )

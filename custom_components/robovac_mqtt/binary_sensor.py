@@ -41,6 +41,7 @@ async def async_setup_entry(
                 "Charging",
                 lambda s: s.charging,
                 device_class=BinarySensorDeviceClass.BATTERY_CHARGING,
+                category=None,
             )
         )
 

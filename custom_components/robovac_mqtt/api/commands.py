@@ -8,7 +8,7 @@ from ..const import (
     CLEAN_EXTENT_MAP,
     CLEAN_TYPE_MAP,
     CORNER_CLEANING_REVERSE,
-    DPS_MAP,
+    DEFAULT_DPS_MAP,
     EUFY_CLEAN_CONTROL,
     EUFY_CLEAN_NOVEL_CLEAN_SPEED,
     MOP_CORNER_MAP,
@@ -31,8 +31,12 @@ def _normalize_clean_mode(clean_mode: str) -> str:
     return clean_mode.strip().lower().replace("_", " ")
 
 
-def build_set_cleaning_mode_command(clean_mode: str) -> dict[str, str]:
+def build_set_cleaning_mode_command(
+    clean_mode: str, dps_map: dict[str, str] | None = None
+) -> dict[str, str]:
     """Build command to set global cleaning mode."""
+    if dps_map is None:
+        dps_map = DEFAULT_DPS_MAP
     clean_type_val = CLEAN_TYPE_MAP.get(_normalize_clean_mode(clean_mode))
     if clean_type_val is None:
         _LOGGER.warning("Invalid clean_mode '%s' ignored", clean_mode)
@@ -42,11 +46,15 @@ def build_set_cleaning_mode_command(clean_mode: str) -> dict[str, str]:
         clean_param=CleanParam(clean_type={"value": clean_type_val}),
     )
     value = encode_message(req)
-    return {DPS_MAP["CLEANING_PARAMETERS"]: value}
+    return {dps_map["CLEANING_PARAMETERS"]: value}
 
 
-def _build_mode_ctrl(method: int) -> dict[str, str]:
+def _build_mode_ctrl(
+    method: int, dps_map: dict[str, str] | None = None
+) -> dict[str, str]:
     """Helper for ModeCtrlRequest commands."""
+    if dps_map is None:
+        dps_map = DEFAULT_DPS_MAP
     data: dict[str, Any] = {"method": int(method)}
 
     # Special handling for methods that require a parameter in the "oneof Param"
@@ -58,24 +66,32 @@ def _build_mode_ctrl(method: int) -> dict[str, str]:
         data["spot_clean"] = {"clean_times": 1}
 
     value = encode(ModeCtrlRequest, data)
-    return {DPS_MAP["PLAY_PAUSE"]: value}
+    return {dps_map["PLAY_PAUSE"]: value}
 
 
-def _build_manual_cmd(cmd_name: str, active: bool = True) -> dict[str, str]:
+def _build_manual_cmd(
+    cmd_name: str, active: bool = True, dps_map: dict[str, str] | None = None
+) -> dict[str, str]:
     """Helper for StationRequest manual commands."""
+    if dps_map is None:
+        dps_map = DEFAULT_DPS_MAP
     value = encode(StationRequest, {"manual_cmd": {cmd_name: active}})
-    return {DPS_MAP["GO_HOME"]: value}
+    return {dps_map["GO_HOME"]: value}
 
 
-def build_set_clean_speed_command(clean_speed: str) -> dict[str, str]:
+def build_set_clean_speed_command(
+    clean_speed: str, dps_map: dict[str, str] | None = None
+) -> dict[str, str]:
     """Build command to set fan speed."""
+    if dps_map is None:
+        dps_map = DEFAULT_DPS_MAP
     try:
         speed_lower = clean_speed.lower()
         variants = [s.lower() for s in EUFY_CLEAN_NOVEL_CLEAN_SPEED]
 
         if speed_lower in variants:
             idx = variants.index(speed_lower)
-            return {DPS_MAP["CLEAN_SPEED"]: str(idx) if isinstance(idx, int) else idx}
+            return {dps_map["CLEAN_SPEED"]: str(idx) if isinstance(idx, int) else idx}
 
     except ValueError:
         pass
@@ -83,8 +99,12 @@ def build_set_clean_speed_command(clean_speed: str) -> dict[str, str]:
     return {}
 
 
-def build_set_water_level_command(water_level: str) -> dict[str, str]:
+def build_set_water_level_command(
+    water_level: str, dps_map: dict[str, str] | None = None
+) -> dict[str, str]:
     """Build command to set global mop water level."""
+    if dps_map is None:
+        dps_map = DEFAULT_DPS_MAP
     level_val = MOP_LEVEL_MAP.get(water_level.lower())
     if level_val is None:
         _LOGGER.warning("Invalid water_level '%s' ignored", water_level)
@@ -93,11 +113,15 @@ def build_set_water_level_command(water_level: str) -> dict[str, str]:
         clean_param=CleanParam(mop_mode={"level": level_val}),
     )
     value = encode_message(req)
-    return {DPS_MAP["CLEANING_PARAMETERS"]: value}
+    return {dps_map["CLEANING_PARAMETERS"]: value}
 
 
-def build_set_cleaning_intensity_command(cleaning_intensity: str) -> dict[str, str]:
+def build_set_cleaning_intensity_command(
+    cleaning_intensity: str, dps_map: dict[str, str] | None = None
+) -> dict[str, str]:
     """Build command to set global cleaning intensity."""
+    if dps_map is None:
+        dps_map = DEFAULT_DPS_MAP
     extent_val = CLEAN_EXTENT_MAP.get(cleaning_intensity.lower())
     if extent_val is None:
         _LOGGER.warning("Invalid cleaning_intensity '%s' ignored", cleaning_intensity)
@@ -107,11 +131,15 @@ def build_set_cleaning_intensity_command(cleaning_intensity: str) -> dict[str, s
         clean_param=CleanParam(clean_extent={"value": extent_val}),
     )
     value = encode_message(req)
-    return {DPS_MAP["CLEANING_PARAMETERS"]: value}
+    return {dps_map["CLEANING_PARAMETERS"]: value}
 
 
-def build_scene_clean_command(scene_id: int) -> dict[str, str]:
+def build_scene_clean_command(
+    scene_id: int, dps_map: dict[str, str] | None = None
+) -> dict[str, str]:
     """Build command to trigger a specific scene."""
+    if dps_map is None:
+        dps_map = DEFAULT_DPS_MAP
     value = encode(
         ModeCtrlRequest,
         {
@@ -119,13 +147,18 @@ def build_scene_clean_command(scene_id: int) -> dict[str, str]:
             "scene_clean": {"scene_id": scene_id},
         },
     )
-    return {DPS_MAP["PLAY_PAUSE"]: value}
+    return {dps_map["PLAY_PAUSE"]: value}
 
 
 def build_room_clean_command(
-    room_ids: list[int], map_id: int = 3, mode: str = "GENERAL"
+    room_ids: list[int],
+    map_id: int = 3,
+    mode: str = "GENERAL",
+    dps_map: dict[str, str] | None = None,
 ) -> dict[str, str]:
     """Build command to clean specific rooms."""
+    if dps_map is None:
+        dps_map = DEFAULT_DPS_MAP
     if mode == "CUSTOMIZE":
         proto_mode = SelectRoomsClean.CUSTOMIZE
     else:
@@ -147,7 +180,7 @@ def build_room_clean_command(
             select_rooms_clean=rooms_clean,
         )
     )
-    return {DPS_MAP["PLAY_PAUSE"]: value}
+    return {dps_map["PLAY_PAUSE"]: value}
 
 
 def build_set_room_custom_command(
@@ -160,6 +193,7 @@ def build_set_room_custom_command(
     clean_mode: str | None = None,
     clean_intensity: str | None = None,
     edge_mopping: bool | None = None,
+    dps_map: dict[str, str] | None = None,
 ) -> dict[str, str]:
     """Build command to set custom cleaning parameters for specific rooms.
 
@@ -167,6 +201,8 @@ def build_set_room_custom_command(
     1. list[int]: Simple list of room IDs. Applies global params (fan_speed, etc.) to all.
     2. list[dict]: List of room objects {id: 1, fan_speed: "Turbo", ...}.
     """
+    if dps_map is None:
+        dps_map = DEFAULT_DPS_MAP
     rooms_parm = MapEditRequest.RoomsCustom.Parm()
 
     # Normalize input to list of dicts
@@ -271,31 +307,47 @@ def build_set_room_custom_command(
     )
 
     value = encode_message(req)
-    return {DPS_MAP["MAP_EDIT_REQUEST"]: value}
+    return {dps_map["MAP_EDIT_REQUEST"]: value}
 
 
-def build_reset_accessory_command(reset_type: int) -> dict[str, str]:
+def build_reset_accessory_command(
+    reset_type: int, dps_map: dict[str, str] | None = None
+) -> dict[str, str]:
     """Build command to reset accessory usage."""
+    if dps_map is None:
+        dps_map = DEFAULT_DPS_MAP
     value = encode(ConsumableRequest, {"reset_types": [reset_type]})
-    return {DPS_MAP["ACCESSORIES_STATUS"]: value}
+    return {dps_map["ACCESSORIES_STATUS"]: value}
 
 
-def build_set_auto_action_cfg_command(cfg_dict: dict[str, Any]) -> dict[str, str]:
+def build_set_auto_action_cfg_command(
+    cfg_dict: dict[str, Any], dps_map: dict[str, str] | None = None
+) -> dict[str, str]:
     """Build command to set dock auto-action config."""
+    if dps_map is None:
+        dps_map = DEFAULT_DPS_MAP
     value = encode(StationRequest, {"auto_cfg": cfg_dict})
-    return {DPS_MAP["GO_HOME"]: value}
+    return {dps_map["GO_HOME"]: value}
 
 
-def build_find_robot_command(active: bool) -> dict[str, Any]:
+def build_find_robot_command(
+    active: bool, dps_map: dict[str, str] | None = None
+) -> dict[str, Any]:
     """Build command to find robot."""
+    if dps_map is None:
+        dps_map = DEFAULT_DPS_MAP
     # false = stop finding, true = start finding
-    return {DPS_MAP["FIND_ROBOT"]: active}
+    return {dps_map["FIND_ROBOT"]: active}
 
 
-def build_set_child_lock_command(active: bool) -> dict[str, str]:
+def build_set_child_lock_command(
+    active: bool, dps_map: dict[str, str] | None = None
+) -> dict[str, str]:
     """Build command to toggle the child lock setting."""
+    if dps_map is None:
+        dps_map = DEFAULT_DPS_MAP
     value = encode(UnisettingRequest, {"children_lock": {"value": active}})
-    return {DPS_MAP["UNSETTING"]: value}
+    return {dps_map["UNSETTING"]: value}
 
 
 def build_set_undisturbed_command(
@@ -304,8 +356,11 @@ def build_set_undisturbed_command(
     begin_minute: int,
     end_hour: int,
     end_minute: int,
+    dps_map: dict[str, str] | None = None,
 ) -> dict[str, str]:
     """Build command to update the Do Not Disturb schedule."""
+    if dps_map is None:
+        dps_map = DEFAULT_DPS_MAP
     value = encode(
         UndisturbedRequest,
         {
@@ -316,11 +371,15 @@ def build_set_undisturbed_command(
             }
         },
     )
-    return {DPS_MAP["UNDISTURBED"]: value}
+    return {dps_map["UNDISTURBED"]: value}
 
 
-def build_set_carpet_strategy_command(carpet_strategy: str) -> dict[str, str]:
+def build_set_carpet_strategy_command(
+    carpet_strategy: str, dps_map: dict[str, str] | None = None
+) -> dict[str, str]:
     """Build command to set carpet cleaning strategy."""
+    if dps_map is None:
+        dps_map = DEFAULT_DPS_MAP
     strategy_val = CARPET_STRATEGY_REVERSE.get(carpet_strategy)
     if strategy_val is None:
         _LOGGER.warning("Invalid carpet_strategy '%s' ignored", carpet_strategy)
@@ -329,11 +388,15 @@ def build_set_carpet_strategy_command(carpet_strategy: str) -> dict[str, str]:
         clean_param=CleanParam(clean_carpet={"strategy": strategy_val}),
     )
     value = encode_message(req)
-    return {DPS_MAP["CLEANING_PARAMETERS"]: value}
+    return {dps_map["CLEANING_PARAMETERS"]: value}
 
 
-def build_set_corner_cleaning_command(corner_cleaning: str) -> dict[str, str]:
+def build_set_corner_cleaning_command(
+    corner_cleaning: str, dps_map: dict[str, str] | None = None
+) -> dict[str, str]:
     """Build command to set corner cleaning mode."""
+    if dps_map is None:
+        dps_map = DEFAULT_DPS_MAP
     corner_val = CORNER_CLEANING_REVERSE.get(corner_cleaning)
     if corner_val is None:
         _LOGGER.warning("Invalid corner_cleaning '%s' ignored", corner_cleaning)
@@ -342,76 +405,101 @@ def build_set_corner_cleaning_command(corner_cleaning: str) -> dict[str, str]:
         clean_param=CleanParam(mop_mode={"corner_clean": corner_val}),
     )
     value = encode_message(req)
-    return {DPS_MAP["CLEANING_PARAMETERS"]: value}
+    return {dps_map["CLEANING_PARAMETERS"]: value}
 
 
-def build_set_smart_mode_command(active: bool) -> dict[str, str]:
+def build_set_smart_mode_command(
+    active: bool, dps_map: dict[str, str] | None = None
+) -> dict[str, str]:
     """Build command to toggle smart mode."""
+    if dps_map is None:
+        dps_map = DEFAULT_DPS_MAP
     req = CleanParamRequest(
         clean_param=CleanParam(smart_mode_sw={"value": active}),
     )
     value = encode_message(req)
-    return {DPS_MAP["CLEANING_PARAMETERS"]: value}
+    return {dps_map["CLEANING_PARAMETERS"]: value}
 
 
-def build_set_boost_iq_command(active: bool) -> dict[str, Any]:
+def build_set_boost_iq_command(
+    active: bool, dps_map: dict[str, str] | None = None
+) -> dict[str, Any]:
     """Build command to toggle boost IQ."""
-    return {DPS_MAP["BOOST_IQ"]: active}
+    if dps_map is None:
+        dps_map = DEFAULT_DPS_MAP
+    return {dps_map["BOOST_IQ"]: active}
 
 
-def build_set_volume_command(volume: int) -> dict[str, Any]:
+def build_set_volume_command(
+    volume: int, dps_map: dict[str, str] | None = None
+) -> dict[str, Any]:
     """Build command to set voice volume."""
-    return {DPS_MAP["VOLUME"]: volume}
+    if dps_map is None:
+        dps_map = DEFAULT_DPS_MAP
+    return {dps_map["VOLUME"]: volume}
 
 
-def build_command(command: str, **kwargs: Any) -> dict[str, Any]:
+def build_generic_command(dp_id: str, value: Any) -> dict[str, Any]:
+    """Build a generic command for simple-type DPS (Bool/Value/Enum).
+
+    No protobuf encoding — value sent as-is.
+    """
+    return {dp_id: value}
+
+
+def build_command(
+    command: str, dps_map: dict[str, str] | None = None, **kwargs: Any
+) -> dict[str, Any]:
     """Unified command builder."""
+    if dps_map is None:
+        dps_map = DEFAULT_DPS_MAP
     cmd = command.lower()
 
     # Mode Control
     if cmd == "start_auto":
-        return _build_mode_ctrl(EUFY_CLEAN_CONTROL.START_AUTO_CLEAN)
+        return _build_mode_ctrl(EUFY_CLEAN_CONTROL.START_AUTO_CLEAN, dps_map)
     if cmd in ("play", "resume"):
-        return _build_mode_ctrl(EUFY_CLEAN_CONTROL.RESUME_TASK)
+        return _build_mode_ctrl(EUFY_CLEAN_CONTROL.RESUME_TASK, dps_map)
     if cmd == "pause":
-        return _build_mode_ctrl(EUFY_CLEAN_CONTROL.PAUSE_TASK)
+        return _build_mode_ctrl(EUFY_CLEAN_CONTROL.PAUSE_TASK, dps_map)
     if cmd == "stop":
-        return _build_mode_ctrl(EUFY_CLEAN_CONTROL.STOP_TASK)
+        return _build_mode_ctrl(EUFY_CLEAN_CONTROL.STOP_TASK, dps_map)
     if cmd in ("return_to_base", "go_home"):
-        return _build_mode_ctrl(EUFY_CLEAN_CONTROL.START_GOHOME)
+        return _build_mode_ctrl(EUFY_CLEAN_CONTROL.START_GOHOME, dps_map)
     if cmd == "clean_spot":
-        return _build_mode_ctrl(EUFY_CLEAN_CONTROL.START_SPOT_CLEAN)
+        return _build_mode_ctrl(EUFY_CLEAN_CONTROL.START_SPOT_CLEAN, dps_map)
     if cmd in ("locate", "find_robot"):
-        return build_find_robot_command(kwargs.get("active", True))
+        return build_find_robot_command(kwargs.get("active", True), dps_map)
 
     # Manual Control
     if cmd == "go_dry":
-        return _build_manual_cmd("go_dry", True)
+        return _build_manual_cmd("go_dry", True, dps_map)
     if cmd == "stop_dry":
-        return _build_manual_cmd("go_dry", False)
+        return _build_manual_cmd("go_dry", False, dps_map)
     if cmd == "go_selfcleaning":
-        return _build_manual_cmd("go_selfcleaning", True)
+        return _build_manual_cmd("go_selfcleaning", True, dps_map)
     if cmd == "collect_dust":
-        return _build_manual_cmd("go_collect_dust", True)
+        return _build_manual_cmd("go_collect_dust", True, dps_map)
 
     # Complex
     if cmd == "set_cleaning_mode":
-        return build_set_cleaning_mode_command(kwargs.get("clean_mode", ""))
+        return build_set_cleaning_mode_command(kwargs.get("clean_mode", ""), dps_map)
     if cmd == "set_cleaning_intensity":
         return build_set_cleaning_intensity_command(
-            kwargs.get("cleaning_intensity", "")
+            kwargs.get("cleaning_intensity", ""), dps_map
         )
     if cmd == "set_fan_speed":
-        return build_set_clean_speed_command(kwargs.get("fan_speed", ""))
+        return build_set_clean_speed_command(kwargs.get("fan_speed", ""), dps_map)
     if cmd == "set_water_level":
-        return build_set_water_level_command(kwargs.get("water_level", ""))
+        return build_set_water_level_command(kwargs.get("water_level", ""), dps_map)
     if cmd == "scene_clean":
-        return build_scene_clean_command(int(kwargs.get("scene_id", 0)))
+        return build_scene_clean_command(int(kwargs.get("scene_id", 0)), dps_map)
     if cmd == "room_clean":
         return build_room_clean_command(
             kwargs.get("room_ids", []),
             kwargs.get("map_id", 3),
             kwargs.get("mode", "GENERAL"),
+            dps_map,
         )
     if cmd == "set_room_custom":
         return build_set_room_custom_command(
@@ -423,13 +511,14 @@ def build_command(command: str, **kwargs: Any) -> dict[str, Any]:
             kwargs.get("clean_mode"),
             kwargs.get("clean_intensity"),
             kwargs.get("edge_mopping"),
+            dps_map,
         )
     if cmd == "set_auto_cfg":
-        return build_set_auto_action_cfg_command(kwargs.get("cfg", {}))
+        return build_set_auto_action_cfg_command(kwargs.get("cfg", {}), dps_map)
     if cmd == "reset_accessory":
-        return build_reset_accessory_command(int(kwargs.get("reset_type", 0)))
+        return build_reset_accessory_command(int(kwargs.get("reset_type", 0)), dps_map)
     if cmd == "set_child_lock":
-        return build_set_child_lock_command(bool(kwargs.get("active", True)))
+        return build_set_child_lock_command(bool(kwargs.get("active", True)), dps_map)
     if cmd == "set_do_not_disturb":
         return build_set_undisturbed_command(
             bool(kwargs.get("active", True)),
@@ -437,20 +526,27 @@ def build_command(command: str, **kwargs: Any) -> dict[str, Any]:
             int(kwargs.get("begin_minute", 0)),
             int(kwargs.get("end_hour", 8)),
             int(kwargs.get("end_minute", 0)),
+            dps_map,
         )
     if cmd == "set_carpet_strategy":
         return build_set_carpet_strategy_command(
-            kwargs.get("carpet_strategy", "")
+            kwargs.get("carpet_strategy", ""), dps_map
         )
     if cmd == "set_corner_cleaning":
         return build_set_corner_cleaning_command(
-            kwargs.get("corner_cleaning", "")
+            kwargs.get("corner_cleaning", ""), dps_map
         )
     if cmd == "set_smart_mode":
-        return build_set_smart_mode_command(bool(kwargs.get("active", True)))
+        return build_set_smart_mode_command(bool(kwargs.get("active", True)), dps_map)
     if cmd == "set_boost_iq":
-        return build_set_boost_iq_command(bool(kwargs.get("active", True)))
+        return build_set_boost_iq_command(bool(kwargs.get("active", True)), dps_map)
     if cmd == "set_volume":
-        return build_set_volume_command(int(kwargs.get("volume", 50)))
+        return build_set_volume_command(int(kwargs.get("volume", 50)), dps_map)
+
+    if cmd == "generic":
+        return build_generic_command(
+            str(kwargs.get("dp_id", "")),
+            kwargs.get("value"),
+        )
 
     return {}

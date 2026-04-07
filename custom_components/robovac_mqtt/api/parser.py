@@ -756,7 +756,8 @@ def _process_other_dps(
                     _track_field(state, changes, "do_not_disturb")
 
             elif key == dps_map.get("MEDIA_MANAGER"):
-                _process_media_manager(state, value, changes)
+                if value is not None:
+                    _process_media_manager(state, value, changes)
 
             elif key == DPS_ROBOT_TELEMETRY:
                 pos = _parse_robot_telemetry(value)

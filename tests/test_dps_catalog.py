@@ -240,3 +240,100 @@ def test_multiple_dps_in_one_message_accumulate_dynamic_values():
     assert state.dynamic_values.get("200") is True
     assert state.dynamic_values.get("199") == 42
     assert state.dynamic_values.get("163") == 90
+
+
+# ── T6: auto_entities factory tests ──────────────────────────────────────────
+
+def _make_coordinator(catalog_entries, dynamic_values=None):
+    """Helper: build a minimal mock coordinator for factory tests."""
+    from unittest.mock import MagicMock
+    from custom_components.robovac_mqtt.models import VacuumState
+    coord = MagicMock()
+    coord.dps_catalog = {str(e["dp_id"]): e for e in catalog_entries}
+    coord.data = VacuumState(dynamic_values=dynamic_values or {})
+    coord.device_id = "test_device_abc"
+    coord.device_info = {}
+    return coord
+
+
+def test_get_auto_switches_creates_for_bool_rw():
+    from custom_components.robovac_mqtt.auto_entities import get_auto_switches
+    coord = _make_coordinator([{"dp_id": 200, "code": "boost_iq", "data_type": "Bool", "mode": "rw"}])
+    entities = get_auto_switches(coord)
+    assert len(entities) == 1
+    assert entities[0]._dp_id == "200"
+    assert entities[0]._attr_name == "Boost IQ"
+    assert entities[0]._attr_icon == "mdi:car-turbocharger"
+
+
+def test_get_auto_switches_skips_handled_dps():
+    from custom_components.robovac_mqtt.auto_entities import get_auto_switches
+    # DPS 152 is in HANDLED_DPS_IDS — must be skipped
+    coord = _make_coordinator([{"dp_id": 152, "code": "mode_ctrl", "data_type": "Bool", "mode": "rw"}])
+    entities = get_auto_switches(coord)
+    assert len(entities) == 0
+
+
+def test_get_auto_switches_skips_raw_type():
+    from custom_components.robovac_mqtt.auto_entities import get_auto_switches
+    coord = _make_coordinator([{"dp_id": 200, "code": "some_raw", "data_type": "Raw", "mode": "rw"}])
+    entities = get_auto_switches(coord)
+    assert len(entities) == 0
+
+
+def test_get_auto_sensors_creates_for_value_ro():
+    from custom_components.robovac_mqtt.auto_entities import get_auto_sensors
+    coord = _make_coordinator([{"dp_id": 163, "code": "bat_level", "data_type": "Value", "mode": "ro"}])
+    entities = get_auto_sensors(coord)
+    assert len(entities) == 1
+    assert entities[0]._dp_id == "163"
+    assert entities[0]._attr_name == "Battery"
+    assert entities[0]._attr_device_class == "battery"
+    assert entities[0]._attr_entity_registry_enabled_default is True
+
+
+def test_get_auto_numbers_creates_for_value_rw():
+    from custom_components.robovac_mqtt.auto_entities import get_auto_numbers
+    coord = _make_coordinator([{"dp_id": 161, "code": "volume", "data_type": "Value", "mode": "rw"}])
+    entities = get_auto_numbers(coord)
+    assert len(entities) == 1
+    assert entities[0]._dp_id == "161"
+    assert entities[0]._attr_native_min_value == 0
+    assert entities[0]._attr_native_max_value == 100
+
+
+def test_get_auto_selects_creates_for_enum_with_options_map():
+    from custom_components.robovac_mqtt.auto_entities import get_auto_selects
+    coord = _make_coordinator([{"dp_id": 158, "code": "suction_level", "data_type": "Enum", "mode": "rw"}])
+    entities = get_auto_selects(coord)
+    assert len(entities) == 1
+    assert set(entities[0].options) == {"Quiet", "Standard", "Turbo", "Max", "Boost_IQ"}
+
+
+def test_get_auto_selects_skips_enum_without_options_map():
+    from custom_components.robovac_mqtt.auto_entities import get_auto_selects
+    # Unknown enum — no options_map in override → skip
+    coord = _make_coordinator([{"dp_id": 200, "code": "unknown_enum", "data_type": "Enum", "mode": "rw"}])
+    entities = get_auto_selects(coord)
+    assert len(entities) == 0
+
+
+def test_unknown_code_gets_defaults():
+    from custom_components.robovac_mqtt.auto_entities import get_auto_switches
+    from homeassistant.helpers.entity import EntityCategory
+    coord = _make_coordinator([{"dp_id": 200, "code": "pet_avoidance", "data_type": "Bool", "mode": "rw"}])
+    entities = get_auto_switches(coord)
+    assert len(entities) == 1
+    assert entities[0]._attr_name == "Pet Avoidance"
+    assert entities[0]._attr_entity_registry_enabled_default is False
+    assert entities[0]._attr_entity_category == EntityCategory.CONFIG
+
+
+def test_primary_entity_category_none_from_override():
+    from custom_components.robovac_mqtt.auto_entities import get_auto_switches
+    # calling_robot has entity_category: None in override → PRIMARY (no category)
+    coord = _make_coordinator([{"dp_id": 160, "code": "calling_robot", "data_type": "Bool", "mode": "rw"}])
+    entities = get_auto_switches(coord)
+    assert len(entities) == 1
+    # PRIMARY entities must NOT have _attr_entity_category set to CONFIGURATION
+    assert not hasattr(entities[0], '_attr_entity_category') or entities[0]._attr_entity_category is None

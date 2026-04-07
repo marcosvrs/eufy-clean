@@ -94,3 +94,149 @@ def test_supported_dps_partial_catalog():
 
 def test_cloud_code_to_func_station():
     assert CLOUD_CODE_TO_FUNC["station"] == ["GO_HOME", "STATION_STATUS"]
+
+
+def test_vacuum_state_has_dynamic_values():
+    from custom_components.robovac_mqtt.models import VacuumState
+    state = VacuumState()
+    assert hasattr(state, "dynamic_values")
+    assert isinstance(state.dynamic_values, dict)
+
+
+def test_update_state_accepts_dps_map_param():
+    from custom_components.robovac_mqtt.api.parser import update_state
+    from custom_components.robovac_mqtt.models import VacuumState
+    state, changes = update_state(VacuumState(), {}, dps_map=DEFAULT_DPS_MAP)
+    assert state is not None
+
+
+def test_battery_written_to_dynamic_values():
+    from custom_components.robovac_mqtt.api.parser import update_state
+    from custom_components.robovac_mqtt.models import VacuumState
+    state, _ = update_state(VacuumState(), {"163": "85"})
+    assert state.battery_level == 85
+    assert state.dynamic_values.get("163") == 85
+
+
+def test_generic_handler_bool_in_dynamic_values():
+    from custom_components.robovac_mqtt.api.parser import update_state
+    from custom_components.robovac_mqtt.models import VacuumState
+    catalog_types = {"200": "Bool"}
+    state, _ = update_state(VacuumState(), {"200": "true"}, catalog_types=catalog_types)
+    assert state.dynamic_values.get("200") is True
+
+
+def test_generic_handler_value_in_dynamic_values():
+    from custom_components.robovac_mqtt.api.parser import update_state
+    from custom_components.robovac_mqtt.models import VacuumState
+    catalog_types = {"200": "Value"}
+    state, _ = update_state(VacuumState(), {"200": "42"}, catalog_types=catalog_types)
+    assert state.dynamic_values.get("200") == 42
+
+
+def test_generic_handler_accumulates_multiple_dps():
+    from custom_components.robovac_mqtt.api.parser import update_state
+    from custom_components.robovac_mqtt.models import VacuumState
+    catalog_types = {"200": "Bool", "201": "Value"}
+    state, _ = update_state(VacuumState(), {"200": "true", "201": "7"}, catalog_types=catalog_types)
+    assert state.dynamic_values.get("200") is True
+    assert state.dynamic_values.get("201") == 7
+
+
+from custom_components.robovac_mqtt.api.commands import build_command, build_generic_command
+
+
+def test_build_generic_command_bool():
+    result = build_command("generic", dp_id="159", value=True)
+    assert result == {"159": True}
+
+
+def test_build_generic_command_int():
+    result = build_command("generic", dp_id="161", value=75)
+    assert result == {"161": 75}
+
+
+def test_build_generic_command_direct():
+    result = build_generic_command("159", True)
+    assert result == {"159": True}
+
+
+def test_existing_commands_unchanged_with_default_dps_map():
+    result = build_command("start_auto")
+    assert "152" in result
+
+
+# ─── T3: additional parser dynamic_values tests ───────────────────────────────
+
+def test_generic_handler_bool_false():
+    """Unknown Bool DPS stored as False."""
+    from custom_components.robovac_mqtt.api.parser import update_state
+    from custom_components.robovac_mqtt.models import VacuumState
+    state, _ = update_state(
+        VacuumState(),
+        {"200": "false"},
+        catalog_types={"200": "Bool"},
+    )
+    assert state.dynamic_values.get("200") is False
+
+
+def test_generic_handler_skips_raw():
+    """Raw DPS without catalog_types does NOT go into dynamic_values."""
+    from custom_components.robovac_mqtt.api.parser import update_state
+    from custom_components.robovac_mqtt.models import VacuumState
+    state, _ = update_state(
+        VacuumState(),
+        {"200": "some_value"},
+    )
+    assert "200" not in state.dynamic_values
+
+
+def test_generic_handler_skips_handled_dps():
+    """DPS in HANDLED_DPS_IDS are not put into dynamic_values by generic handler."""
+    from custom_components.robovac_mqtt.api.parser import update_state
+    from custom_components.robovac_mqtt.models import VacuumState
+    # "152" is in HANDLED_DPS_IDS — it goes through _process_play_pause, not generic
+    state, _ = update_state(VacuumState(), {"152": ""})
+    assert "152" not in state.dynamic_values
+
+
+def test_dps_map_param_respected():
+    """Custom dps_map parameter is used instead of DEFAULT_DPS_MAP."""
+    from custom_components.robovac_mqtt.api.parser import update_state
+    from custom_components.robovac_mqtt.models import VacuumState
+    custom_map = dict(DEFAULT_DPS_MAP)
+    custom_map["BATTERY_LEVEL"] = "999"
+    state, _ = update_state(VacuumState(), {"999": "75"}, dps_map=custom_map)
+    assert state.battery_level == 75
+
+
+def test_update_state_find_robot_dual_writes_dynamic_values():
+    from custom_components.robovac_mqtt.api.parser import update_state
+    from custom_components.robovac_mqtt.models import VacuumState
+    state, _ = update_state(VacuumState(), {"160": "true"})
+    assert state.find_robot is True
+    assert state.dynamic_values.get("160") is True
+
+
+def test_update_state_custom_dps_map():
+    from custom_components.robovac_mqtt.api.parser import update_state
+    from custom_components.robovac_mqtt.models import VacuumState
+    custom_map = dict(DEFAULT_DPS_MAP)
+    custom_map["BATTERY_LEVEL"] = "999"
+    state, _ = update_state(VacuumState(), {"999": "77"}, dps_map=custom_map)
+    assert state.battery_level == 77
+
+
+def test_multiple_dps_in_one_message_accumulate_dynamic_values():
+    """Critical: multiple DPS in one MQTT message must all appear in dynamic_values."""
+    from custom_components.robovac_mqtt.api.parser import update_state
+    from custom_components.robovac_mqtt.models import VacuumState
+    catalog_types = {"200": "Bool", "199": "Value"}
+    state, _ = update_state(
+        VacuumState(),
+        {"200": "true", "199": "42", "163": "90"},
+        catalog_types=catalog_types,
+    )
+    assert state.dynamic_values.get("200") is True
+    assert state.dynamic_values.get("199") == 42
+    assert state.dynamic_values.get("163") == 90

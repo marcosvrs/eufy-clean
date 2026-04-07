@@ -12,13 +12,14 @@ from ..const import (
     CLEANING_INTENSITY_NAMES,
     CLEANING_MODE_NAMES,
     CORNER_CLEANING_NAMES,
+    DEFAULT_DPS_MAP,
     DOCK_ACTIVITY_STATES,
-    DPS_MAP,
     DPS_ROBOT_TELEMETRY,
     EUFY_CLEAN_APP_TRIGGER_MODES,
     EUFY_CLEAN_ERROR_CODES,
     EUFY_CLEAN_NOVEL_CLEAN_SPEED,
     FAN_SUCTION_NAMES,
+    HANDLED_DPS_IDS,
     KNOWN_UNPROCESSED_DPS,
     MOP_WATER_LEVEL_NAMES,
     TRIGGER_SOURCE_NAMES,
@@ -133,7 +134,11 @@ def _track_field(state: VacuumState, changes: dict[str, Any], field_name: str) -
 
 
 def update_state(
-    state: VacuumState, dps: dict[str, Any]
+    state: VacuumState,
+    dps: dict[str, Any],
+    *,
+    dps_map: dict[str, str] | None = None,
+    catalog_types: dict[str, str] | None = None,
 ) -> tuple[VacuumState, dict[str, Any]]:
     """Update VacuumState with new DPS data.
 
@@ -143,6 +148,9 @@ def update_state(
         This allows callers to distinguish between a field being actively
         set vs inherited from previous state.
     """
+    if dps_map is None:
+        dps_map = DEFAULT_DPS_MAP
+
     changes: dict[str, Any] = {}
 
     # Always update raw_dps
@@ -150,11 +158,10 @@ def update_state(
     new_raw_dps.update(dps)
     changes["raw_dps"] = new_raw_dps
 
-    # Helper functions to process specific DPS groups
-    _process_station_status(state, dps, changes)
-    _process_work_status(state, dps, changes)
-    _process_play_pause(state, dps, changes)
-    _process_other_dps(state, dps, changes)
+    _process_station_status(state, dps, changes, dps_map)
+    _process_work_status(state, dps, changes, dps_map)
+    _process_play_pause(state, dps, changes, dps_map)
+    _process_other_dps(state, dps, changes, dps_map, catalog_types)
 
     # Log received_fields for debugging sensor availability
     if "received_fields" in changes:
@@ -164,13 +171,14 @@ def update_state(
 
 
 def _process_station_status(
-    state: VacuumState, dps: dict[str, Any], changes: dict[str, Any]
+    state: VacuumState, dps: dict[str, Any], changes: dict[str, Any],
+    dps_map: dict[str, str],
 ) -> None:
     """Process Station Status DPS."""
-    if DPS_MAP["STATION_STATUS"] not in dps:
+    if dps_map["STATION_STATUS"] not in dps:
         return
 
-    value = dps[DPS_MAP["STATION_STATUS"]]
+    value = dps[dps_map["STATION_STATUS"]]
     try:
         station = decode(StationResponse, value)
         _LOGGER.debug("Decoded StationResponse: %s", station)
@@ -193,13 +201,14 @@ def _process_station_status(
 
 
 def _process_work_status(
-    state: VacuumState, dps: dict[str, Any], changes: dict[str, Any]
+    state: VacuumState, dps: dict[str, Any], changes: dict[str, Any],
+    dps_map: dict[str, str],
 ) -> None:
     """Process Work Status DPS."""
-    if DPS_MAP["WORK_STATUS"] not in dps:
+    if dps_map["WORK_STATUS"] not in dps:
         return
 
-    value = dps[DPS_MAP["WORK_STATUS"]]
+    value = dps[dps_map["WORK_STATUS"]]
     try:
         work_status = decode(WorkStatus, value)
         _LOGGER.debug("Decoded WorkStatus: %s", work_status)
@@ -363,13 +372,14 @@ def _process_work_status(
 
 
 def _process_play_pause(
-    state: VacuumState, dps: dict[str, Any], changes: dict[str, Any]
+    state: VacuumState, dps: dict[str, Any], changes: dict[str, Any],
+    dps_map: dict[str, str],
 ) -> None:
     """Process Play/Pause DPS (152) - extract active cleaning targets."""
-    if DPS_MAP["PLAY_PAUSE"] not in dps:
+    if dps_map["PLAY_PAUSE"] not in dps:
         return
 
-    value = dps[DPS_MAP["PLAY_PAUSE"]]
+    value = dps[dps_map["PLAY_PAUSE"]]
     try:
         mode_ctrl = decode(ModeCtrlRequest, value)
         _LOGGER.debug("Decoded ModeCtrlRequest: %s", mode_ctrl)
@@ -408,31 +418,38 @@ def _process_play_pause(
 
 
 def _process_other_dps(
-    state: VacuumState, dps: dict[str, Any], changes: dict[str, Any]
+    state: VacuumState, dps: dict[str, Any], changes: dict[str, Any],
+    dps_map: dict[str, str],
+    catalog_types: dict[str, str] | None = None,
 ) -> None:
     """Process other DPS items."""
     for key, value in dps.items():
-        # Specialized keys are handled in their respective functions
         if key in (
-            DPS_MAP["WORK_STATUS"],
-            DPS_MAP["STATION_STATUS"],
-            DPS_MAP["PLAY_PAUSE"],
+            dps_map["WORK_STATUS"],
+            dps_map["STATION_STATUS"],
+            dps_map["PLAY_PAUSE"],
         ):
             continue
 
         try:
-            if key == DPS_MAP["BATTERY_LEVEL"]:
+            if key == dps_map["BATTERY_LEVEL"]:
                 changes["battery_level"] = int(value)
+                new_dynamic = dict(changes.get("dynamic_values", state.dynamic_values))
+                new_dynamic[key] = int(value)
+                changes["dynamic_values"] = new_dynamic
                 _track_field(state, changes, "battery_level")
 
-            elif key == DPS_MAP["CLEAN_SPEED"]:
-                changes["fan_speed"] = _map_clean_speed(value)
+            elif key == dps_map["CLEAN_SPEED"]:
+                mapped = _map_clean_speed(value)
+                changes["fan_speed"] = mapped
+                new_dynamic = dict(changes.get("dynamic_values", state.dynamic_values))
+                new_dynamic[key] = mapped
+                changes["dynamic_values"] = new_dynamic
                 _track_field(state, changes, "fan_speed")
 
-            elif key == DPS_MAP["ERROR_CODE"]:
+            elif key == dps_map["ERROR_CODE"]:
                 error_proto = decode(ErrorCode, value)
                 _LOGGER.debug("Decoded ErrorCode: %s", error_proto)
-                # Repeated Scalar Field (warn) acts like a list
                 if len(error_proto.warn) > 0:
                     code = error_proto.warn[0]
                     changes["error_code"] = code
@@ -443,12 +460,12 @@ def _process_other_dps(
                     changes["error_code"] = 0
                     changes["error_message"] = ""
 
-            elif key == DPS_MAP["ACCESSORIES_STATUS"]:
+            elif key == dps_map["ACCESSORIES_STATUS"]:
                 _LOGGER.debug("Received ACCESSORIES_STATUS: %s", value)
                 changes["accessories"] = _parse_accessories(state.accessories, value)
                 _track_field(state, changes, "accessories")
 
-            elif key == DPS_MAP["CLEANING_STATISTICS"]:
+            elif key == dps_map["CLEANING_STATISTICS"]:
                 stats = decode(CleanStatistics, value)
                 _LOGGER.debug("Decoded CleanStatistics: %s", stats)
                 if stats.HasField("single"):
@@ -456,11 +473,11 @@ def _process_other_dps(
                     changes["cleaning_area"] = stats.single.clean_area
                     _track_field(state, changes, "cleaning_stats")
 
-            elif key == DPS_MAP["SCENE_INFO"]:
+            elif key == dps_map["SCENE_INFO"]:
                 _LOGGER.debug("Received SCENE_INFO: %s", value)
                 changes["scenes"] = _parse_scene_info(value)
 
-            elif key == DPS_MAP["RESERVED2"]:
+            elif key == dps_map["RESERVED2"]:
                 _LOGGER.debug("Received RESERVED2: %s", value)
                 map_info = _parse_map_data(value)
                 if map_info:
@@ -468,19 +485,18 @@ def _process_other_dps(
                     changes["rooms"] = map_info.get("rooms", [])
                     _track_field(state, changes, "map_id")
 
-            elif key == DPS_MAP["CLEANING_PARAMETERS"]:
+            elif key == dps_map["CLEANING_PARAMETERS"]:
                 _LOGGER.debug("Received CLEANING_PARAMETERS: %s", value)
                 _process_cleaning_parameters(state, value, changes)
 
-            elif key == DPS_MAP["FIND_ROBOT"]:
-                changes["find_robot"] = str(value).lower() == "true"
+            elif key == dps_map["FIND_ROBOT"]:
+                parsed = str(value).lower() == "true"
+                changes["find_robot"] = parsed
+                new_dynamic = dict(changes.get("dynamic_values", state.dynamic_values))
+                new_dynamic[key] = parsed
+                changes["dynamic_values"] = new_dynamic
 
-            elif key == DPS_MAP["APP_DEV_INFO"]:
-                # DPS 169 carries DeviceInfo proto (not map data despite the name).
-                # Contains firmware version, WiFi SSID/IP, station firmware, MAC.
-                # Firmware version is already in the HA device registry via
-                # coordinator.device_info (sw_version from cloud API), so we
-                # only extract network info here.
+            elif key == dps_map["APP_DEV_INFO"]:
                 info = decode(DeviceInfo, value)
                 _LOGGER.debug("Decoded DeviceInfo: %s", info)
                 if info.device_mac:
@@ -492,24 +508,23 @@ def _process_other_dps(
                     changes["wifi_ip"] = info.wifi_ip
                     _track_field(state, changes, "wifi_ip")
 
-            elif key == DPS_MAP["MULTI_MAP_MANAGE"]:
+            elif key == dps_map["MULTI_MAP_MANAGE"]:
                 if value is None:
                     _LOGGER.debug("DPS 172: None value (initial state)")
                 else:
                     _LOGGER.debug("Received MULTI_MAP_MANAGE (DPS 172): %.100s", value)
                     _parse_multi_map_response(value)
 
-            elif key == DPS_MAP["UNSETTING"]:
+            elif key == dps_map["UNSETTING"]:
                 settings = decode(UnisettingResponse, value)
                 _LOGGER.debug("Decoded UnisettingResponse: %s", settings)
-                # Device reports 0-100%, approximate to dBm for HA convention
                 changes["wifi_signal"] = (settings.ap_signal_strength / 2) - 100
                 _track_field(state, changes, "wifi_signal")
                 if settings.HasField("children_lock"):
                     changes["child_lock"] = settings.children_lock.value
                     _track_field(state, changes, "child_lock")
 
-            elif key == DPS_MAP["UNDISTURBED"]:
+            elif key == dps_map["UNDISTURBED"]:
                 undisturbed = decode(UndisturbedResponse, value)
                 _LOGGER.debug("Decoded UndisturbedResponse: %s", undisturbed)
                 if undisturbed.HasField("undisturbed"):
@@ -537,15 +552,41 @@ def _process_other_dps(
                     changes["robot_position_y"] = raw_y
                     _track_field(state, changes, "robot_position")
 
-            elif key == DPS_MAP.get("BOOST_IQ"):
+            elif key == dps_map.get("BOOST_IQ"):
                 if isinstance(value, bool):
                     changes["boost_iq"] = value
+                    new_dynamic = dict(changes.get("dynamic_values", state.dynamic_values))
+                    new_dynamic[key] = value
+                    changes["dynamic_values"] = new_dynamic
                     _track_field(state, changes, "boost_iq")
 
-            elif key == DPS_MAP.get("VOLUME"):
+            elif key == dps_map.get("VOLUME"):
                 if isinstance(value, (int, float)):
-                    changes["volume"] = int(value)
+                    vol = int(value)
+                    changes["volume"] = vol
+                    new_dynamic = dict(changes.get("dynamic_values", state.dynamic_values))
+                    new_dynamic[key] = vol
+                    changes["dynamic_values"] = new_dynamic
                     _track_field(state, changes, "volume")
+
+            elif key not in HANDLED_DPS_IDS and key not in KNOWN_UNPROCESSED_DPS:
+                if catalog_types and key in catalog_types:
+                    dtype = catalog_types[key]
+                    if dtype == "Bool":
+                        parsed_val = str(value).lower() == "true" if isinstance(value, str) else bool(value)
+                        new_dynamic = dict(changes.get("dynamic_values", state.dynamic_values))
+                        new_dynamic[key] = parsed_val
+                        changes["dynamic_values"] = new_dynamic
+                    elif dtype in ("Value", "Enum"):
+                        try:
+                            parsed_val = int(value) if isinstance(value, str) else value
+                            new_dynamic = dict(changes.get("dynamic_values", state.dynamic_values))
+                            new_dynamic[key] = parsed_val
+                            changes["dynamic_values"] = new_dynamic
+                        except (ValueError, TypeError):
+                            pass
+                else:
+                    _LOGGER.debug("Unknown DPS key %s with value %r", key, value)
 
             elif key in KNOWN_UNPROCESSED_DPS:
                 _LOGGER.debug(

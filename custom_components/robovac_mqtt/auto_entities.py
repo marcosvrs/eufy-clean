@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import logging
 from dataclasses import replace
 from typing import Any
@@ -137,11 +138,13 @@ class AutoNumber(_AutoEntityBase, NumberEntity):
         dp_id: str,
         cloud_code: str,
         override: dict[str, Any],
+        catalog_property: dict[str, Any] | None = None,
     ) -> None:
         super().__init__(coordinator, dp_id, cloud_code, override)
-        self._attr_native_min_value = float(override.get("min", 0))
-        self._attr_native_max_value = float(override.get("max", 100))
-        self._attr_native_step = float(override.get("step", 1))
+        prop = catalog_property or {}
+        self._attr_native_min_value = float(override.get("min", prop.get("min", 0)))
+        self._attr_native_max_value = float(override.get("max", prop.get("max", 100)))
+        self._attr_native_step = float(override.get("step", prop.get("step", 1)))
         self._attr_mode = NumberMode.SLIDER
         if unit := override.get("unit"):
             self._attr_native_unit_of_measurement = unit
@@ -215,7 +218,10 @@ class AutoSelect(_AutoEntityBase, SelectEntity):
         val = self.coordinator.data.dynamic_values.get(self._dp_id)
         if val is None:
             return None
-        return self._options_map.get(int(val))
+        try:
+            return self._options_map.get(int(val))
+        except (ValueError, TypeError):
+            return None
 
     async def async_select_option(self, option: str) -> None:
         """Select an option."""
@@ -280,7 +286,8 @@ def get_auto_numbers(
         if entry.get("data_type") == "Value" and entry.get("mode") == "rw":
             code = entry.get("code", f"dps_{dp_id_str}")
             override = AUTO_ENTITY_OVERRIDES.get(code, {})
-            entities.append(AutoNumber(coordinator, dp_id_str, code, override))
+            catalog_property = _parse_property_json(entry)
+            entities.append(AutoNumber(coordinator, dp_id_str, code, override, catalog_property))
     return entities
 
 
@@ -307,10 +314,34 @@ def get_auto_selects(
     for dp_id_str, entry in coordinator.dps_catalog.items():
         if dp_id_str in HANDLED_DPS_IDS or dp_id_str in KNOWN_UNPROCESSED_DPS:
             continue
-        if entry.get("data_type") == "Enum" and entry.get("mode") == "rw":
+        if entry.get("data_type") == "Enum" and entry.get("mode") in ("rw", "w"):
             code = entry.get("code", f"dps_{dp_id_str}")
             override = AUTO_ENTITY_OVERRIDES.get(code, {})
             if "options_map" not in override:
-                continue  # Skip — no known options
+                options_map = _parse_enum_options(entry)
+                if not options_map:
+                    continue
+                override = {**override, "options_map": options_map}
             entities.append(AutoSelect(coordinator, dp_id_str, code, override))
     return entities
+
+
+def _parse_enum_options(entry: dict[str, Any]) -> dict[int, str] | None:
+    prop_str = entry.get("property", "{}")
+    try:
+        prop = json.loads(prop_str) if isinstance(prop_str, str) else prop_str
+    except (json.JSONDecodeError, TypeError):
+        return None
+    range_list = prop.get("range")
+    if not range_list or not isinstance(range_list, list):
+        return None
+    return {idx: label for idx, label in enumerate(range_list)}
+
+
+def _parse_property_json(entry: dict[str, Any]) -> dict[str, Any]:
+    prop_str = entry.get("property", "{}")
+    try:
+        prop = json.loads(prop_str) if isinstance(prop_str, str) else prop_str
+        return prop if isinstance(prop, dict) else {}
+    except (json.JSONDecodeError, TypeError):
+        return {}

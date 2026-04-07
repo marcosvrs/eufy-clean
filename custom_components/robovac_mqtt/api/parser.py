@@ -443,7 +443,7 @@ def _process_other_dps(
                 mapped = _map_clean_speed(value)
                 changes["fan_speed"] = mapped
                 new_dynamic = dict(changes.get("dynamic_values", state.dynamic_values))
-                new_dynamic[key] = mapped
+                new_dynamic[key] = int(value)
                 changes["dynamic_values"] = new_dynamic
                 _track_field(state, changes, "fan_speed")
 
@@ -586,17 +586,32 @@ def _process_other_dps(
                         except (ValueError, TypeError):
                             pass
                 else:
-                    _LOGGER.debug("Unknown DPS key %s with value %r", key, value)
+                    _LOGGER.debug(
+                    "UNKNOWN_DPS | key=%s | value=%r | value_type=%s | catalog_type=%s | in_catalog=%s",
+                    key,
+                    value,
+                    type(value).__name__,
+                    catalog_types.get(key, "N/A") if catalog_types else "no_catalog",
+                    key in (catalog_types or {}),
+                )
 
             elif key in KNOWN_UNPROCESSED_DPS:
                 _LOGGER.debug(
-                    "Known unprocessed DPS %s: %s (value stored in raw_dps)",
+                    "KNOWN_UNPROCESSED_DPS | key=%s | value=%r | value_type=%s",
                     key,
                     value,
+                    type(value).__name__,
                 )
 
             else:
-                _LOGGER.debug("Received unhandled DPS %s: %s", key, value)
+                _LOGGER.debug(
+                    "UNHANDLED_DPS | key=%s | value=%r | value_type=%s | in_handled=%s | in_known_unprocessed=%s",
+                    key,
+                    value,
+                    type(value).__name__,
+                    key in HANDLED_DPS_IDS,
+                    key in KNOWN_UNPROCESSED_DPS,
+                )
 
         except Exception as e:
             _LOGGER.warning("Error parsing DPS %s: %s", key, e, exc_info=True)

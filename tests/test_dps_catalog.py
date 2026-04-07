@@ -738,3 +738,122 @@ def test_volume_number_entity_removed():
         raise AssertionError("VolumeNumberEntity still exists — should have been removed")
     except ImportError:
         pass
+
+
+# ── Enhancement: property parsing + unblocked DPS ──────────────
+
+def test_151_not_in_known_unprocessed():
+    from custom_components.robovac_mqtt.const import KNOWN_UNPROCESSED_DPS
+    assert "151" not in KNOWN_UNPROCESSED_DPS
+
+def test_155_not_in_known_unprocessed():
+    from custom_components.robovac_mqtt.const import KNOWN_UNPROCESSED_DPS
+    assert "155" not in KNOWN_UNPROCESSED_DPS
+
+def test_156_not_in_known_unprocessed():
+    from custom_components.robovac_mqtt.const import KNOWN_UNPROCESSED_DPS
+    assert "156" not in KNOWN_UNPROCESSED_DPS
+
+def test_power_override_exists():
+    from custom_components.robovac_mqtt.const import AUTO_ENTITY_OVERRIDES
+    assert "power" in AUTO_ENTITY_OVERRIDES
+    assert AUTO_ENTITY_OVERRIDES["power"]["name"] == "Shutdown Robot"
+    assert AUTO_ENTITY_OVERRIDES["power"]["entity_category"] is None
+
+def test_auto_select_parses_property_range():
+    from custom_components.robovac_mqtt.auto_entities import get_auto_selects
+    coord = _make_coordinator([{
+        "dp_id": 155,
+        "code": "remote_ctrl",
+        "data_type": "Enum",
+        "mode": "rw",
+        "property": '{"range":["Brake","Forward","Back","Left","Right"]}',
+    }])
+    entities = get_auto_selects(coord)
+    assert len(entities) == 1
+    assert set(entities[0].options) == {"Brake", "Forward", "Back", "Left", "Right"}
+
+def test_auto_select_property_range_without_override():
+    """Enum with property.range but NO options_map override should still create entity."""
+    from custom_components.robovac_mqtt.auto_entities import get_auto_selects
+    coord = _make_coordinator([{
+        "dp_id": 999,
+        "code": "unknown_enum",
+        "data_type": "Enum",
+        "mode": "rw",
+        "property": '{"range":["Low","Medium","High"]}',
+    }])
+    entities = get_auto_selects(coord)
+    assert len(entities) == 1
+    assert entities[0].options == ["Low", "Medium", "High"]
+
+def test_auto_select_no_property_no_override_skipped():
+    """Enum with empty property and no override → skip."""
+    from custom_components.robovac_mqtt.auto_entities import get_auto_selects
+    coord = _make_coordinator([{
+        "dp_id": 999,
+        "code": "mystery_enum",
+        "data_type": "Enum",
+        "mode": "rw",
+        "property": "{}",
+    }])
+    entities = get_auto_selects(coord)
+    assert len(entities) == 0
+
+def test_auto_number_parses_property_min_max_step():
+    from custom_components.robovac_mqtt.auto_entities import get_auto_numbers
+    coord = _make_coordinator([{
+        "dp_id": 999,
+        "code": "some_value",
+        "data_type": "Value",
+        "mode": "rw",
+        "property": '{"max":200,"min":10,"scale":0,"step":5}',
+    }])
+    entities = get_auto_numbers(coord)
+    assert len(entities) == 1
+    assert entities[0]._attr_native_min_value == 10.0
+    assert entities[0]._attr_native_max_value == 200.0
+    assert entities[0]._attr_native_step == 5.0
+
+def test_auto_number_override_beats_property():
+    """Override min/max/step takes priority over property."""
+    from custom_components.robovac_mqtt.auto_entities import get_auto_numbers
+    coord = _make_coordinator([{
+        "dp_id": 161,
+        "code": "volume",
+        "data_type": "Value",
+        "mode": "rw",
+        "property": '{"max":200,"min":10,"scale":0,"step":5}',
+    }])
+    entities = get_auto_numbers(coord)
+    assert len(entities) == 1
+    # AUTO_ENTITY_OVERRIDES for volume says min=0, max=100, step=1 → override wins
+    assert entities[0]._attr_native_min_value == 0.0
+    assert entities[0]._attr_native_max_value == 100.0
+    assert entities[0]._attr_native_step == 1.0
+
+def test_auto_switch_151_power_created():
+    from custom_components.robovac_mqtt.auto_entities import get_auto_switches
+    coord = _make_coordinator([{
+        "dp_id": 151,
+        "code": "power",
+        "data_type": "Bool",
+        "mode": "rw",
+        "property": "{}",
+    }])
+    entities = get_auto_switches(coord)
+    assert len(entities) == 1
+    assert entities[0]._attr_name == "Shutdown Robot"
+
+def test_auto_switch_156_pause_created():
+    from custom_components.robovac_mqtt.auto_entities import get_auto_switches
+    coord = _make_coordinator([{
+        "dp_id": 156,
+        "code": "pause_job",
+        "data_type": "Bool",
+        "mode": "rw",
+        "property": "{}",
+    }])
+    entities = get_auto_switches(coord)
+    assert len(entities) == 1
+    assert entities[0]._attr_name == "Resume from Breakpoint"

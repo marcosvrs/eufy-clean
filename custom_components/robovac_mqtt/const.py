@@ -607,13 +607,10 @@ def supported_dps_from_catalog(catalog: list[dict]) -> frozenset[str]:
 # Values are already stored in raw_dps for diagnostics.
 KNOWN_UNPROCESSED_DPS: frozenset[str] = frozenset(
     {
-        DPS_MAP["REMOTE_CTRL"],  # 155 - remote_ctrl: remote control echo
-        DPS_MAP["PAUSE_JOB"],  # 156 - pause_job: pause current job
         DPS_MAP["TIMING"],  # 164 - timing: TimerRequest/TimerResponse
         DPS_MAP["LOG_DEBUG"],  # 166 - log_debug: DebugRequest/DebugResponse
         DPS_MAP["MAP_EDIT_REQUEST"],  # 170 - map_edit: MapEditRequest echo
         "150",  # proto: reserved, not used
-        "151",  # power: Send false=shutdown, Report true=just booted
         "162",  # user_language: LanguageRequest/LanguageResponse
         "171",  # multi_maps_ctrl: MultiMapsCtrlRequest/Response
         "174",  # media_manager: MediaManagerRequest/Response
@@ -676,6 +673,24 @@ AUTO_ENTITY_OVERRIDES: dict[str, dict[str, Any]] = {
         "max": 100,
         "step": 1,
         "enabled_default": True,
+    },
+    "power": {
+        "name": "Shutdown Robot",
+        "icon": "mdi:power",
+        "enabled_default": True,
+        "entity_category": None,
+    },
+    "remote_ctrl": {
+        "name": "Remote Control",
+        "icon": "mdi:gamepad-variant",
+        "enabled_default": True,
+        "entity_category": None,
+    },
+    "pause_job": {
+        "name": "Resume from Breakpoint",
+        "icon": "mdi:play-pause",
+        "enabled_default": True,
+        "entity_category": None,
     },
 }
 

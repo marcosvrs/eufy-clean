@@ -539,6 +539,19 @@ async def async_setup_entry(
                 )
             )
 
+        if "MEDIA_MANAGER" in coordinator.supported_dps:
+            entities.append(
+                RoboVacSensor(
+                    coordinator,
+                    "last_capture",
+                    "Last Capture",
+                    lambda s: s.media_last_capture_path or None,
+                    icon="mdi:camera",
+                    category=EntityCategory.DIAGNOSTIC,
+                    availability_fn=lambda s: "media_last_capture" in s.received_fields,
+                )
+            )
+
         # Accessory sensors
         if "ACCESSORIES_STATUS" in coordinator.supported_dps:
             accessories = [

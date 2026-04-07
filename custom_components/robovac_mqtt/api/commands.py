@@ -835,6 +835,9 @@ def build_command(
         return _build_mode_ctrl(EUFY_CLEAN_CONTROL.STOP_GOHOME, dps_map)
     if cmd == "mapping_then_clean":
         return _build_mode_ctrl(EUFY_CLEAN_CONTROL.START_MAPPING_THEN_CLEAN, dps_map)
+    if cmd == "mapping_then_rooms":
+        _LOGGER.warning("mapping_then_rooms: unsupported by firmware, skipping")
+        return {}
     if cmd in ("locate", "find_robot"):
         return build_find_robot_command(kwargs.get("active", True), dps_map)
     if cmd == "start_global_cruise":

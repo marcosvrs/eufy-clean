@@ -224,6 +224,24 @@ class EufyCleanCoordinator(DataUpdateCoordinator[VacuumState]):
                     new_state, dock_status=effective_current_status
                 )
 
+                if any(
+                    key in changes
+                    for key in (
+                        "ctrl_event_type",
+                        "ctrl_event_source",
+                        "ctrl_event_timestamp",
+                    )
+                ):
+                    self.hass.bus.async_fire(
+                        "robovac_mqtt_ctrl_event",
+                        {
+                            "device_id": self.device_id,
+                            "event_type": state_to_publish.ctrl_event_type,
+                            "event_source": state_to_publish.ctrl_event_source,
+                            "timestamp": state_to_publish.ctrl_event_timestamp,
+                        },
+                    )
+
                 self.async_set_updated_data(state_to_publish)
 
                 # Check for segment changes if rooms were updated (debounced)

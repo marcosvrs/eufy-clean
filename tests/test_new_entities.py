@@ -1,5 +1,5 @@
-"""Unit tests for the 6 new entities: waste_water sensor, carpet_strategy select,
-corner_cleaning select, smart_mode switch, boost_iq switch, volume number."""
+"""Unit tests for entities: waste_water sensor, carpet_strategy select,
+corner_cleaning select, smart_mode switch, volume number."""
 
 from dataclasses import replace
 from unittest.mock import AsyncMock, MagicMock
@@ -31,7 +31,7 @@ from custom_components.robovac_mqtt.select import (
     CornerCleaningSelectEntity,
 )
 from custom_components.robovac_mqtt.sensor import RoboVacSensor
-from custom_components.robovac_mqtt.switch import BoostIQSwitchEntity, SmartModeSwitchEntity
+from custom_components.robovac_mqtt.switch import SmartModeSwitchEntity
 
 
 @pytest.fixture
@@ -241,63 +241,6 @@ async def test_smart_mode_switch_turn_off(mock_coordinator):
     mock_coordinator.async_send_command.assert_called_once()
     cmd = mock_coordinator.async_send_command.call_args[0][0]
     assert DPS_MAP["CLEANING_PARAMETERS"] in cmd
-
-
-# ---------------------------------------------------------------------------
-# Boost IQ Switch
-# ---------------------------------------------------------------------------
-
-
-def test_boost_iq_switch_state(mock_coordinator):
-    mock_coordinator.data = replace(
-        mock_coordinator.data,
-        boost_iq=True,
-        received_fields={"boost_iq"},
-    )
-    entity = BoostIQSwitchEntity(mock_coordinator)
-
-    assert entity.is_on is True
-    assert entity.available is True
-
-
-def test_boost_iq_switch_unavailable_without_field(mock_coordinator):
-    entity = BoostIQSwitchEntity(mock_coordinator)
-
-    assert entity.available is False
-
-
-@pytest.mark.asyncio
-async def test_boost_iq_switch_turn_on(mock_coordinator):
-    mock_coordinator.data = replace(
-        mock_coordinator.data,
-        boost_iq=False,
-        received_fields={"boost_iq"},
-    )
-    entity = BoostIQSwitchEntity(mock_coordinator)
-
-    await entity.async_turn_on()
-
-    mock_coordinator.async_send_command.assert_called_once()
-    cmd = mock_coordinator.async_send_command.call_args[0][0]
-    assert DPS_MAP["BOOST_IQ"] in cmd
-    assert cmd[DPS_MAP["BOOST_IQ"]] is True
-
-
-@pytest.mark.asyncio
-async def test_boost_iq_switch_turn_off(mock_coordinator):
-    mock_coordinator.data = replace(
-        mock_coordinator.data,
-        boost_iq=True,
-        received_fields={"boost_iq"},
-    )
-    entity = BoostIQSwitchEntity(mock_coordinator)
-
-    await entity.async_turn_off()
-
-    mock_coordinator.async_send_command.assert_called_once()
-    cmd = mock_coordinator.async_send_command.call_args[0][0]
-    assert DPS_MAP["BOOST_IQ"] in cmd
-    assert cmd[DPS_MAP["BOOST_IQ"]] is False
 
 
 # ---------------------------------------------------------------------------

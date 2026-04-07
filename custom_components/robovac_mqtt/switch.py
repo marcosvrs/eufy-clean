@@ -14,6 +14,7 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .api.commands import build_command
+from .auto_entities import get_auto_switches
 from .const import DOMAIN
 from .coordinator import EufyCleanCoordinator
 
@@ -34,35 +35,40 @@ async def async_setup_entry(
     for coordinator in coordinators:
         _LOGGER.debug("Adding switch entities for %s", coordinator.device_name)
 
-        entities.append(
-            DockSwitchEntity(
-                coordinator,
-                "auto_empty",
-                "Auto Empty",
-                lambda cfg: cfg.get("collectdust_v2", {})
-                .get("sw", {})
-                .get("value", False),
-                set_collect_dust,
-                icon="mdi:delete-restore",
+        if "STATION_STATUS" in coordinator.supported_dps:
+            entities.append(
+                DockSwitchEntity(
+                    coordinator,
+                    "auto_empty",
+                    "Auto Empty",
+                    lambda cfg: cfg.get("collectdust_v2", {})
+                    .get("sw", {})
+                    .get("value", False),
+                    set_collect_dust,
+                    icon="mdi:delete-restore",
+                )
             )
-        )
 
-        entities.append(
-            DockSwitchEntity(
-                coordinator,
-                "auto_wash",
-                "Auto Wash",
-                lambda cfg: cfg.get("wash", {}).get("cfg", "CLOSE") == "STANDARD",
-                set_wash_cfg,
-                icon="mdi:water-sync",
+            entities.append(
+                DockSwitchEntity(
+                    coordinator,
+                    "auto_wash",
+                    "Auto Wash",
+                    lambda cfg: cfg.get("wash", {}).get("cfg", "CLOSE") == "STANDARD",
+                    set_wash_cfg,
+                    icon="mdi:water-sync",
+                )
             )
-        )
 
-        entities.append(DoNotDisturbSwitchEntity(coordinator))
-        entities.append(ChildLockSwitchEntity(coordinator))
-        entities.append(FindRobotSwitchEntity(coordinator))
+        if "UNDISTURBED" in coordinator.supported_dps:
+            entities.append(DoNotDisturbSwitchEntity(coordinator))
+
+        if "UNSETTING" in coordinator.supported_dps:
+            entities.append(ChildLockSwitchEntity(coordinator))
+
         entities.append(SmartModeSwitchEntity(coordinator))
-        entities.append(BoostIQSwitchEntity(coordinator))
+
+        entities.extend(get_auto_switches(coordinator))
 
     async_add_entities(entities)
 
@@ -155,34 +161,6 @@ class DockSwitchEntity(CoordinatorEntity[EufyCleanCoordinator], SwitchEntity):
         self._setter(cfg, state)
 
         command = build_command("set_auto_cfg", cfg=cfg)
-        await self.coordinator.async_send_command(command)
-
-
-class FindRobotSwitchEntity(CoordinatorEntity[EufyCleanCoordinator], SwitchEntity):
-    """Switch for Find Robot feature."""
-
-    def __init__(self, coordinator: EufyCleanCoordinator) -> None:
-        """Initialize the find robot switch."""
-        super().__init__(coordinator)
-        self._attr_unique_id = f"{coordinator.device_id}_find_robot"
-        self._attr_has_entity_name = True
-        self._attr_name = "Find Robot"
-        self._attr_icon = "mdi:robot-vacuum-variant"
-        self._attr_device_info = coordinator.device_info
-
-    @property
-    def is_on(self) -> bool | None:
-        """Return true if switch is on."""
-        return self.coordinator.data.find_robot
-
-    async def async_turn_on(self, **kwargs: Any) -> None:
-        """Turn the switch on."""
-        command = build_command("find_robot", active=True)
-        await self.coordinator.async_send_command(command)
-
-    async def async_turn_off(self, **kwargs: Any) -> None:
-        """Turn the switch off."""
-        command = build_command("find_robot", active=False)
         await self.coordinator.async_send_command(command)
 
 
@@ -321,46 +299,4 @@ class SmartModeSwitchEntity(CoordinatorEntity[EufyCleanCoordinator], SwitchEntit
         await self.coordinator.async_send_command(command)
         self.coordinator.async_set_updated_data(
             replace(self.coordinator.data, smart_mode=state)
-        )
-
-
-class BoostIQSwitchEntity(CoordinatorEntity[EufyCleanCoordinator], SwitchEntity):
-    """Switch for the Boost IQ setting."""
-
-    def __init__(self, coordinator: EufyCleanCoordinator) -> None:
-        """Initialize the boost IQ switch."""
-        super().__init__(coordinator)
-        self._attr_unique_id = f"{coordinator.device_id}_boost_iq"
-        self._attr_has_entity_name = True
-        self._attr_name = "Boost IQ"
-        self._attr_icon = "mdi:speedometer"
-        self._attr_entity_category = EntityCategory.CONFIG
-        self._attr_device_info = coordinator.device_info
-
-    @property
-    def is_on(self) -> bool | None:
-        """Return true if boost IQ is enabled."""
-        return self.coordinator.data.boost_iq
-
-    @property
-    def available(self) -> bool:
-        """Return whether the entity is available."""
-        return (
-            super().available and "boost_iq" in self.coordinator.data.received_fields
-        )
-
-    async def async_turn_on(self, **kwargs: Any) -> None:
-        """Enable boost IQ."""
-        await self._set_state(True)
-
-    async def async_turn_off(self, **kwargs: Any) -> None:
-        """Disable boost IQ."""
-        await self._set_state(False)
-
-    async def _set_state(self, state: bool) -> None:
-        """Send boost IQ command and optimistically update state."""
-        command = build_command("set_boost_iq", active=state)
-        await self.coordinator.async_send_command(command)
-        self.coordinator.async_set_updated_data(
-            replace(self.coordinator.data, boost_iq=state)
         )

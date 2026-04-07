@@ -19,6 +19,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
+from .auto_entities import get_auto_sensors
 from .const import ACCESSORY_MAX_LIFE, DOMAIN
 from .coordinator import EufyCleanCoordinator, VacuumState
 
@@ -61,10 +62,7 @@ async def async_setup_entry(
     for coordinator in coordinators:
         _LOGGER.debug("Adding sensors for %s", coordinator.device_name)
 
-        # Battery sensor
-        entities.append(BatterySensorEntity(coordinator))
-
-        # Error Message Sensor
+        # Core sensors — always created
         entities.append(
             RoboVacSensor(
                 coordinator,
@@ -79,7 +77,6 @@ async def async_setup_entry(
             )
         )
 
-        # Task Status Sensor
         entities.append(
             RoboVacSensor(
                 coordinator,
@@ -94,7 +91,6 @@ async def async_setup_entry(
             )
         )
 
-        # Work Mode Sensor
         entities.append(
             RoboVacSensor(
                 coordinator,
@@ -109,98 +105,6 @@ async def async_setup_entry(
             )
         )
 
-        # Cleaning Time Sensor
-        entities.append(
-            RoboVacSensor(
-                coordinator,
-                "cleaning_time",
-                "Cleaning Time",
-                lambda s: s.cleaning_time,
-                device_class=SensorDeviceClass.DURATION,
-                unit="s",
-                state_class=SensorStateClass.MEASUREMENT,
-                icon="mdi:clock-outline",
-                availability_fn=lambda s: "cleaning_stats" in s.received_fields,
-            )
-        )
-
-        # Cleaning Area Sensor
-        entities.append(
-            RoboVacSensor(
-                coordinator,
-                "cleaning_area",
-                "Cleaning Area",
-                lambda s: s.cleaning_area,
-                device_class=None,
-                unit="m²",
-                state_class=SensorStateClass.MEASUREMENT,
-                icon="mdi:floor-plan",
-                availability_fn=lambda s: "cleaning_stats" in s.received_fields,
-            )
-        )
-
-        # Water level sensor (Station Clean Water)
-        # Uses availability_fn to hide sensor on devices that don't report water level
-        entities.append(
-            RoboVacSensor(
-                coordinator,
-                "water_level",
-                "Water Level",
-                lambda s: s.station_clean_water,
-                device_class=None,
-                unit=PERCENTAGE,
-                state_class=SensorStateClass.MEASUREMENT,
-                availability_fn=lambda s: "station_clean_water" in s.received_fields,
-            )
-        )
-
-        # Waste water level sensor (Station Waste Water)
-        entities.append(
-            RoboVacSensor(
-                coordinator,
-                "waste_water_level",
-                "Waste Water Level",
-                lambda s: s.station_waste_water,
-                device_class=None,
-                unit=PERCENTAGE,
-                state_class=SensorStateClass.MEASUREMENT,
-                icon="mdi:water-minus",
-                availability_fn=lambda s: "dock_status" in s.received_fields,
-            )
-        )
-
-        # Dock status sensor
-        entities.append(
-            RoboVacSensor(
-                coordinator,
-                "dock_status",
-                "Dock Status",
-                lambda s: s.dock_status,
-                device_class=None,
-                unit=None,
-                state_class=None,
-                category=EntityCategory.DIAGNOSTIC,
-                availability_fn=lambda s: "dock_status" in s.received_fields,
-            )
-        )
-
-        # Active map ID sensor
-        entities.append(
-            RoboVacSensor(
-                coordinator,
-                "active_map",
-                "Active Map",
-                lambda s: s.map_id,
-                device_class=None,
-                unit=None,
-                state_class=None,
-                icon="mdi:map-marker-path",
-                category=EntityCategory.DIAGNOSTIC,
-                availability_fn=lambda s: "map_id" in s.received_fields,
-            )
-        )
-
-        # Active cleaning target sensor
         entities.append(
             RoboVacSensor(
                 coordinator,
@@ -222,52 +126,6 @@ async def async_setup_entry(
             )
         )
 
-        # WiFi Signal Strength (from DPS 176 UnisettingResponse)
-        entities.append(
-            RoboVacSensor(
-                coordinator,
-                "wifi_signal",
-                "WiFi Signal Strength",
-                lambda s: s.wifi_signal,
-                device_class=SensorDeviceClass.SIGNAL_STRENGTH,
-                unit=SIGNAL_STRENGTH_DECIBELS_MILLIWATT,
-                state_class=SensorStateClass.MEASUREMENT,
-                icon="mdi:wifi",
-                category=EntityCategory.DIAGNOSTIC,
-                availability_fn=lambda s: "wifi_signal" in s.received_fields,
-                enabled_default=False,
-            )
-        )
-
-        # WiFi SSID (from DPS 169 DeviceInfo)
-        entities.append(
-            RoboVacSensor(
-                coordinator,
-                "wifi_ssid",
-                "WiFi SSID",
-                lambda s: s.wifi_ssid or None,
-                icon="mdi:wifi",
-                category=EntityCategory.DIAGNOSTIC,
-                availability_fn=lambda s: "wifi_ssid" in s.received_fields,
-                enabled_default=False,
-            )
-        )
-
-        # WiFi IP Address (from DPS 169 DeviceInfo)
-        entities.append(
-            RoboVacSensor(
-                coordinator,
-                "wifi_ip",
-                "IP Address",
-                lambda s: s.wifi_ip or None,
-                icon="mdi:ip-network",
-                category=EntityCategory.DIAGNOSTIC,
-                availability_fn=lambda s: "wifi_ip" in s.received_fields,
-                enabled_default=False,
-            )
-        )
-
-        # Robot Position - raw (from DPS 179 telemetry, diagnostic)
         entities.append(
             RoboVacSensor(
                 coordinator,
@@ -296,52 +154,192 @@ async def async_setup_entry(
             )
         )
 
-        # Accessory Sensors
-        accessories = [
-            ("filter_usage", "Filter Remaining", "mdi:air-filter"),
-            ("main_brush_usage", "Rolling Brush Remaining", "mdi:broom"),
-            ("side_brush_usage", "Side Brush Remaining", "mdi:broom"),
-            ("sensor_usage", "Sensor Remaining", "mdi:eye-outline"),
-            ("scrape_usage", "Cleaning Tray Remaining", "mdi:wiper"),
-            ("mop_usage", "Mopping Cloth Remaining", "mdi:water"),
-        ]
-
-        for attr, name, icon in accessories:
-            # We must capture the specific attr value in the lambda default args
-            # otherwise all lambdas will point to the last attr in the loop
-            def get_accessory_remaining(state: VacuumState, a: str = attr) -> int:
-                usage = getattr(state.accessories, a) or 0
-                max_life = ACCESSORY_MAX_LIFE.get(a, 0)
-                # Ensure we don't go negative if usage exceeds defaults
-                return max(0, max_life - usage)
-
-            max_life_val = ACCESSORY_MAX_LIFE.get(attr, 0)
-
-            # Extra attributes explicitly using specific attr
-            def get_attributes(
-                state: VacuumState, a: str = attr, m: int = max_life_val
-            ) -> dict[str, Any]:
-                usage = getattr(state.accessories, a) or 0
-                return {
-                    "usage_hours": usage,
-                    "total_life_hours": m,
-                }
+        # Cleaning statistics sensors
+        if "CLEANING_STATISTICS" in coordinator.supported_dps:
+            entities.append(
+                RoboVacSensor(
+                    coordinator,
+                    "cleaning_time",
+                    "Cleaning Time",
+                    lambda s: s.cleaning_time,
+                    device_class=SensorDeviceClass.DURATION,
+                    unit="s",
+                    state_class=SensorStateClass.MEASUREMENT,
+                    icon="mdi:clock-outline",
+                    availability_fn=lambda s: "cleaning_stats" in s.received_fields,
+                )
+            )
 
             entities.append(
                 RoboVacSensor(
                     coordinator,
-                    attr.replace("_usage", "_remaining"),
-                    name,
-                    get_accessory_remaining,
-                    device_class=SensorDeviceClass.DURATION,
-                    unit="h",  # Hours
+                    "cleaning_area",
+                    "Cleaning Area",
+                    lambda s: s.cleaning_area,
+                    device_class=None,
+                    unit="m²",
                     state_class=SensorStateClass.MEASUREMENT,
-                    icon=icon,
-                    category=EntityCategory.DIAGNOSTIC,
-                    extra_state_attributes_fn=get_attributes,
-                    availability_fn=lambda s: "accessories" in s.received_fields,
+                    icon="mdi:floor-plan",
+                    availability_fn=lambda s: "cleaning_stats" in s.received_fields,
                 )
             )
+
+        # Station/dock sensors
+        if "STATION_STATUS" in coordinator.supported_dps:
+            entities.append(
+                RoboVacSensor(
+                    coordinator,
+                    "water_level",
+                    "Water Level",
+                    lambda s: s.station_clean_water,
+                    device_class=None,
+                    unit=PERCENTAGE,
+                    state_class=SensorStateClass.MEASUREMENT,
+                    availability_fn=lambda s: "station_clean_water"
+                    in s.received_fields,
+                )
+            )
+
+            entities.append(
+                RoboVacSensor(
+                    coordinator,
+                    "waste_water_level",
+                    "Waste Water Level",
+                    lambda s: s.station_waste_water,
+                    device_class=None,
+                    unit=PERCENTAGE,
+                    state_class=SensorStateClass.MEASUREMENT,
+                    icon="mdi:water-minus",
+                    availability_fn=lambda s: "dock_status" in s.received_fields,
+                )
+            )
+
+            entities.append(
+                RoboVacSensor(
+                    coordinator,
+                    "dock_status",
+                    "Dock Status",
+                    lambda s: s.dock_status,
+                    device_class=None,
+                    unit=None,
+                    state_class=None,
+                    category=EntityCategory.DIAGNOSTIC,
+                    availability_fn=lambda s: "dock_status" in s.received_fields,
+                )
+            )
+
+        # Active map sensor
+        if "MULTI_MAP_MANAGE" in coordinator.supported_dps:
+            entities.append(
+                RoboVacSensor(
+                    coordinator,
+                    "active_map",
+                    "Active Map",
+                    lambda s: s.map_id,
+                    device_class=None,
+                    unit=None,
+                    state_class=None,
+                    icon="mdi:map-marker-path",
+                    category=EntityCategory.DIAGNOSTIC,
+                    availability_fn=lambda s: "map_id" in s.received_fields,
+                )
+            )
+
+        # WiFi/signal sensors
+        if "UNSETTING" in coordinator.supported_dps:
+            entities.append(
+                RoboVacSensor(
+                    coordinator,
+                    "wifi_signal",
+                    "WiFi Signal Strength",
+                    lambda s: s.wifi_signal,
+                    device_class=SensorDeviceClass.SIGNAL_STRENGTH,
+                    unit=SIGNAL_STRENGTH_DECIBELS_MILLIWATT,
+                    state_class=SensorStateClass.MEASUREMENT,
+                    icon="mdi:wifi",
+                    category=EntityCategory.DIAGNOSTIC,
+                    availability_fn=lambda s: "wifi_signal" in s.received_fields,
+                    enabled_default=False,
+                )
+            )
+
+        # App/device info sensors
+        if "APP_DEV_INFO" in coordinator.supported_dps:
+            entities.append(
+                RoboVacSensor(
+                    coordinator,
+                    "wifi_ssid",
+                    "WiFi SSID",
+                    lambda s: s.wifi_ssid or None,
+                    icon="mdi:wifi",
+                    category=EntityCategory.DIAGNOSTIC,
+                    availability_fn=lambda s: "wifi_ssid" in s.received_fields,
+                    enabled_default=False,
+                )
+            )
+
+            entities.append(
+                RoboVacSensor(
+                    coordinator,
+                    "wifi_ip",
+                    "IP Address",
+                    lambda s: s.wifi_ip or None,
+                    icon="mdi:ip-network",
+                    category=EntityCategory.DIAGNOSTIC,
+                    availability_fn=lambda s: "wifi_ip" in s.received_fields,
+                    enabled_default=False,
+                )
+            )
+
+        # Accessory sensors
+        if "ACCESSORIES_STATUS" in coordinator.supported_dps:
+            accessories = [
+                ("filter_usage", "Filter Remaining", "mdi:air-filter"),
+                ("main_brush_usage", "Rolling Brush Remaining", "mdi:broom"),
+                ("side_brush_usage", "Side Brush Remaining", "mdi:broom"),
+                ("sensor_usage", "Sensor Remaining", "mdi:eye-outline"),
+                ("scrape_usage", "Cleaning Tray Remaining", "mdi:wiper"),
+                ("mop_usage", "Mopping Cloth Remaining", "mdi:water"),
+            ]
+
+            for attr, name, icon in accessories:
+                def get_accessory_remaining(
+                    state: VacuumState, a: str = attr
+                ) -> int:
+                    usage = getattr(state.accessories, a) or 0
+                    max_life = ACCESSORY_MAX_LIFE.get(a, 0)
+                    return max(0, max_life - usage)
+
+                max_life_val = ACCESSORY_MAX_LIFE.get(attr, 0)
+
+                def get_attributes(
+                    state: VacuumState, a: str = attr, m: int = max_life_val
+                ) -> dict[str, Any]:
+                    usage = getattr(state.accessories, a) or 0
+                    return {
+                        "usage_hours": usage,
+                        "total_life_hours": m,
+                    }
+
+                entities.append(
+                    RoboVacSensor(
+                        coordinator,
+                        attr.replace("_usage", "_remaining"),
+                        name,
+                        get_accessory_remaining,
+                        device_class=SensorDeviceClass.DURATION,
+                        unit="h",
+                        state_class=SensorStateClass.MEASUREMENT,
+                        icon=icon,
+                        category=EntityCategory.DIAGNOSTIC,
+                        extra_state_attributes_fn=get_attributes,
+                        availability_fn=lambda s: "accessories"
+                        in s.received_fields,
+                    )
+                )
+
+        # Auto-generated sensors from DPS catalog
+        entities.extend(get_auto_sensors(coordinator))
 
     async_add_entities(entities)
 
@@ -416,35 +414,3 @@ class RoboVacSensor(CoordinatorEntity[EufyCleanCoordinator], SensorEntity):
         if self._extra_attrs_fn:
             return self._extra_attrs_fn(self.coordinator.data)
         return None
-
-
-class BatterySensorEntity(CoordinatorEntity[EufyCleanCoordinator], SensorEntity):
-    """Dedicated battery sensor entity for Matter Bridge compatibility.
-
-    Matter Bridges require devices that operate on battery power to explicitly
-    expose a dedicated battery sensor entity (device_class=battery) rather than
-    just exposing the battery level as a state attribute on the Vacuum entity.
-    """
-
-    _attr_has_entity_name = True
-    _attr_name = "Battery"
-    _attr_icon = "mdi:battery"
-    _attr_device_class = SensorDeviceClass.BATTERY
-    _attr_native_unit_of_measurement = PERCENTAGE
-    _attr_state_class = SensorStateClass.MEASUREMENT
-
-    def __init__(self, coordinator: EufyCleanCoordinator) -> None:
-        """Initialize the battery sensor."""
-        super().__init__(coordinator)
-        self._attr_unique_id = f"{coordinator.device_id}_battery"
-        self._attr_device_info = coordinator.device_info
-
-    @property
-    def native_value(self) -> int | None:
-        """Return the battery level, or None if not yet received."""
-        if "battery_level" not in self.coordinator.data.received_fields:
-            return None
-        battery = self.coordinator.data.battery_level
-        if battery is None or battery < 0:
-            return None
-        return battery

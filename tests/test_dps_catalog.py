@@ -337,3 +337,82 @@ def test_primary_entity_category_none_from_override():
     assert len(entities) == 1
     # PRIMARY entities must NOT have _attr_entity_category set to CONFIGURATION
     assert not hasattr(entities[0], '_attr_entity_category') or entities[0]._attr_entity_category is None
+
+
+def test_get_auto_binary_sensors_creates_for_bool_ro():
+    from custom_components.robovac_mqtt.auto_entities import get_auto_binary_sensors
+    coord = _make_coordinator([{"dp_id": 200, "code": "dust_full", "data_type": "Bool", "mode": "ro"}])
+    entities = get_auto_binary_sensors(coord)
+    assert len(entities) == 1
+    assert entities[0]._dp_id == "200"
+    assert entities[0]._attr_name == "Dust Full"
+
+
+# ── T4: coordinator DPS catalog integration tests ────────────────────────────
+
+
+def test_coordinator_builds_dps_map_from_catalog():
+    from unittest.mock import MagicMock
+    from custom_components.robovac_mqtt.coordinator import EufyCleanCoordinator
+
+    catalog = [{"dp_id": 158, "code": "suction_level", "data_type": "Enum", "mode": "rw"}]
+    device_info = {
+        "deviceId": "test_id",
+        "deviceModel": "T2351",
+        "deviceName": "Test Vac",
+        "dps_catalog": catalog,
+    }
+    coord = EufyCleanCoordinator(MagicMock(), MagicMock(), device_info)
+    assert coord.dps_map["CLEAN_SPEED"] == "158"
+
+
+def test_coordinator_defaults_without_catalog():
+    from unittest.mock import MagicMock
+    from custom_components.robovac_mqtt.const import DEFAULT_DPS_MAP
+    from custom_components.robovac_mqtt.coordinator import EufyCleanCoordinator
+
+    device_info = {
+        "deviceId": "test_id",
+        "deviceModel": "T2351",
+        "deviceName": "Test Vac",
+    }
+    coord = EufyCleanCoordinator(MagicMock(), MagicMock(), device_info)
+    assert coord.dps_map == DEFAULT_DPS_MAP
+
+
+def test_coordinator_catalog_types_from_catalog():
+    from unittest.mock import MagicMock
+    from custom_components.robovac_mqtt.coordinator import EufyCleanCoordinator
+
+    catalog = [
+        {"dp_id": 163, "code": "bat_level", "data_type": "Value", "mode": "ro"},
+        {"dp_id": 159, "code": "boost_iq", "data_type": "Bool", "mode": "rw"},
+    ]
+    device_info = {
+        "deviceId": "test_id",
+        "deviceModel": "T2351",
+        "deviceName": "Test Vac",
+        "dps_catalog": catalog,
+    }
+    coord = EufyCleanCoordinator(MagicMock(), MagicMock(), device_info)
+    assert coord.catalog_types["163"] == "Value"
+    assert coord.catalog_types["159"] == "Bool"
+
+
+def test_coordinator_shutdown_cancels_catalog_timer():
+    from unittest.mock import MagicMock
+    from custom_components.robovac_mqtt.coordinator import EufyCleanCoordinator
+
+    device_info = {
+        "deviceId": "test_id",
+        "deviceModel": "T2351",
+        "deviceName": "Test Vac",
+    }
+    coord = EufyCleanCoordinator(MagicMock(), MagicMock(), device_info)
+    mock_cancel = MagicMock()
+    coord._catalog_refresh_cancel = mock_cancel
+
+    coord.async_shutdown_timers()
+
+    mock_cancel.assert_called_once()
+    assert coord._catalog_refresh_cancel is None

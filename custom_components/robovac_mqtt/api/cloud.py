@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from ..const import DPS_MAP
+from ..const import DEFAULT_DPS_MAP
 from .http import EufyHTTPClient
 
 _LOGGER = logging.getLogger(__name__)
@@ -46,19 +46,41 @@ class EufyLogin:
 
     async def getDevices(self) -> None:
         self.eufy_api_devices = await self.eufyApi.get_cloud_device_list()
-        devices = await self.eufyApi.get_device_list()
-        devices = [
-            {
-                **self.findModel(device["device_sn"]),
+        raw_devices = await self.eufyApi.get_device_list()
+
+        product_codes: set[str] = set()
+        device_models: dict[str, str] = {}
+        for device in raw_devices:
+            model_info = self.findModel(device["device_sn"])
+            if not model_info["invalid"]:
+                code = model_info["deviceModel"]
+                if code:
+                    product_codes.add(code)
+                    device_models[device["device_sn"]] = code
+
+        catalogs: dict[str, list] = {}
+        for code in product_codes:
+            try:
+                catalogs[code] = await self.eufyApi.get_product_data_points(code)
+            except Exception:
+                catalogs[code] = []
+
+        devices = []
+        for device in raw_devices:
+            sn = device["device_sn"]
+            model_info = self.findModel(sn)
+            product_code = device_models.get(sn, "")
+            devices.append({
+                **model_info,
                 "apiType": self.checkApiType(device.get("dps", {})),
                 "mqtt": True,
                 "dps": device.get("dps", {}),
                 "softVersion": device.get("main_sw_version")
-                or device.get("soft_version")
-                or "",
-            }
-            for device in devices
-        ]
+                    or device.get("soft_version")
+                    or "",
+                "dps_catalog": catalogs.get(product_code, []),
+            })
+
         self.mqtt_devices = [d for d in devices if not d["invalid"]]
 
     async def getMqttDevice(self, deviceId: str):
@@ -67,7 +89,7 @@ class EufyLogin:
 
     @staticmethod
     def checkApiType(dps: dict):
-        if any(k in dps for k in DPS_MAP.values()):
+        if any(k in dps for k in DEFAULT_DPS_MAP.values()):
             return "novel"
         return "legacy"
 

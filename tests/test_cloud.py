@@ -107,3 +107,84 @@ def test_find_model_empty_product_code():
     assert result["deviceModel"] == "T2210"
     assert result["deviceName"] == "Kitchen Vacuum"
     assert result["invalid"] is False
+
+
+def _cloud_device(device_id, product_code="T2351xxx", name="X10 Pro"):
+    return {
+        "id": device_id,
+        "product": {"product_code": product_code, "name": name},
+        "alias_name": f"Vacuum {device_id}",
+        "device_model": product_code[:5],
+    }
+
+
+def _raw_device(device_sn, dps=None):
+    return {"device_sn": device_sn, "dps": dps or {}, "main_sw_version": "1.0.0"}
+
+
+@pytest.mark.asyncio
+async def test_get_devices_includes_dps_catalog():
+    login = _make_login(
+        eufy_api_devices=[_cloud_device("DEV001")],
+    )
+    catalog_data = [{"dp_id": "153", "dp_code": "work_status"}]
+    login.eufyApi.get_cloud_device_list = AsyncMock(
+        return_value=[_cloud_device("DEV001")]
+    )
+    login.eufyApi.get_device_list = AsyncMock(
+        return_value=[_raw_device("DEV001")]
+    )
+    login.eufyApi.get_product_data_points = AsyncMock(return_value=catalog_data)
+
+    await login.getDevices()
+
+    assert len(login.mqtt_devices) == 1
+    assert login.mqtt_devices[0]["dps_catalog"] == catalog_data
+
+
+@pytest.mark.asyncio
+async def test_get_devices_caches_catalog_per_product_code():
+    login = _make_login(
+        eufy_api_devices=[
+            _cloud_device("DEV001", product_code="T2351xxx"),
+            _cloud_device("DEV002", product_code="T2351xxx"),
+        ],
+    )
+    login.eufyApi.get_cloud_device_list = AsyncMock(
+        return_value=[
+            _cloud_device("DEV001", product_code="T2351xxx"),
+            _cloud_device("DEV002", product_code="T2351xxx"),
+        ]
+    )
+    login.eufyApi.get_device_list = AsyncMock(
+        return_value=[_raw_device("DEV001"), _raw_device("DEV002")]
+    )
+    login.eufyApi.get_product_data_points = AsyncMock(return_value=[{"dp_id": "153"}])
+
+    await login.getDevices()
+
+    login.eufyApi.get_product_data_points.assert_called_once_with("T2351")
+    assert len(login.mqtt_devices) == 2
+    assert login.mqtt_devices[0]["dps_catalog"] == [{"dp_id": "153"}]
+    assert login.mqtt_devices[1]["dps_catalog"] == [{"dp_id": "153"}]
+
+
+@pytest.mark.asyncio
+async def test_get_devices_catalog_failure_fallback():
+    login = _make_login(
+        eufy_api_devices=[_cloud_device("DEV001")],
+    )
+    login.eufyApi.get_cloud_device_list = AsyncMock(
+        return_value=[_cloud_device("DEV001")]
+    )
+    login.eufyApi.get_device_list = AsyncMock(
+        return_value=[_raw_device("DEV001")]
+    )
+    login.eufyApi.get_product_data_points = AsyncMock(
+        side_effect=Exception("API error")
+    )
+
+    await login.getDevices()
+
+    assert len(login.mqtt_devices) == 1
+    assert login.mqtt_devices[0]["dps_catalog"] == []

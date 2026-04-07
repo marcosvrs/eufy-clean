@@ -115,6 +115,7 @@ class DockNumberEntity(CoordinatorEntity[EufyCleanCoordinator], NumberEntity):
 
         self._attr_device_info = coordinator.device_info
         self._attr_entity_category = EntityCategory.CONFIG
+        self._attr_entity_registry_enabled_default = False
         self._attr_entity_registry_visible_default = False
 
     @property

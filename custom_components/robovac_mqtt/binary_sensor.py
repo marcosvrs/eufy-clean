@@ -107,6 +107,7 @@ class RoboVacBinarySensor(CoordinatorEntity[EufyCleanCoordinator], BinarySensorE
         self._attr_device_info = coordinator.device_info
         self._attr_device_class = device_class
         self._attr_entity_category = category
+        self._attr_entity_registry_enabled_default = availability_fn is None
         self._attr_entity_registry_visible_default = False
 
     @property

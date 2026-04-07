@@ -110,9 +110,9 @@ async def async_setup_entry(
         )
 
         entities.append(
-            RoboVacSensor(
-                coordinator,
-                "active_cleaning_target",
+                RoboVacSensor(
+                    coordinator,
+                    "active_cleaning_target",
                 "Active Cleaning Target",
                 _active_rooms_value,
                 device_class=None,
@@ -120,10 +120,11 @@ async def async_setup_entry(
                 state_class=None,
                 icon="mdi:floor-plan",
                 category=EntityCategory.DIAGNOSTIC,
-                availability_fn=_active_rooms_available,
-                extra_state_attributes_fn=lambda s: {
-                    "room_ids": s.active_room_ids,
-                    "scene_id": s.current_scene_id,
+                    availability_fn=_active_rooms_available,
+                    enabled_default=True,
+                    extra_state_attributes_fn=lambda s: {
+                        "room_ids": s.active_room_ids,
+                        "scene_id": s.current_scene_id,
                     "scene_name": s.current_scene_name,
                     "zone_count": s.active_zone_count,
                 },
@@ -683,7 +684,9 @@ class RoboVacSensor(CoordinatorEntity[EufyCleanCoordinator], SensorEntity):
         # Result: sensor.robovac_water_level (Safer, avoids collisions)
         self._attr_has_entity_name = True
         self._attr_name = name_suffix
-        self._attr_entity_registry_enabled_default = enabled_default
+        self._attr_entity_registry_enabled_default = (
+            enabled_default if availability_fn is None else False
+        )
         self._attr_entity_registry_visible_default = False
 
         self._attr_device_info = coordinator.device_info

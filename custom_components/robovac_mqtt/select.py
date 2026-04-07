@@ -382,6 +382,7 @@ class _StateBackedSelectEntity(CoordinatorEntity[EufyCleanCoordinator], SelectEn
         super().__init__(coordinator)
         self._attr_unique_id = f"{coordinator.device_id}_{unique_id_suffix}"
         self._attr_device_info = coordinator.device_info
+        self._attr_entity_registry_enabled_default = self._available_field is None
         self._attr_entity_registry_visible_default = False
 
     @property

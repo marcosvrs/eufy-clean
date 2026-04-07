@@ -195,6 +195,7 @@ class ChildLockSwitchEntity(CoordinatorEntity[EufyCleanCoordinator], SwitchEntit
         self._attr_icon = "mdi:lock-outline"
         self._attr_entity_category = EntityCategory.CONFIG
         self._attr_device_info = coordinator.device_info
+        self._attr_entity_registry_enabled_default = False
         self._attr_entity_registry_visible_default = False
 
     @property
@@ -238,6 +239,7 @@ class DoNotDisturbSwitchEntity(CoordinatorEntity[EufyCleanCoordinator], SwitchEn
         self._attr_icon = "mdi:minus-circle-off-outline"
         self._attr_entity_category = EntityCategory.CONFIG
         self._attr_device_info = coordinator.device_info
+        self._attr_entity_registry_enabled_default = False
         self._attr_entity_registry_visible_default = False
 
     @property
@@ -293,6 +295,7 @@ class SmartModeSwitchEntity(CoordinatorEntity[EufyCleanCoordinator], SwitchEntit
         self._attr_icon = "mdi:brain"
         self._attr_entity_category = EntityCategory.CONFIG
         self._attr_device_info = coordinator.device_info
+        self._attr_entity_registry_enabled_default = False
         self._attr_entity_registry_visible_default = False
 
     @property
@@ -341,6 +344,7 @@ class UnisettingSwitch(CoordinatorEntity[EufyCleanCoordinator], SwitchEntity):
         self._attr_icon = icon
         self._attr_entity_category = EntityCategory.CONFIG
         self._attr_device_info = coordinator.device_info
+        self._attr_entity_registry_enabled_default = False
         self._attr_entity_registry_visible_default = False
 
     @property
@@ -377,6 +381,7 @@ class MediaRecordingSwitchEntity(CoordinatorEntity[EufyCleanCoordinator], Switch
         self._attr_icon = "mdi:record-rec"
         self._attr_entity_category = EntityCategory.CONFIG
         self._attr_device_info = coordinator.device_info
+        self._attr_entity_registry_enabled_default = False
         self._attr_entity_registry_visible_default = False
 
     @property

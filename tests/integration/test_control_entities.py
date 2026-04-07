@@ -32,6 +32,12 @@ def _enable_all_entities(coordinator) -> None:
         },
         received_fields=coordinator.data.received_fields
         | {"child_lock", "do_not_disturb", "fan_speed", "dock_status"},
+        dynamic_values={
+            **coordinator.data.dynamic_values,
+            "158": 1,
+            "159": False,
+            "160": False,
+        },
         rooms=[{"id": 1, "name": "Kitchen"}, {"id": 2, "name": "Bedroom"}],
         scenes=[{"id": 5, "name": "Full Clean"}],
         fan_speed="Standard",

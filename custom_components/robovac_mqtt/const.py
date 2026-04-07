@@ -538,6 +538,7 @@ DEFAULT_DPS_MAP = {
     "UNDISTURBED": "157",
     "BOOST_IQ": "159",
     "VOLUME": "161",
+    "POWER": "151",
 }
 DPS_MAP = DEFAULT_DPS_MAP  # backward-compatible alias
 
@@ -547,6 +548,7 @@ CLOUD_CODE_TO_FUNC: dict[str, list[str]] = {
     "clean_params": ["CLEANING_PARAMETERS"],
     "remote_ctrl": ["REMOTE_CTRL"],
     "pause_job": ["PAUSE_JOB"],
+    "power": ["POWER"],
     "dnd": ["UNDISTURBED"],
     "suction_level": ["CLEAN_SPEED"],
     "boost_iq": ["BOOST_IQ"],

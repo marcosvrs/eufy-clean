@@ -577,7 +577,7 @@ def _process_other_dps(
                         new_dynamic = dict(changes.get("dynamic_values", state.dynamic_values))
                         new_dynamic[key] = parsed_val
                         changes["dynamic_values"] = new_dynamic
-                    elif dtype in ("Value", "Enum"):
+                    elif dtype == "Value":
                         try:
                             parsed_val = int(value) if isinstance(value, str) else value
                             new_dynamic = dict(changes.get("dynamic_values", state.dynamic_values))
@@ -585,6 +585,14 @@ def _process_other_dps(
                             changes["dynamic_values"] = new_dynamic
                         except (ValueError, TypeError):
                             pass
+                    elif dtype == "Enum":
+                        try:
+                            parsed_val = int(value)
+                        except (ValueError, TypeError):
+                            parsed_val = value
+                        new_dynamic = dict(changes.get("dynamic_values", state.dynamic_values))
+                        new_dynamic[key] = parsed_val
+                        changes["dynamic_values"] = new_dynamic
                 else:
                     _LOGGER.debug(
                     "UNKNOWN_DPS | key=%s | value=%r | value_type=%s | catalog_type=%s | in_catalog=%s",
@@ -597,10 +605,12 @@ def _process_other_dps(
 
             elif key in KNOWN_UNPROCESSED_DPS:
                 _LOGGER.debug(
-                    "KNOWN_UNPROCESSED_DPS | key=%s | value=%r | value_type=%s",
+                    "KNOWN_UNPROCESSED_DPS | key=%s | value=%r | value_type=%s | value_len=%s | catalog_type=%s",
                     key,
                     value,
                     type(value).__name__,
+                    len(str(value)),
+                    catalog_types.get(key, "N/A") if catalog_types else "no_catalog",
                 )
 
             else:

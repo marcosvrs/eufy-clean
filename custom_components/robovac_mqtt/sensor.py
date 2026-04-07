@@ -136,7 +136,6 @@ async def async_setup_entry(
                 icon="mdi:crosshairs-gps",
                 category=EntityCategory.DIAGNOSTIC,
                 availability_fn=lambda s: "robot_position" in s.received_fields,
-                enabled_default=False,
             )
         )
 
@@ -150,7 +149,6 @@ async def async_setup_entry(
                 icon="mdi:crosshairs-gps",
                 category=EntityCategory.DIAGNOSTIC,
                 availability_fn=lambda s: "robot_position" in s.received_fields,
-                enabled_default=False,
             )
         )
 
@@ -259,7 +257,6 @@ async def async_setup_entry(
                     icon="mdi:wifi",
                     category=EntityCategory.DIAGNOSTIC,
                     availability_fn=lambda s: "wifi_signal" in s.received_fields,
-                    enabled_default=False,
                 )
             )
 
@@ -274,7 +271,6 @@ async def async_setup_entry(
                     icon="mdi:wifi",
                     category=EntityCategory.DIAGNOSTIC,
                     availability_fn=lambda s: "wifi_ssid" in s.received_fields,
-                    enabled_default=False,
                 )
             )
 
@@ -287,7 +283,6 @@ async def async_setup_entry(
                     icon="mdi:ip-network",
                     category=EntityCategory.DIAGNOSTIC,
                     availability_fn=lambda s: "wifi_ip" in s.received_fields,
-                    enabled_default=False,
                 )
             )
 

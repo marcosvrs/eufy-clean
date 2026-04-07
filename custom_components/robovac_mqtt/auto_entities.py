@@ -210,31 +210,38 @@ class AutoSelect(_AutoEntityBase, SelectEntity):
         self._reverse_map: dict[str, int] = {
             v: k for k, v in self._options_map.items()
         }
+        self._label_set: set[str] = set(self._options_map.values())
         self._attr_options = list(self._options_map.values())
 
     @property
     def current_option(self) -> str | None:
-        """Return currently selected option."""
         val = self.coordinator.data.dynamic_values.get(self._dp_id)
         if val is None:
             return None
+        if isinstance(val, int):
+            return self._options_map.get(val)
+        val_str = str(val)
+        if val_str in self._label_set:
+            return val_str
         try:
-            return self._options_map.get(int(val))
+            return self._options_map.get(int(val_str))
         except (ValueError, TypeError):
             return None
 
     async def async_select_option(self, option: str) -> None:
-        """Select an option."""
         int_val = self._reverse_map.get(option)
-        if int_val is None:
-            _LOGGER.warning("Unknown option %r for %s", option, self._cloud_code)
-            return
+        if int_val is not None:
+            send_val: Any = str(int_val)
+            store_val: Any = int_val
+        else:
+            send_val = option
+            store_val = option
         from .api.commands import build_command
 
         await self.coordinator.async_send_command(
-            build_command("generic", dp_id=self._dp_id, value=str(int_val))
+            build_command("generic", dp_id=self._dp_id, value=send_val)
         )
-        new_dv = {**self.coordinator.data.dynamic_values, self._dp_id: int_val}
+        new_dv = {**self.coordinator.data.dynamic_values, self._dp_id: store_val}
         self.coordinator.async_set_updated_data(
             replace(self.coordinator.data, dynamic_values=new_dv)
         )

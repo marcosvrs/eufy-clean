@@ -689,7 +689,6 @@ async def test_binary_sensor_setup_includes_auto_binary_sensors():
 
 @pytest.mark.asyncio
 async def test_binary_sensor_charging_always_created():
-    """Charging binary sensor is NOT gated — always created."""
     from unittest.mock import MagicMock
     from custom_components.robovac_mqtt.binary_sensor import async_setup_entry
     from custom_components.robovac_mqtt.const import DOMAIN
@@ -734,9 +733,8 @@ async def test_time_gating_excludes_dnd_without_undisturbed():
 
 
 def test_volume_number_entity_removed():
-    """VolumeNumberEntity class must not exist anymore."""
     try:
         from custom_components.robovac_mqtt.number import VolumeNumberEntity  # noqa: F401
         raise AssertionError("VolumeNumberEntity still exists — should have been removed")
     except ImportError:
-        pass  # Expected: class removed
+        pass

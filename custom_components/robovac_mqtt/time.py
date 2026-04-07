@@ -26,8 +26,9 @@ async def async_setup_entry(
 
     entities = []
     for coordinator in coordinators:
-        entities.append(DoNotDisturbStartTimeEntity(coordinator))
-        entities.append(DoNotDisturbEndTimeEntity(coordinator))
+        if "UNDISTURBED" in coordinator.supported_dps:
+            entities.append(DoNotDisturbStartTimeEntity(coordinator))
+            entities.append(DoNotDisturbEndTimeEntity(coordinator))
 
     async_add_entities(entities)
 

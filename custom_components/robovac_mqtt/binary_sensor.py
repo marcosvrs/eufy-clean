@@ -13,6 +13,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
+from .auto_entities import get_auto_binary_sensors
 from .const import DOMAIN
 from .coordinator import EufyCleanCoordinator, VacuumState
 
@@ -42,6 +43,8 @@ async def async_setup_entry(
                 device_class=BinarySensorDeviceClass.BATTERY_CHARGING,
             )
         )
+
+        entities.extend(get_auto_binary_sensors(coordinator))
 
     async_add_entities(entities)
 

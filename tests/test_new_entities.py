@@ -1,5 +1,5 @@
 """Unit tests for entities: waste_water sensor, carpet_strategy select,
-corner_cleaning select, smart_mode switch, volume number."""
+corner_cleaning select, smart_mode switch."""
 
 from dataclasses import replace
 from unittest.mock import AsyncMock, MagicMock
@@ -25,7 +25,6 @@ from custom_components.robovac_mqtt.const import (
 )
 from custom_components.robovac_mqtt.coordinator import EufyCleanCoordinator
 from custom_components.robovac_mqtt.models import VacuumState
-from custom_components.robovac_mqtt.number import VolumeNumberEntity
 from custom_components.robovac_mqtt.select import (
     CarpetStrategySelectEntity,
     CornerCleaningSelectEntity,
@@ -241,49 +240,6 @@ async def test_smart_mode_switch_turn_off(mock_coordinator):
     mock_coordinator.async_send_command.assert_called_once()
     cmd = mock_coordinator.async_send_command.call_args[0][0]
     assert DPS_MAP["CLEANING_PARAMETERS"] in cmd
-
-
-# ---------------------------------------------------------------------------
-# Volume Number Entity
-# ---------------------------------------------------------------------------
-
-
-def test_volume_number_value(mock_coordinator):
-    mock_coordinator.data = replace(
-        mock_coordinator.data,
-        volume=75,
-        received_fields={"volume"},
-    )
-    entity = VolumeNumberEntity(mock_coordinator)
-
-    assert entity.native_value == 75
-    assert entity.available is True
-    assert entity.native_min_value == 0
-    assert entity.native_max_value == 100
-    assert entity.native_step == 1
-
-
-def test_volume_number_unavailable_without_field(mock_coordinator):
-    entity = VolumeNumberEntity(mock_coordinator)
-
-    assert entity.available is False
-
-
-@pytest.mark.asyncio
-async def test_volume_number_set_value(mock_coordinator):
-    mock_coordinator.data = replace(
-        mock_coordinator.data,
-        volume=50,
-        received_fields={"volume"},
-    )
-    entity = VolumeNumberEntity(mock_coordinator)
-
-    await entity.async_set_native_value(80)
-
-    mock_coordinator.async_send_command.assert_called_once()
-    cmd = mock_coordinator.async_send_command.call_args[0][0]
-    assert DPS_MAP["VOLUME"] in cmd
-    assert cmd[DPS_MAP["VOLUME"]] == 80
 
 
 # ---------------------------------------------------------------------------

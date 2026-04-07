@@ -578,3 +578,165 @@ async def test_switch_setup_includes_auto_switches():
     codes = {e._cloud_code for e in auto_switches}
     assert "boost_iq" in codes
     assert "calling_robot" in codes
+
+
+# ── T9: number / button / binary-sensor / time gating tests ───────────────────
+
+
+@pytest.mark.asyncio
+async def test_auto_numbers_added_to_number_setup():
+    from unittest.mock import MagicMock
+    from custom_components.robovac_mqtt.auto_entities import AutoNumber
+    from custom_components.robovac_mqtt.const import DEFAULT_DPS_MAP, DOMAIN
+    from custom_components.robovac_mqtt.models import VacuumState
+    from custom_components.robovac_mqtt.number import async_setup_entry
+    coord = MagicMock()
+    coord.device_id = "test_dev"
+    coord.device_info = {}
+    coord.device_name = "Test Vac"
+    coord.data = VacuumState()
+    coord.supported_dps = frozenset(DEFAULT_DPS_MAP.keys())
+    coord.dps_catalog = {
+        "161": {"dp_id": 161, "code": "volume", "data_type": "Value", "mode": "rw"}
+    }
+    hass = MagicMock()
+    config_entry = MagicMock()
+    config_entry.entry_id = "test_entry"
+    hass.data = {DOMAIN: {config_entry.entry_id: {"coordinators": [coord]}}}
+    added = []
+    await async_setup_entry(hass, config_entry, lambda ents: added.extend(ents))
+    auto_numbers = [e for e in added if isinstance(e, AutoNumber)]
+    assert len(auto_numbers) >= 1
+    assert any(e._cloud_code == "volume" for e in auto_numbers)
+
+
+@pytest.mark.asyncio
+async def test_dock_buttons_gated_when_station_status_missing():
+    from unittest.mock import MagicMock
+    from custom_components.robovac_mqtt.button import async_setup_entry
+    from custom_components.robovac_mqtt.const import DOMAIN
+    from custom_components.robovac_mqtt.models import VacuumState
+    coord = MagicMock()
+    coord.device_id = "test_dev"
+    coord.device_info = {}
+    coord.device_name = "Test Vac"
+    coord.data = VacuumState()
+    coord.supported_dps = frozenset({"PLAY_PAUSE", "WORK_STATUS", "BATTERY_LEVEL"})
+    coord.dps_catalog = {}
+    hass = MagicMock()
+    config_entry = MagicMock()
+    config_entry.entry_id = "test_entry"
+    hass.data = {DOMAIN: {config_entry.entry_id: {"coordinators": [coord]}}}
+    added = []
+    await async_setup_entry(hass, config_entry, lambda ents: added.extend(ents))
+    unique_ids = [getattr(e, "_attr_unique_id", "") for e in added]
+    assert not any("wash" in uid or "dry" in uid or "dust" in uid for uid in unique_ids)
+
+
+@pytest.mark.asyncio
+async def test_accessory_reset_buttons_gated_when_accessories_missing():
+    from unittest.mock import MagicMock
+    from custom_components.robovac_mqtt.button import async_setup_entry
+    from custom_components.robovac_mqtt.const import DOMAIN
+    from custom_components.robovac_mqtt.models import VacuumState
+
+    coord = MagicMock()
+    coord.device_id = "test_dev"
+    coord.device_info = {}
+    coord.device_name = "Test Vac"
+    coord.data = VacuumState()
+    coord.supported_dps = frozenset({"PLAY_PAUSE", "WORK_STATUS", "STATION_STATUS"})
+    coord.dps_catalog = {}
+    hass = MagicMock()
+    config_entry = MagicMock()
+    config_entry.entry_id = "test_entry"
+    hass.data = {DOMAIN: {config_entry.entry_id: {"coordinators": [coord]}}}
+    added = []
+    await async_setup_entry(hass, config_entry, lambda ents: added.extend(ents))
+    unique_ids = [getattr(e, "_attr_unique_id", "") for e in added]
+    # Dock buttons should exist (STATION_STATUS present)
+    assert any("wash" in uid or "dry" in uid or "dust" in uid for uid in unique_ids)
+    # Accessory resets should NOT exist (ACCESSORIES_STATUS missing)
+    assert not any("reset" in uid for uid in unique_ids)
+
+
+@pytest.mark.asyncio
+async def test_binary_sensor_setup_includes_auto_binary_sensors():
+    from unittest.mock import MagicMock
+    from custom_components.robovac_mqtt.auto_entities import AutoBinarySensor
+    from custom_components.robovac_mqtt.binary_sensor import async_setup_entry
+    from custom_components.robovac_mqtt.const import DOMAIN
+    from custom_components.robovac_mqtt.models import VacuumState
+
+    coord = MagicMock()
+    coord.device_id = "test_dev"
+    coord.device_info = {}
+    coord.device_name = "Test Vac"
+    coord.data = VacuumState()
+    coord.dps_catalog = {
+        "200": {"dp_id": 200, "code": "dust_full", "data_type": "Bool", "mode": "ro"},
+    }
+    hass = MagicMock()
+    config_entry = MagicMock()
+    config_entry.entry_id = "test_entry"
+    hass.data = {DOMAIN: {config_entry.entry_id: {"coordinators": [coord]}}}
+    added = []
+    await async_setup_entry(hass, config_entry, lambda ents: added.extend(ents))
+    auto_bs = [e for e in added if isinstance(e, AutoBinarySensor)]
+    assert len(auto_bs) >= 1
+    assert any(e._cloud_code == "dust_full" for e in auto_bs)
+
+
+@pytest.mark.asyncio
+async def test_binary_sensor_charging_always_created():
+    """Charging binary sensor is NOT gated — always created."""
+    from unittest.mock import MagicMock
+    from custom_components.robovac_mqtt.binary_sensor import async_setup_entry
+    from custom_components.robovac_mqtt.const import DOMAIN
+    from custom_components.robovac_mqtt.models import VacuumState
+
+    coord = MagicMock()
+    coord.device_id = "test_dev"
+    coord.device_info = {}
+    coord.device_name = "Test Vac"
+    coord.data = VacuumState()
+    coord.dps_catalog = {}
+    hass = MagicMock()
+    config_entry = MagicMock()
+    config_entry.entry_id = "test_entry"
+    hass.data = {DOMAIN: {config_entry.entry_id: {"coordinators": [coord]}}}
+    added = []
+    await async_setup_entry(hass, config_entry, lambda ents: added.extend(ents))
+    unique_ids = [getattr(e, "_attr_unique_id", "") for e in added]
+    assert any("charging" in uid for uid in unique_ids)
+
+
+@pytest.mark.asyncio
+async def test_time_gating_excludes_dnd_without_undisturbed():
+    from unittest.mock import MagicMock
+    from custom_components.robovac_mqtt.const import DOMAIN
+    from custom_components.robovac_mqtt.models import VacuumState
+    from custom_components.robovac_mqtt.time import async_setup_entry
+
+    coord = MagicMock()
+    coord.device_id = "test_dev"
+    coord.device_info = {}
+    coord.device_name = "Test Vac"
+    coord.data = VacuumState()
+    coord.supported_dps = frozenset({"PLAY_PAUSE", "WORK_STATUS"})
+    hass = MagicMock()
+    config_entry = MagicMock()
+    config_entry.entry_id = "test_entry"
+    hass.data = {DOMAIN: {config_entry.entry_id: {"coordinators": [coord]}}}
+    added = []
+    await async_setup_entry(hass, config_entry, lambda ents: added.extend(ents))
+    assert len(added) == 0
+
+
+def test_volume_number_entity_removed():
+    """VolumeNumberEntity class must not exist anymore."""
+    try:
+        from custom_components.robovac_mqtt.number import VolumeNumberEntity  # noqa: F401
+        raise AssertionError("VolumeNumberEntity still exists — should have been removed")
+    except ImportError:
+        pass  # Expected: class removed

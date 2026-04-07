@@ -32,64 +32,66 @@ async def async_setup_entry(
     for coordinator in coordinators:
         _LOGGER.debug("Adding buttons for %s", coordinator.device_name)
 
-        entities.extend(
-            [
-                RoboVacButton(coordinator, "Dry Mop", "_dry_mop", "go_dry"),
-                RoboVacButton(coordinator, "Wash Mop", "_wash_mop", "go_selfcleaning"),
-                RoboVacButton(
-                    coordinator, "Empty Dust Bin", "_empty_dust_bin", "collect_dust"
-                ),
-                RoboVacButton(coordinator, "Stop Dry Mop", "_stop_dry_mop", "stop_dry"),
-            ]
-        )
+        if "STATION_STATUS" in coordinator.supported_dps:
+            entities.extend(
+                [
+                    RoboVacButton(coordinator, "Dry Mop", "_dry_mop", "go_dry"),
+                    RoboVacButton(coordinator, "Wash Mop", "_wash_mop", "go_selfcleaning"),
+                    RoboVacButton(
+                        coordinator, "Empty Dust Bin", "_empty_dust_bin", "collect_dust"
+                    ),
+                    RoboVacButton(coordinator, "Stop Dry Mop", "_stop_dry_mop", "stop_dry"),
+                ]
+            )
 
         # Accessory Reset Buttons
-        accessories = [
-            (
-                "Reset Filter",
-                "_reset_filter",
-                ConsumableRequest.FILTER_MESH,
-                "mdi:air-filter",
-            ),
-            (
-                "Reset Rolling Brush",
-                "_reset_main_brush",
-                ConsumableRequest.ROLLING_BRUSH,
-                "mdi:broom",
-            ),
-            (
-                "Reset Side Brush",
-                "_reset_side_brush",
-                ConsumableRequest.SIDE_BRUSH,
-                "mdi:broom",
-            ),
-            (
-                "Reset Sensors",
-                "_reset_sensors",
-                ConsumableRequest.SENSOR,
-                "mdi:eye-outline",
-            ),
-            (
-                "Reset Cleaning Tray",
-                "_reset_scrape",
-                ConsumableRequest.SCRAPE,
-                "mdi:wiper",
-            ),
-            ("Reset Mopping Cloth", "_reset_mop", ConsumableRequest.MOP, "mdi:water"),
-        ]
+        if "ACCESSORIES_STATUS" in coordinator.supported_dps:
+            accessories = [
+                (
+                    "Reset Filter",
+                    "_reset_filter",
+                    ConsumableRequest.FILTER_MESH,
+                    "mdi:air-filter",
+                ),
+                (
+                    "Reset Rolling Brush",
+                    "_reset_main_brush",
+                    ConsumableRequest.ROLLING_BRUSH,
+                    "mdi:broom",
+                ),
+                (
+                    "Reset Side Brush",
+                    "_reset_side_brush",
+                    ConsumableRequest.SIDE_BRUSH,
+                    "mdi:broom",
+                ),
+                (
+                    "Reset Sensors",
+                    "_reset_sensors",
+                    ConsumableRequest.SENSOR,
+                    "mdi:eye-outline",
+                ),
+                (
+                    "Reset Cleaning Tray",
+                    "_reset_scrape",
+                    ConsumableRequest.SCRAPE,
+                    "mdi:wiper",
+                ),
+                ("Reset Mopping Cloth", "_reset_mop", ConsumableRequest.MOP, "mdi:water"),
+            ]
 
-        for name, suffix, reset_type, icon in accessories:
-            entities.append(
-                RoboVacButton(
-                    coordinator,
-                    name,
-                    suffix,
-                    "reset_accessory",
-                    icon,
-                    category=EntityCategory.CONFIG,
-                    reset_type=reset_type,
+            for name, suffix, reset_type, icon in accessories:
+                entities.append(
+                    RoboVacButton(
+                        coordinator,
+                        name,
+                        suffix,
+                        "reset_accessory",
+                        icon,
+                        category=EntityCategory.CONFIG,
+                        reset_type=reset_type,
+                    )
                 )
-            )
 
     async_add_entities(entities)
 

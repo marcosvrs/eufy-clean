@@ -1,9 +1,13 @@
 from __future__ import annotations
 
 from enum import Enum
-from typing import Final
+from typing import Any, Final
 
 from .proto.cloud.clean_param_pb2 import CleanExtent, CleanType, MopMode
+
+import logging
+
+_LOGGER = logging.getLogger(__name__)
 
 DOMAIN: Final = "robovac_mqtt"
 VACS: Final = "vacs"
@@ -22,6 +26,9 @@ EUFY_API_DEVICE_LIST: Final = (
 EUFY_API_DEVICE_V2: Final = f"{EUFY_API_BASE_URL}/v1/device/v2"
 EUFY_API_MQTT_INFO: Final = (
     f"{EUFY_AIOT_API_BASE_URL}/app/devicemanage/get_user_mqtt_info"
+)
+EUFY_API_PRODUCT_DATA_POINT: Final = (
+    f"{EUFY_AIOT_API_BASE_URL}/app/things/get_product_data_point"
 )
 
 
@@ -505,7 +512,7 @@ MOP_LEVEL_MAP = {
 }
 
 
-DPS_MAP = {
+DEFAULT_DPS_MAP = {
     "PLAY_PAUSE": "152",
     "REMOTE_CTRL": "155",
     "WORK_MODE": "153",
@@ -532,6 +539,7 @@ DPS_MAP = {
     "BOOST_IQ": "159",
     "VOLUME": "161",
 }
+DPS_MAP = DEFAULT_DPS_MAP  # backward-compatible alias
 
 # DPS keys that are known but intentionally not parsed.
 # Values are already stored in raw_dps for diagnostics.

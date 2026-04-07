@@ -7,6 +7,7 @@ from datetime import timedelta
 from typing import Any
 
 from homeassistant.core import CALLBACK_TYPE, HomeAssistant, callback
+from homeassistant.helpers import device_registry as dr, entity_registry as er
 from homeassistant.helpers.device_registry import (
     CONNECTION_NETWORK_MAC,
     DeviceInfo,
@@ -146,6 +147,8 @@ class EufyCleanCoordinator(DataUpdateCoordinator[VacuumState]):
             await self.client.connect()
             await self.async_load_storage()
 
+            async_call_later(self.hass, 2.0, self._async_enable_new_entities_cb)
+
             if self._raw_catalog:
                 existing = await self._store.async_load() or {}
                 existing["dps_catalog"] = self._raw_catalog
@@ -244,6 +247,10 @@ class EufyCleanCoordinator(DataUpdateCoordinator[VacuumState]):
 
                 self.async_set_updated_data(state_to_publish)
 
+                # Auto-enable entities when device reports new fields
+                if "received_fields" in changes:
+                    self._async_enable_new_entities(state_to_publish)
+
                 # Check for segment changes if rooms were updated (debounced)
                 if "rooms" in changes:
                     if self._segment_update_cancel:
@@ -254,6 +261,32 @@ class EufyCleanCoordinator(DataUpdateCoordinator[VacuumState]):
 
         except Exception as e:
             _LOGGER.warning("Error handling MQTT message: %s", e)
+
+    @callback
+    def _async_enable_new_entities(self, state: VacuumState) -> None:
+        """Enable entities disabled by integration when the device reports new fields."""
+        ent_reg = er.async_get(self.hass)
+        dev_reg = dr.async_get(self.hass)
+
+        device_entry = dev_reg.async_get_device(identifiers={(DOMAIN, self.device_id)})
+        if not device_entry:
+            return
+
+        for entity_entry in er.async_entries_for_device(
+            ent_reg, device_entry.id, include_disabled_entities=True
+        ):
+            if entity_entry.disabled_by is er.RegistryEntryDisabler.INTEGRATION:
+                ent_reg.async_update_entity(
+                    entity_entry.entity_id, disabled_by=None
+                )
+                _LOGGER.info(
+                    "Auto-enabled %s (device reported new data)",
+                    entity_entry.entity_id,
+                )
+
+    @callback
+    def _async_enable_new_entities_cb(self, _now: Any) -> None:
+        self._async_enable_new_entities(self.data)
 
     @callback
     def _async_commit_dock_status(self, _now: Any) -> None:

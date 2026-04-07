@@ -626,6 +626,7 @@ DPS_ROBOT_TELEMETRY = "179"
 
 HANDLED_DPS_IDS: frozenset[str] = frozenset({
     DEFAULT_DPS_MAP["PLAY_PAUSE"],           # "152" - ModeCtrlRequest proto
+    DEFAULT_DPS_MAP["POWER"],                # "151" - restart button (send false)
     DEFAULT_DPS_MAP["WORK_STATUS"],          # "153" - WorkStatus proto
     DEFAULT_DPS_MAP["CLEANING_PARAMETERS"],  # "154" - CleanParam proto
     DEFAULT_DPS_MAP["UNDISTURBED"],          # "157" - UndisturbedRequest proto
@@ -675,12 +676,6 @@ AUTO_ENTITY_OVERRIDES: dict[str, dict[str, Any]] = {
         "max": 100,
         "step": 1,
         "enabled_default": True,
-    },
-    "power": {
-        "name": "Shutdown Robot",
-        "icon": "mdi:power",
-        "enabled_default": True,
-        "entity_category": None,
     },
     "remote_ctrl": {
         "name": "Remote Control",

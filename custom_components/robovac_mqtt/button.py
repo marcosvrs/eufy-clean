@@ -93,6 +93,10 @@ async def async_setup_entry(
                     )
                 )
 
+        entities.append(
+            RestartButton(coordinator)
+        )
+
     async_add_entities(entities)
 
 
@@ -128,3 +132,20 @@ class RoboVacButton(CoordinatorEntity[EufyCleanCoordinator], ButtonEntity):
         """Press the button."""
         cmd = build_command(self._command, **self._command_kwargs)
         await self.coordinator.async_send_command(cmd)
+
+
+class RestartButton(CoordinatorEntity[EufyCleanCoordinator], ButtonEntity):
+
+    def __init__(self, coordinator: EufyCleanCoordinator) -> None:
+        super().__init__(coordinator)
+        self._attr_has_entity_name = True
+        self._attr_unique_id = f"{coordinator.device_id}_restart"
+        self._attr_name = "Restart"
+        self._attr_icon = "mdi:restart"
+        self._attr_device_info = coordinator.device_info
+        self._attr_entity_category = None
+
+    async def async_press(self) -> None:
+        await self.coordinator.async_send_command(
+            build_command("generic", dp_id=self.coordinator.dps_map.get("POWER", "151"), value=False)
+        )

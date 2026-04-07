@@ -754,11 +754,9 @@ def test_156_not_in_known_unprocessed():
     from custom_components.robovac_mqtt.const import KNOWN_UNPROCESSED_DPS
     assert "156" not in KNOWN_UNPROCESSED_DPS
 
-def test_power_override_exists():
-    from custom_components.robovac_mqtt.const import AUTO_ENTITY_OVERRIDES
-    assert "power" in AUTO_ENTITY_OVERRIDES
-    assert AUTO_ENTITY_OVERRIDES["power"]["name"] == "Shutdown Robot"
-    assert AUTO_ENTITY_OVERRIDES["power"]["entity_category"] is None
+def test_power_in_handled_dps_ids():
+    from custom_components.robovac_mqtt.const import HANDLED_DPS_IDS
+    assert "151" in HANDLED_DPS_IDS
 
 def test_auto_select_parses_property_range():
     from custom_components.robovac_mqtt.auto_entities import get_auto_selects
@@ -842,8 +840,7 @@ def test_auto_switch_151_power_created():
         "property": "{}",
     }])
     entities = get_auto_switches(coord)
-    assert len(entities) == 1
-    assert entities[0]._attr_name == "Shutdown Robot"
+    assert len(entities) == 0
 
 def test_auto_switch_156_pause_created():
     from custom_components.robovac_mqtt.auto_entities import get_auto_switches

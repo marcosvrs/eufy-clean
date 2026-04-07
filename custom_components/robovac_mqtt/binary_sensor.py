@@ -44,6 +44,41 @@ async def async_setup_entry(
             )
         )
 
+        # WorkStatus binary sensors (T9, gated by received_fields)
+        for id_suffix, name, bs_field, icon in [
+            ("upgrading", "Upgrading", "upgrading", "mdi:update"),
+            ("relocating", "Relocating", "relocating", "mdi:crosshairs-gps"),
+            ("breakpoint_available", "Breakpoint Available", "breakpoint_available", "mdi:map-marker-check"),
+            ("roller_brush_cleaning", "Roller Brush Cleaning", "roller_brush_cleaning", "mdi:brush"),
+        ]:
+            entities.append(
+                RoboVacBinarySensor(
+                    coordinator,
+                    id_suffix,
+                    name,
+                    lambda s, f=bs_field: getattr(s, f),
+                    availability_fn=lambda s, f=bs_field: f in s.received_fields,
+                )
+            )
+
+        # Unistate binary sensors (T14)
+        if "UNSETTING" in coordinator.supported_dps:
+            for id_suffix, name, bs_field in [
+                ("mop_holder_l", "Mop Holder Left", "mop_holder_state_l"),
+                ("mop_holder_r", "Mop Holder Right", "mop_holder_state_r"),
+                ("map_valid", "Map Valid", "map_valid"),
+                ("live_map", "Live Map", "live_map_state_bits"),
+            ]:
+                entities.append(
+                    RoboVacBinarySensor(
+                        coordinator,
+                        id_suffix,
+                        name,
+                        lambda s, f=bs_field: getattr(s, f, False),
+                        availability_fn=lambda s, f=bs_field: f in s.received_fields,
+                    )
+                )
+
         entities.extend(get_auto_binary_sensors(coordinator))
 
     async_add_entities(entities)
@@ -72,6 +107,7 @@ class RoboVacBinarySensor(CoordinatorEntity[EufyCleanCoordinator], BinarySensorE
         self._attr_device_info = coordinator.device_info
         self._attr_device_class = device_class
         self._attr_entity_category = category
+        self._attr_entity_registry_visible_default = False
 
     @property
     def available(self) -> bool:

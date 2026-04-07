@@ -134,6 +134,7 @@ class RoboVacMQTTEntity(CoordinatorEntity[EufyCleanCoordinator], StateVacuumEnti
 
     _attr_has_entity_name = True
     _attr_name = None
+    _attr_entity_registry_visible_default = True
 
     def __init__(
         self, coordinator: EufyCleanCoordinator, config_entry: ConfigEntry | None = None

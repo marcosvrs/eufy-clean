@@ -93,9 +93,44 @@ async def async_setup_entry(
                     )
                 )
 
+        entities.extend(
+            [
+                RoboVacButton(
+                    coordinator, "Stop Return", "_stop_return", "stop_gohome",
+                    "mdi:home-off",
+                ),
+                RoboVacButton(
+                    coordinator, "Map Then Clean", "_map_then_clean",
+                    "mapping_then_clean", "mdi:map-plus",
+                ),
+                RoboVacButton(
+                    coordinator, "Global Cruise", "_global_cruise",
+                    "start_global_cruise", "mdi:map-marker-path",
+                ),
+                RoboVacButton(
+                    coordinator, "Stop Smart Follow", "_stop_smart_follow",
+                    "stop_smart_follow", "mdi:walk",
+                ),
+            ]
+        )
+
         entities.append(
             RestartButton(coordinator)
         )
+        entities.append(ResumeFromBreakpointButton(coordinator))
+
+        if "MEDIA_MANAGER" in coordinator.supported_dps:
+            entities.append(
+                RoboVacButton(
+                    coordinator, "Capture Photo", "_media_capture",
+                    "media_capture", "mdi:camera",
+                )
+            )
+
+        for direction in ("Forward", "Back", "Left", "Right", "Brake"):
+            entities.append(RCDirectionButton(coordinator, direction))
+        entities.append(RCModeButton(coordinator, enter=True))
+        entities.append(RCModeButton(coordinator, enter=False))
 
     async_add_entities(entities)
 
@@ -127,6 +162,7 @@ class RoboVacButton(CoordinatorEntity[EufyCleanCoordinator], ButtonEntity):
         self._attr_entity_category = category
         if icon:
             self._attr_icon = icon
+        self._attr_entity_registry_visible_default = False
 
     async def async_press(self) -> None:
         """Press the button."""
@@ -144,8 +180,83 @@ class RestartButton(CoordinatorEntity[EufyCleanCoordinator], ButtonEntity):
         self._attr_icon = "mdi:restart"
         self._attr_device_info = coordinator.device_info
         self._attr_entity_category = None
+        self._attr_entity_registry_visible_default = False
 
     async def async_press(self) -> None:
         await self.coordinator.async_send_command(
             build_command("generic", dp_id=self.coordinator.dps_map.get("POWER", "151"), value=False)
         )
+
+
+class ResumeFromBreakpointButton(CoordinatorEntity[EufyCleanCoordinator], ButtonEntity):
+
+    def __init__(self, coordinator: EufyCleanCoordinator) -> None:
+        super().__init__(coordinator)
+        self._attr_has_entity_name = True
+        self._attr_unique_id = f"{coordinator.device_id}_resume_from_breakpoint"
+        self._attr_name = "Resume from Breakpoint"
+        self._attr_icon = "mdi:play-circle"
+        self._attr_device_info = coordinator.device_info
+        self._attr_entity_category = EntityCategory.CONFIG
+        self._attr_entity_registry_visible_default = False
+
+    async def async_press(self) -> None:
+        await self.coordinator.async_send_command(
+            build_command("generic", dp_id=self.coordinator.dps_map.get("PAUSE_JOB", "156"), value=True)
+        )
+
+
+_RC_DIRECTION_ICONS = {
+    "Forward": "mdi:arrow-up",
+    "Back": "mdi:arrow-down",
+    "Left": "mdi:arrow-left",
+    "Right": "mdi:arrow-right",
+    "Brake": "mdi:stop",
+}
+
+
+class RCDirectionButton(CoordinatorEntity[EufyCleanCoordinator], ButtonEntity):
+
+    def __init__(self, coordinator: EufyCleanCoordinator, direction: str) -> None:
+        super().__init__(coordinator)
+        self._direction = direction
+        self._attr_has_entity_name = True
+        self._attr_unique_id = f"{coordinator.device_id}_rc_{direction.lower()}"
+        self._attr_name = f"RC {direction}"
+        self._attr_icon = _RC_DIRECTION_ICONS.get(direction, "mdi:gamepad")
+        self._attr_device_info = coordinator.device_info
+        self._attr_entity_category = EntityCategory.CONFIG
+        self._attr_entity_registry_visible_default = False
+
+    async def async_press(self) -> None:
+        await self.coordinator.async_send_command(
+            build_command(
+                "generic",
+                dp_id=self.coordinator.dps_map.get("REMOTE_CTRL", "155"),
+                value=self._direction,
+            )
+        )
+
+
+class RCModeButton(CoordinatorEntity[EufyCleanCoordinator], ButtonEntity):
+
+    def __init__(self, coordinator: EufyCleanCoordinator, *, enter: bool) -> None:
+        super().__init__(coordinator)
+        self._enter = enter
+        self._attr_has_entity_name = True
+        if enter:
+            self._attr_unique_id = f"{coordinator.device_id}_rc_enter"
+            self._attr_name = "Enter RC Mode"
+            self._attr_icon = "mdi:gamepad-variant"
+            self._cmd = "start_rc"
+        else:
+            self._attr_unique_id = f"{coordinator.device_id}_rc_exit"
+            self._attr_name = "Exit RC Mode"
+            self._attr_icon = "mdi:gamepad-variant-outline"
+            self._cmd = "stop_rc"
+        self._attr_device_info = coordinator.device_info
+        self._attr_entity_category = EntityCategory.CONFIG
+        self._attr_entity_registry_visible_default = False
+
+    async def async_press(self) -> None:
+        await self.coordinator.async_send_command(build_command(self._cmd))

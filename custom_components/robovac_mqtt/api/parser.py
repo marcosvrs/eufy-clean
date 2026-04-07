@@ -18,10 +18,15 @@ from ..const import (
     EUFY_CLEAN_APP_TRIGGER_MODES,
     EUFY_CLEAN_ERROR_CODES,
     EUFY_CLEAN_NOVEL_CLEAN_SPEED,
+    EUFY_CLEAN_PROMPT_CODES,
     FAN_SUCTION_NAMES,
     HANDLED_DPS_IDS,
     KNOWN_UNPROCESSED_DPS,
+    MEDIA_RECORDING_STATE_NAMES,
+    MEDIA_RESOLUTION_NAMES,
+    MEDIA_STORAGE_STATE_NAMES,
     MOP_WATER_LEVEL_NAMES,
+    SCHEDULE_ACTION_NAMES,
     TRIGGER_SOURCE_NAMES,
     WORK_MODE_NAMES,
     CleaningMode,
@@ -34,14 +39,17 @@ from ..proto.cloud.clean_param_pb2 import CleanParamRequest, CleanParamResponse
 from ..proto.cloud.clean_statistics_pb2 import CleanStatistics
 from ..proto.cloud.consumable_pb2 import ConsumableResponse
 from ..proto.cloud.control_pb2 import ModeCtrlRequest
-from ..proto.cloud.error_code_pb2 import ErrorCode
+from ..proto.cloud.error_code_pb2 import ErrorCode, PromptCode
+from ..proto.cloud.media_manager_pb2 import MediaManagerResponse
 from ..proto.cloud.multi_maps_pb2 import MultiMapsManageResponse
 from ..proto.cloud.scene_pb2 import SceneResponse
 from ..proto.cloud.station_pb2 import StationResponse
 from ..proto.cloud.stream_pb2 import RoomParams
+from ..proto.cloud.timing_pb2 import TimerResponse
 from ..proto.cloud.undisturbed_pb2 import UndisturbedResponse
 from ..proto.cloud.unisetting_pb2 import UnisettingResponse
 from ..proto.cloud.universal_data_pb2 import UniversalDataResponse
+from ..proto.cloud.analysis_pb2 import AnalysisResponse
 from ..proto.cloud.work_status_pb2 import WorkStatus
 from ..utils import decode, deduplicate_names
 
@@ -190,6 +198,12 @@ def _process_station_status(
         if station.HasField("clean_water"):
             changes["station_clean_water"] = station.clean_water.value
             _track_field(state, changes, "station_clean_water")
+
+        changes["station_waste_water"] = int(station.dirty_level)
+        _track_field(state, changes, "station_waste_water")
+
+        changes["station_clean_level"] = int(station.clean_level)
+        _track_field(state, changes, "station_clean_level")
 
         # Auto Empty Config
         if station.HasField("auto_cfg_status"):
@@ -367,6 +381,46 @@ def _process_work_status(
                 changes["active_room_names"] = ""
                 changes["active_zone_count"] = 0
 
+        if work_status.HasField("upgrading"):
+            changes["upgrading"] = (work_status.upgrading.state != 0)
+            _track_field(state, changes, "upgrading")
+
+        if work_status.HasField("mapping"):
+            changes["mapping_state"] = int(work_status.mapping.state)
+            changes["mapping_mode"] = int(work_status.mapping.mode)
+            _track_field(state, changes, "mapping_state")
+
+        if work_status.HasField("relocating"):
+            changes["relocating"] = (work_status.relocating.state != 0)
+            _track_field(state, changes, "relocating")
+
+        if work_status.HasField("roller_brush_cleaning"):
+            changes["roller_brush_cleaning"] = (work_status.roller_brush_cleaning.state != 0)
+            _track_field(state, changes, "roller_brush_cleaning")
+
+        if work_status.HasField("breakpoint"):
+            changes["breakpoint_available"] = (work_status.breakpoint.state != 0)
+            _track_field(state, changes, "breakpoint_available")
+
+        if work_status.HasField("station"):
+            if work_status.station.HasField("dust_collection_system"):
+                changes["station_work_status"] = int(work_status.station.dust_collection_system.state)
+            else:
+                changes["station_work_status"] = 0
+            _track_field(state, changes, "station_work_status")
+
+        if work_status.HasField("cruisiing"):
+            changes["cruise_state"] = int(work_status.cruisiing.state)
+            changes["cruise_mode"] = int(work_status.cruisiing.mode)
+            _track_field(state, changes, "cruise_state")
+
+        if work_status.HasField("smart_follow"):
+            changes["smart_follow_state"] = int(work_status.smart_follow.state)
+            changes["smart_follow_mode"] = int(work_status.smart_follow.mode)
+            changes["smart_follow_elapsed"] = work_status.smart_follow.elapsed_time
+            changes["smart_follow_area"] = work_status.smart_follow.area
+            _track_field(state, changes, "smart_follow_state")
+
     except Exception as e:
         _LOGGER.warning("Error parsing Work Status: %s", e, exc_info=True)
 
@@ -450,8 +504,13 @@ def _process_other_dps(
             elif key == dps_map["ERROR_CODE"]:
                 error_proto = decode(ErrorCode, value)
                 _LOGGER.debug("Decoded ErrorCode: %s", error_proto)
-                if len(error_proto.warn) > 0:
-                    code = error_proto.warn[0]
+                all_codes = list(error_proto.warn)
+                changes["error_codes_all"] = all_codes
+                changes["error_messages_all"] = [
+                    EUFY_CLEAN_ERROR_CODES.get(c, f"Unknown ({c})") for c in all_codes
+                ]
+                if all_codes:
+                    code = all_codes[0]
                     changes["error_code"] = code
                     changes["error_message"] = EUFY_CLEAN_ERROR_CODES.get(
                         code, "Unknown Error"
@@ -460,10 +519,36 @@ def _process_other_dps(
                     changes["error_code"] = 0
                     changes["error_message"] = ""
 
+            elif key == dps_map.get("TOAST", "178"):
+                try:
+                    prompt = decode(PromptCode, value)
+                    _LOGGER.debug("Decoded PromptCode (DPS 178): %s", prompt)
+                    codes = list(prompt.value)
+                    changes["notification_codes"] = codes
+                    if codes:
+                        first_code = codes[0]
+                        changes["notification_message"] = EUFY_CLEAN_PROMPT_CODES.get(
+                            first_code, f"Notification {first_code}"
+                        )
+                    else:
+                        changes["notification_message"] = ""
+                    if prompt.last_time:
+                        changes["notification_time"] = prompt.last_time
+                    _track_field(state, changes, "notification")
+                except Exception as e:
+                    _LOGGER.debug("DPS 178: PromptCode decode failed: %s", e)
+
             elif key == dps_map["ACCESSORIES_STATUS"]:
                 _LOGGER.debug("Received ACCESSORIES_STATUS: %s", value)
                 changes["accessories"] = _parse_accessories(state.accessories, value)
                 _track_field(state, changes, "accessories")
+                try:
+                    _cr = decode(ConsumableResponse, value)
+                    if _cr.HasField("runtime") and _cr.runtime.last_time:
+                        changes["consumable_last_time"] = _cr.runtime.last_time
+                        _track_field(state, changes, "consumable_last_time")
+                except Exception:
+                    pass
 
             elif key == dps_map["CLEANING_STATISTICS"]:
                 stats = decode(CleanStatistics, value)
@@ -473,9 +558,24 @@ def _process_other_dps(
                     changes["cleaning_area"] = stats.single.clean_area
                     _track_field(state, changes, "cleaning_stats")
 
+                if stats.HasField("total"):
+                    changes["total_cleaning_time"] = stats.total.clean_duration
+                    changes["total_cleaning_area"] = stats.total.clean_area
+                    changes["total_cleaning_count"] = stats.total.clean_count
+                    _track_field(state, changes, "total_stats")
+
+                if stats.HasField("user_total"):
+                    changes["user_total_cleaning_time"] = stats.user_total.clean_duration
+                    changes["user_total_cleaning_area"] = stats.user_total.clean_area
+                    changes["user_total_cleaning_count"] = stats.user_total.clean_count
+                    _track_field(state, changes, "user_total_stats")
+
             elif key == dps_map["SCENE_INFO"]:
                 _LOGGER.debug("Received SCENE_INFO: %s", value)
                 changes["scenes"] = _parse_scene_info(value)
+
+            elif key == dps_map["TIMING"]:
+                _process_timer_response(state, value, changes)
 
             elif key == dps_map["RESERVED2"]:
                 _LOGGER.debug("Received RESERVED2: %s", value)
@@ -507,6 +607,23 @@ def _process_other_dps(
                 if info.wifi_ip:
                     changes["wifi_ip"] = info.wifi_ip
                     _track_field(state, changes, "wifi_ip")
+                if info.software:
+                    changes["firmware_version"] = info.software
+                    _track_field(state, changes, "firmware_version")
+                if info.hardware:
+                    changes["hardware_version"] = info.hardware
+                    _track_field(state, changes, "hardware_version")
+                if info.product_name:
+                    changes["product_name"] = info.product_name
+                if info.video_sn:
+                    changes["video_sn"] = info.video_sn
+                if info.HasField("station"):
+                    if info.station.software:
+                        changes["station_firmware"] = info.station.software
+                    if info.station.hardware:
+                        changes["station_hardware"] = info.station.hardware
+                if info.last_user_id:
+                    _LOGGER.debug("Device last_user_id: %s", info.last_user_id)
 
             elif key == dps_map["MULTI_MAP_MANAGE"]:
                 if value is None:
@@ -524,6 +641,74 @@ def _process_other_dps(
                     changes["child_lock"] = settings.children_lock.value
                     _track_field(state, changes, "child_lock")
 
+                # Switch fields (proto wrapper: Switch.value -> bool)
+                for field_name in (
+                    "ai_see", "pet_mode_sw", "poop_avoidance_sw",
+                    "live_photo_sw", "deep_mop_corner_sw", "smart_follow_sw",
+                    "cruise_continue_sw", "multi_map_sw",
+                    "suggest_restricted_zone_sw", "water_level_sw",
+                ):
+                    try:
+                        if settings.HasField(field_name):
+                            changes[field_name] = getattr(settings, field_name).value
+                            _track_field(state, changes, field_name)
+                    except Exception:
+                        _LOGGER.debug("Error parsing unisetting field %s", field_name, exc_info=True)
+
+                # Numerical field
+                try:
+                    if settings.HasField("dust_full_remind"):
+                        changes["dust_full_remind"] = settings.dust_full_remind.value
+                        _track_field(state, changes, "dust_full_remind")
+                except Exception:
+                    _LOGGER.debug("Error parsing dust_full_remind", exc_info=True)
+
+                # Unistate sub-fields
+                try:
+                    if settings.HasField("unistate"):
+                        uni = settings.unistate
+                        if uni.HasField("mop_state"):
+                            changes["mop_state"] = uni.mop_state.value
+                            _track_field(state, changes, "mop_state")
+                        if uni.HasField("mop_holder_state_l"):
+                            changes["mop_holder_state_l"] = uni.mop_holder_state_l.value
+                            _track_field(state, changes, "mop_holder_state_l")
+                        if uni.HasField("mop_holder_state_r"):
+                            changes["mop_holder_state_r"] = uni.mop_holder_state_r.value
+                            _track_field(state, changes, "mop_holder_state_r")
+                        if uni.HasField("map_valid"):
+                            changes["map_valid"] = uni.map_valid.value
+                            _track_field(state, changes, "map_valid")
+                        if uni.HasField("live_map"):
+                            changes["live_map_state_bits"] = uni.live_map.state_bits
+                            _track_field(state, changes, "live_map_state_bits")
+                        if uni.clean_strategy_version:
+                            changes["clean_strategy_version"] = uni.clean_strategy_version
+                            _track_field(state, changes, "clean_strategy_version")
+                        if uni.HasField("custom_clean_mode"):
+                            changes["custom_clean_mode"] = uni.custom_clean_mode.value
+                            _track_field(state, changes, "custom_clean_mode")
+                except Exception:
+                    _LOGGER.debug("Error parsing unistate", exc_info=True)
+
+                # WiFi data
+                try:
+                    if settings.HasField("wifi_data") and settings.wifi_data.ap:
+                        ap = settings.wifi_data.ap[0]
+                        if ap.ssid:
+                            changes["wifi_ap_ssid"] = ap.ssid
+                            _track_field(state, changes, "wifi_ap_ssid")
+                        if ap.frequency:
+                            changes["wifi_frequency"] = int(ap.frequency)
+                            _track_field(state, changes, "wifi_frequency")
+                        if ap.HasField("connection"):
+                            changes["wifi_connection_result"] = int(ap.connection.result)
+                            changes["wifi_connection_timestamp"] = ap.connection.timestamp
+                            _track_field(state, changes, "wifi_connection_result")
+                            _track_field(state, changes, "wifi_connection_timestamp")
+                except Exception:
+                    _LOGGER.debug("Error parsing wifi_data", exc_info=True)
+
             elif key == dps_map["UNDISTURBED"]:
                 undisturbed = decode(UndisturbedResponse, value)
                 _LOGGER.debug("Decoded UndisturbedResponse: %s", undisturbed)
@@ -539,6 +724,9 @@ def _process_other_dps(
                         changes["dnd_end_minute"] = undisturbed.undisturbed.end.minute
                     _track_field(state, changes, "do_not_disturb")
 
+            elif key == dps_map.get("MEDIA_MANAGER"):
+                _process_media_manager(state, value, changes)
+
             elif key == DPS_ROBOT_TELEMETRY:
                 pos = _parse_robot_telemetry(value)
                 _LOGGER.debug(
@@ -551,6 +739,8 @@ def _process_other_dps(
                     changes["robot_position_x"] = raw_x
                     changes["robot_position_y"] = raw_y
                     _track_field(state, changes, "robot_position")
+
+                _parse_analysis_response(state, value, changes)
 
             elif key == dps_map.get("BOOST_IQ"):
                 if isinstance(value, bool):
@@ -908,8 +1098,41 @@ def _parse_multi_map_response(value: Any) -> dict[str, Any] | None:
         )
         return None
     except Exception as e:
-        _LOGGER.debug("MultiMapsManageResponse parse failed: %s", e)
+        _LOGGER.debug("Error parsing TimerInfo: %s", e)
         return None
+
+
+def _process_media_manager(
+    state: VacuumState, value: Any, changes: dict[str, Any]
+) -> None:
+    try:
+        resp = decode(MediaManagerResponse, value)
+        _LOGGER.debug("Decoded MediaManagerResponse: %s", resp)
+
+        if resp.HasField("status"):
+            changes["media_recording"] = resp.status.state == 1
+            changes["media_storage_state"] = MEDIA_STORAGE_STATE_NAMES.get(
+                int(resp.status.storage), "Normal"
+            )
+            changes["media_total_space"] = resp.status.total_space
+            changes["media_photo_space"] = resp.status.photo_space
+            changes["media_video_space"] = resp.status.video_space
+            _track_field(state, changes, "media_status")
+
+        if resp.HasField("setting") and resp.setting.HasField("record"):
+            res_val = int(resp.setting.record.resolution)
+            changes["media_recording_resolution"] = MEDIA_RESOLUTION_NAMES.get(
+                res_val, "720p"
+            )
+            _track_field(state, changes, "media_recording_resolution")
+
+        if resp.HasField("control") and resp.control.HasField("file_info"):
+            changes["media_last_capture_path"] = resp.control.file_info.filepath
+            changes["media_last_capture_id"] = resp.control.file_info.id
+            _track_field(state, changes, "media_last_capture")
+
+    except Exception as e:
+        _LOGGER.warning("Error parsing MediaManager (DPS 174): %s", e, exc_info=True)
 
 
 def _parse_accessories(current_state: AccessoryState, value: Any) -> AccessoryState:
@@ -1053,6 +1276,10 @@ def _process_cleaning_parameters(
         _track_field(state, changes, "smart_mode")
         _LOGGER.debug("DPS 154: Extracted smart mode %s", changes["smart_mode"])
 
+    if clean_param.clean_times:
+        changes["clean_times"] = clean_param.clean_times
+        _track_field(state, changes, "clean_times")
+
     if _LOGGER.isEnabledFor(logging.DEBUG):
         tracked_fields = {
             "cleaning_mode",
@@ -1068,3 +1295,146 @@ def _process_cleaning_parameters(
             "DPS 154: Successfully processed cleaning parameters - extracted %d fields",
             field_count,
         )
+
+
+def _parse_analysis_response(
+    state: VacuumState, value: str, changes: dict[str, Any]
+) -> None:
+    """Try to decode DPS 179 as AnalysisResponse for battery_info and internal_status."""
+    try:
+        analysis = decode(AnalysisResponse, value)
+    except Exception:
+        _LOGGER.debug("DPS 179: AnalysisResponse decode failed, skipping")
+        return
+
+    if analysis.HasField("internal_status"):
+        status = analysis.internal_status
+        if status.robotapp_state:
+            changes["robotapp_state"] = status.robotapp_state
+            _track_field(state, changes, "robotapp_state")
+        if status.motion_state:
+            changes["motion_state"] = status.motion_state
+            _track_field(state, changes, "motion_state")
+
+    if analysis.HasField("statistics") and analysis.statistics.HasField("battery_info"):
+        bat = analysis.statistics.battery_info
+        if bat.real_level:
+            changes["battery_real_level"] = bat.real_level
+            _track_field(state, changes, "battery_real_level")
+        if bat.voltage:
+            changes["battery_voltage"] = bat.voltage
+            _track_field(state, changes, "battery_voltage")
+        if bat.current:
+            changes["battery_current"] = bat.current
+            _track_field(state, changes, "battery_current")
+        if bat.temperature:
+            changes["battery_temperature"] = round(bat.temperature[0] / 10.0, 1)
+            _track_field(state, changes, "battery_temperature")
+
+    if analysis.HasField("statistics"):
+        stats = analysis.statistics
+
+        if stats.HasField("clean"):
+            c = stats.clean
+            changes["last_clean_area"] = c.clean_area
+            changes["last_clean_time"] = c.clean_time
+            changes["last_clean_mode"] = int(c.mode)
+            changes["last_clean_start"] = c.start_time
+            changes["last_clean_end"] = c.end_time
+            _track_field(state, changes, "last_clean_stats")
+
+        if stats.HasField("gohome"):
+            gh = stats.gohome
+            changes["last_gohome_result"] = gh.result
+            changes["last_gohome_fail_code"] = int(gh.fail_code)
+            changes["last_gohome_start"] = gh.start_time
+            changes["last_gohome_end"] = gh.end_time
+            _track_field(state, changes, "last_gohome_stats")
+
+        if stats.HasField("ctrl_event"):
+            ce = stats.ctrl_event
+            changes["ctrl_event_type"] = int(ce.type)
+            changes["ctrl_event_source"] = int(ce.source)
+            changes["ctrl_event_timestamp"] = ce.timestamp
+            _track_field(state, changes, "ctrl_event")
+
+        if stats.HasField("relocate"):
+            _LOGGER.debug("DPS 179: relocate record present")
+        if stats.HasField("collect"):
+            _LOGGER.debug("DPS 179: collect record present")
+
+
+def _process_timer_response(
+    state: VacuumState, value: Any, changes: dict[str, Any]
+) -> None:
+    try:
+        timer_resp = decode(TimerResponse, value)
+        _LOGGER.debug(
+            "Decoded TimerResponse: method=%s, timers=%d",
+            timer_resp.method,
+            len(timer_resp.timers),
+        )
+
+        schedules = []
+        for timer in timer_resp.timers:
+            schedule = _parse_timer_info(timer)
+            if schedule:
+                schedules.append(schedule)
+
+        changes["schedules"] = schedules
+        _track_field(state, changes, "schedules")
+    except Exception as e:
+        _LOGGER.warning("Error parsing Timer Response: %s", e, exc_info=True)
+
+
+def _parse_timer_info(timer: Any) -> dict[str, Any] | None:
+    try:
+        if not timer.HasField("id"):
+            return None
+
+        schedule: dict[str, Any] = {"id": timer.id.value}
+
+        if timer.HasField("status"):
+            schedule["enabled"] = timer.status.opened
+            schedule["valid"] = timer.status.valid
+        else:
+            schedule["enabled"] = False
+            schedule["valid"] = False
+
+        if not timer.HasField("desc"):
+            return None
+
+        desc = timer.desc
+        schedule["trigger"] = "cycle" if desc.trigger == 1 else "single"
+
+        if desc.HasField("timing"):
+            schedule["hour"] = desc.timing.hours
+            schedule["minute"] = desc.timing.minutes
+        else:
+            schedule["hour"] = 0
+            schedule["minute"] = 0
+
+        schedule["week_bits"] = desc.cycle.week_bits if desc.HasField("cycle") else 0
+
+        if timer.HasField("action"):
+            action = timer.action
+            action_type = int(action.type)
+            schedule["action_type"] = action_type
+            schedule["action_label"] = SCHEDULE_ACTION_NAMES.get(
+                action_type, f"Schedule {action_type}"
+            )
+            if (
+                action.HasField("sche_scene_clean")
+                and action.sche_scene_clean.scene_name
+            ):
+                schedule["action_label"] = (
+                    f"Scene: {action.sche_scene_clean.scene_name}"
+                )
+        else:
+            schedule["action_type"] = 0
+            schedule["action_label"] = "Auto Clean"
+
+        return schedule
+    except Exception as e:
+        _LOGGER.debug("Error parsing TimerInfo: %s", e)
+        return None

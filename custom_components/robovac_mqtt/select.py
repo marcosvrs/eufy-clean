@@ -23,6 +23,7 @@ from .const import (
     EUFY_CLEAN_CLEANING_MODES,
     EUFY_CLEAN_CORNER_CLEANING_MODES,
     EUFY_CLEAN_WATER_LEVELS,
+    MEDIA_RESOLUTION_NAMES,
 )
 from .coordinator import EufyCleanCoordinator
 
@@ -132,6 +133,9 @@ async def async_setup_entry(
                 )
             )
 
+        if "MEDIA_MANAGER" in coordinator.supported_dps:
+            entities.append(MediaRecordingResolutionSelectEntity(coordinator))
+
         entities.extend(get_auto_selects(coordinator))
 
     async_add_entities(entities)
@@ -226,6 +230,7 @@ class DockSelectEntity(CoordinatorEntity[EufyCleanCoordinator], SelectEntity):
             self._attr_icon = icon
 
         self._attr_device_info = coordinator.device_info
+        self._attr_entity_registry_visible_default = False
 
     @property
     def current_option(self) -> str | None:
@@ -265,6 +270,7 @@ class SceneSelectEntity(CoordinatorEntity[EufyCleanCoordinator], SelectEntity):
         self._attr_icon = "mdi:play-circle-outline"
 
         self._attr_device_info = coordinator.device_info
+        self._attr_entity_registry_visible_default = False
 
     @property
     def options(self) -> list[str]:
@@ -319,6 +325,7 @@ class RoomSelectEntity(CoordinatorEntity[EufyCleanCoordinator], SelectEntity):
         self._attr_icon = "mdi:door-open"
 
         self._attr_device_info = coordinator.device_info
+        self._attr_entity_registry_visible_default = False
 
     @property
     def options(self) -> list[str]:
@@ -375,6 +382,7 @@ class _StateBackedSelectEntity(CoordinatorEntity[EufyCleanCoordinator], SelectEn
         super().__init__(coordinator)
         self._attr_unique_id = f"{coordinator.device_id}_{unique_id_suffix}"
         self._attr_device_info = coordinator.device_info
+        self._attr_entity_registry_visible_default = False
 
     @property
     def current_option(self) -> str | None:
@@ -535,7 +543,6 @@ class CarpetStrategySelectEntity(_StateBackedSelectEntity):
 
 
 class CornerCleaningSelectEntity(_StateBackedSelectEntity):
-    """Select entity for adjusting corner cleaning mode."""
 
     _attr_has_entity_name = True
     _attr_name = "Corner Cleaning"
@@ -549,5 +556,21 @@ class CornerCleaningSelectEntity(_StateBackedSelectEntity):
     _log_label = "Corner cleaning"
 
     def __init__(self, coordinator: EufyCleanCoordinator) -> None:
-        """Initialize corner cleaning select."""
         super().__init__(coordinator, "corner_cleaning")
+
+
+class MediaRecordingResolutionSelectEntity(_StateBackedSelectEntity):
+
+    _attr_has_entity_name = True
+    _attr_name = "Recording Resolution"
+    _attr_icon = "mdi:video-high-definition"
+    _attr_options = list(MEDIA_RESOLUTION_NAMES.values())
+    _attr_entity_category = EntityCategory.CONFIG
+    _command_name = "media_set_resolution"
+    _command_arg_name = "resolution"
+    _state_field = "media_recording_resolution"
+    _available_field = "media_recording_resolution"
+    _log_label = "Recording resolution"
+
+    def __init__(self, coordinator: EufyCleanCoordinator) -> None:
+        super().__init__(coordinator, "media_recording_resolution")

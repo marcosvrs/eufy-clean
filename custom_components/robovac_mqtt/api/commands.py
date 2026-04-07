@@ -11,14 +11,28 @@ from ..const import (
     DEFAULT_DPS_MAP,
     EUFY_CLEAN_CONTROL,
     EUFY_CLEAN_NOVEL_CLEAN_SPEED,
+    MEDIA_RESOLUTION_REVERSE,
     MOP_CORNER_MAP,
     MOP_LEVEL_MAP,
 )
 from ..proto.cloud.clean_param_pb2 import CleanParam, CleanParamRequest, Fan
+from ..proto.cloud.error_code_pb2 import ErrorCode, ErrorSetting
 from ..proto.cloud.consumable_pb2 import ConsumableRequest
-from ..proto.cloud.control_pb2 import ModeCtrlRequest, SelectRoomsClean
+from ..proto.cloud.common_pb2 import Point, Quadrangle
+from ..proto.cloud.control_pb2 import (
+    GlobalCruise,
+    Goto,
+    ModeCtrlRequest,
+    PointCruise,
+    SelectRoomsClean,
+    SelectZonesClean,
+    SpotClean,
+    ZonesCruise,
+)
 from ..proto.cloud.map_edit_pb2 import MapEditRequest
+from ..proto.cloud.media_manager_pb2 import MediaManagerRequest, MediaSetting
 from ..proto.cloud.station_pb2 import StationRequest
+from ..proto.cloud.timing_pb2 import TimerInfo, TimerRequest
 from ..proto.cloud.undisturbed_pb2 import UndisturbedRequest
 from ..proto.cloud.unisetting_pb2 import UnisettingRequest
 from ..utils import encode, encode_message
@@ -49,6 +63,19 @@ def build_set_cleaning_mode_command(
     return {dps_map["CLEANING_PARAMETERS"]: value}
 
 
+def build_set_error_blocklist_command(
+    suppressed_error_codes: list[int], dps_map: dict[str, str] | None = None
+) -> dict[str, str]:
+    if dps_map is None:
+        dps_map = DEFAULT_DPS_MAP
+
+    req = ErrorCode(
+        setting=ErrorSetting(warn_mask=suppressed_error_codes),
+    )
+    value = encode_message(req)
+    return {dps_map["ERROR_WARNING"]: value}
+
+
 def _build_mode_ctrl(
     method: int, dps_map: dict[str, str] | None = None
 ) -> dict[str, str]:
@@ -61,6 +88,9 @@ def _build_mode_ctrl(
     if method == EUFY_CLEAN_CONTROL.START_AUTO_CLEAN:
         # AutoClean message: clean_times=1, force_mapping=False
         data["auto_clean"] = {"clean_times": 1, "force_mapping": False}
+    elif method == EUFY_CLEAN_CONTROL.START_MAPPING_THEN_CLEAN:
+        # AutoClean message: clean_times=1, force_mapping=True
+        data["auto_clean"] = {"clean_times": 1, "force_mapping": True}
     elif method == EUFY_CLEAN_CONTROL.START_SPOT_CLEAN:
         # SpotClean message: clean_times=1
         data["spot_clean"] = {"clean_times": 1}
@@ -178,6 +208,86 @@ def build_room_clean_command(
                 ModeCtrlRequest.Method, int(EUFY_CLEAN_CONTROL.START_SELECT_ROOMS_CLEAN)
             ),
             select_rooms_clean=rooms_clean,
+        )
+    )
+    return {dps_map["PLAY_PAUSE"]: value}
+
+
+def build_zone_clean_command(
+    zones: list[dict[str, Any]],
+    map_id: int = 0,
+    dps_map: dict[str, str] | None = None,
+) -> dict[str, str]:
+    """Build command to clean specific rectangular zones."""
+    if dps_map is None:
+        dps_map = DEFAULT_DPS_MAP
+
+    zone_protos = []
+    for z in zones:
+        quad = Quadrangle(
+            p0=Point(x=z.get("x1", 0), y=z.get("y1", 0)),
+            p1=Point(x=z.get("x2", 0), y=z.get("y1", 0)),
+            p2=Point(x=z.get("x2", 0), y=z.get("y2", 0)),
+            p3=Point(x=z.get("x1", 0), y=z.get("y2", 0)),
+        )
+        zone_protos.append(
+            SelectZonesClean.Zone(
+                quadrangle=quad,
+                clean_times=z.get("clean_times", 1),
+            )
+        )
+
+    zones_clean = SelectZonesClean(zones=zone_protos, map_id=map_id)
+    value = encode_message(
+        ModeCtrlRequest(
+            method=cast(
+                ModeCtrlRequest.Method,
+                int(EUFY_CLEAN_CONTROL.START_SELECT_ZONES_CLEAN),
+            ),
+            select_zones_clean=zones_clean,
+        )
+    )
+    return {dps_map["PLAY_PAUSE"]: value}
+
+
+def build_spot_clean_command(
+    clean_times: int = 1,
+    dps_map: dict[str, str] | None = None,
+) -> dict[str, str]:
+    """Build command to clean current position (spot clean)."""
+    if dps_map is None:
+        dps_map = DEFAULT_DPS_MAP
+
+    value = encode_message(
+        ModeCtrlRequest(
+            method=cast(
+                ModeCtrlRequest.Method,
+                int(EUFY_CLEAN_CONTROL.START_SPOT_CLEAN),
+            ),
+            spot_clean=SpotClean(clean_times=clean_times),
+        )
+    )
+    return {dps_map["PLAY_PAUSE"]: value}
+
+
+def build_goto_clean_command(
+    x: int,
+    y: int,
+    map_id: int = 0,
+    dps_map: dict[str, str] | None = None,
+) -> dict[str, str]:
+    """Build command to go to specific coordinates and clean."""
+    if dps_map is None:
+        dps_map = DEFAULT_DPS_MAP
+
+    go_to = Goto(destination=Point(x=x, y=y), map_id=map_id)
+    value = encode_message(
+        ModeCtrlRequest(
+            method=cast(
+                ModeCtrlRequest.Method,
+                int(EUFY_CLEAN_CONTROL.START_GOTO_CLEAN),
+            ),
+            go_to=go_to,
         )
     )
     return {dps_map["PLAY_PAUSE"]: value}
@@ -310,6 +420,82 @@ def build_set_room_custom_command(
     return {dps_map["MAP_EDIT_REQUEST"]: value}
 
 
+def build_start_global_cruise_command(
+    map_id: int = 0,
+    dps_map: dict[str, str] | None = None,
+) -> dict[str, str]:
+    """Build command to start a global cruise."""
+    if dps_map is None:
+        dps_map = DEFAULT_DPS_MAP
+    value = encode_message(
+        ModeCtrlRequest(
+            method=cast(
+                ModeCtrlRequest.Method,
+                int(EUFY_CLEAN_CONTROL.START_GLOBAL_CRUISE),
+            ),
+            global_cruise=GlobalCruise(map_id=map_id),
+        )
+    )
+    return {dps_map["PLAY_PAUSE"]: value}
+
+
+def build_start_point_cruise_command(
+    x: int,
+    y: int,
+    map_id: int = 0,
+    dps_map: dict[str, str] | None = None,
+) -> dict[str, str]:
+    """Build command to start a point cruise to specific coordinates."""
+    if dps_map is None:
+        dps_map = DEFAULT_DPS_MAP
+    value = encode_message(
+        ModeCtrlRequest(
+            method=cast(
+                ModeCtrlRequest.Method,
+                int(EUFY_CLEAN_CONTROL.START_POINT_CRUISE),
+            ),
+            point_cruise=PointCruise(
+                points=Point(x=x, y=y),
+                map_id=map_id,
+            ),
+        )
+    )
+    return {dps_map["PLAY_PAUSE"]: value}
+
+
+def build_start_zones_cruise_command(
+    points: list[dict[str, int]],
+    map_id: int = 0,
+    dps_map: dict[str, str] | None = None,
+) -> dict[str, str]:
+    """Build command to start a zones cruise through specific points."""
+    if dps_map is None:
+        dps_map = DEFAULT_DPS_MAP
+    point_protos = [Point(x=p.get("x", 0), y=p.get("y", 0)) for p in points]
+    value = encode_message(
+        ModeCtrlRequest(
+            method=cast(
+                ModeCtrlRequest.Method,
+                int(EUFY_CLEAN_CONTROL.START_ZONES_CRUISE),
+            ),
+            zones_cruise=ZonesCruise(
+                points=point_protos,
+                map_id=map_id,
+            ),
+        )
+    )
+    return {dps_map["PLAY_PAUSE"]: value}
+
+
+def build_stop_smart_follow_command(
+    dps_map: dict[str, str] | None = None,
+) -> dict[str, str]:
+    """Build command to stop smart follow mode."""
+    if dps_map is None:
+        dps_map = DEFAULT_DPS_MAP
+    return _build_mode_ctrl(EUFY_CLEAN_CONTROL.STOP_SMART_FOLLOW, dps_map)
+
+
 def build_reset_accessory_command(
     reset_type: int, dps_map: dict[str, str] | None = None
 ) -> dict[str, str]:
@@ -338,6 +524,47 @@ def build_find_robot_command(
         dps_map = DEFAULT_DPS_MAP
     # false = stop finding, true = start finding
     return {dps_map["FIND_ROBOT"]: active}
+
+
+_UNISETTING_SWITCH_FIELDS = [
+    "ai_see",
+    "pet_mode_sw",
+    "poop_avoidance_sw",
+    "live_photo_sw",
+    "deep_mop_corner_sw",
+    "smart_follow_sw",
+    "cruise_continue_sw",
+    "multi_map_sw",
+    "suggest_restricted_zone_sw",
+    "water_level_sw",
+]
+
+
+def build_set_unisetting_command(
+    field_name: str,
+    value: Any,
+    current_state: Any,
+    dps_map: dict[str, str] | None = None,
+) -> dict[str, Any]:
+    """Build UnisettingRequest preserving all current switch states (Read-Modify-Write)."""
+    if dps_map is None:
+        dps_map = DEFAULT_DPS_MAP
+
+    payload: dict[str, Any] = {}
+    payload["children_lock"] = {"value": current_state.child_lock}
+
+    for sw in _UNISETTING_SWITCH_FIELDS:
+        payload[sw] = {"value": getattr(current_state, sw, False)}
+
+    payload["dust_full_remind"] = {"value": current_state.dust_full_remind}
+
+    if field_name == "dust_full_remind":
+        payload["dust_full_remind"] = {"value": int(value)}
+    else:
+        payload[field_name] = {"value": bool(value)}
+
+    encoded = encode(UnisettingRequest, payload)
+    return {dps_map["UNSETTING"]: encoded}
 
 
 def build_set_child_lock_command(
@@ -439,6 +666,138 @@ def build_set_volume_command(
     return {dps_map["VOLUME"]: volume}
 
 
+def build_timer_inquiry_command(
+    dps_map: dict[str, str] | None = None,
+) -> dict[str, str]:
+    if dps_map is None:
+        dps_map = DEFAULT_DPS_MAP
+    value = encode(TimerRequest, {"method": TimerRequest.INQUIRY})
+    return {dps_map["TIMING"]: value}
+
+
+def build_timer_add_command(
+    timer_info: dict[str, Any], dps_map: dict[str, str] | None = None
+) -> dict[str, str]:
+    """Build command to add a new timer schedule (no id field per proto spec)."""
+    if dps_map is None:
+        dps_map = DEFAULT_DPS_MAP
+    req = TimerRequest(method=TimerRequest.ADD, timer=TimerInfo(**timer_info))
+    value = encode_message(req)
+    return {dps_map["TIMING"]: value}
+
+
+def build_timer_delete_command(
+    timer_id: int, dps_map: dict[str, str] | None = None
+) -> dict[str, str]:
+    """Build command to delete a timer schedule (only id required)."""
+    if dps_map is None:
+        dps_map = DEFAULT_DPS_MAP
+    req = TimerRequest(
+        method=TimerRequest.DELETE,
+        timer=TimerInfo(id=TimerInfo.Id(value=timer_id)),
+    )
+    value = encode_message(req)
+    return {dps_map["TIMING"]: value}
+
+
+def build_timer_modify_command(
+    timer_info: dict[str, Any], dps_map: dict[str, str] | None = None
+) -> dict[str, str]:
+    """Build command to modify an existing timer (full fields required)."""
+    if dps_map is None:
+        dps_map = DEFAULT_DPS_MAP
+    req = TimerRequest(method=TimerRequest.MOTIFY, timer=TimerInfo(**timer_info))
+    value = encode_message(req)
+    return {dps_map["TIMING"]: value}
+
+
+def build_timer_open_command(
+    timer_id: int, dps_map: dict[str, str] | None = None
+) -> dict[str, str]:
+    """Build command to enable a timer schedule (only id required)."""
+    if dps_map is None:
+        dps_map = DEFAULT_DPS_MAP
+    req = TimerRequest(
+        method=TimerRequest.OPEN,
+        timer=TimerInfo(id=TimerInfo.Id(value=timer_id)),
+    )
+    value = encode_message(req)
+    return {dps_map["TIMING"]: value}
+
+
+def build_timer_close_command(
+    timer_id: int, dps_map: dict[str, str] | None = None
+) -> dict[str, str]:
+    """Build command to disable a timer schedule (only id required)."""
+    if dps_map is None:
+        dps_map = DEFAULT_DPS_MAP
+    req = TimerRequest(
+        method=TimerRequest.CLOSE,
+        timer=TimerInfo(id=TimerInfo.Id(value=timer_id)),
+    )
+    value = encode_message(req)
+    return {dps_map["TIMING"]: value}
+
+
+def build_media_capture_command(
+    seq: int = 1, dps_map: dict[str, str] | None = None
+) -> dict[str, str]:
+    if dps_map is None:
+        dps_map = DEFAULT_DPS_MAP
+    req = MediaManagerRequest(
+        control=MediaManagerRequest.Control(
+            method=MediaManagerRequest.Control.CAPTURE,
+            seq=seq,
+        ),
+    )
+    value = encode_message(req)
+    return {dps_map["MEDIA_MANAGER"]: value}
+
+
+def build_media_record_command(
+    start: bool, seq: int = 1, dps_map: dict[str, str] | None = None
+) -> dict[str, str]:
+    if dps_map is None:
+        dps_map = DEFAULT_DPS_MAP
+    method = (
+        MediaManagerRequest.Control.RECORD_START
+        if start
+        else MediaManagerRequest.Control.RECORD_STOP
+    )
+    req = MediaManagerRequest(
+        control=MediaManagerRequest.Control(method=method, seq=seq),
+    )
+    value = encode_message(req)
+    return {dps_map["MEDIA_MANAGER"]: value}
+
+
+def build_media_set_resolution_command(
+    resolution: str, dps_map: dict[str, str] | None = None
+) -> dict[str, str]:
+    if dps_map is None:
+        dps_map = DEFAULT_DPS_MAP
+    res_val = MEDIA_RESOLUTION_REVERSE.get(resolution)
+    if res_val is None:
+        _LOGGER.warning("Invalid media resolution '%s' ignored", resolution)
+        return {}
+    _RESOLUTION_TO_PROTO = {
+        0: MediaSetting.R_480P,
+        1: MediaSetting.R_720P,
+        2: MediaSetting.R_1080P,
+    }
+    proto_res = _RESOLUTION_TO_PROTO.get(res_val)
+    if proto_res is None:
+        _LOGGER.warning("Invalid media resolution '%s' ignored", resolution)
+        return {}
+    req = MediaManagerRequest(
+        setting=MediaSetting(
+            record=MediaSetting.Record(resolution=proto_res),
+        ),
+    )
+    value = encode_message(req)
+    return {dps_map["MEDIA_MANAGER"]: value}
+
+
 def build_generic_command(dp_id: str, value: Any) -> dict[str, Any]:
     """Build a generic command for simple-type DPS (Bool/Value/Enum).
 
@@ -468,8 +827,35 @@ def build_command(
         return _build_mode_ctrl(EUFY_CLEAN_CONTROL.START_GOHOME, dps_map)
     if cmd == "clean_spot":
         return _build_mode_ctrl(EUFY_CLEAN_CONTROL.START_SPOT_CLEAN, dps_map)
+    if cmd == "start_rc":
+        return _build_mode_ctrl(EUFY_CLEAN_CONTROL.START_RC_CLEAN, dps_map)
+    if cmd == "stop_rc":
+        return _build_mode_ctrl(EUFY_CLEAN_CONTROL.STOP_RC_CLEAN, dps_map)
+    if cmd == "stop_gohome":
+        return _build_mode_ctrl(EUFY_CLEAN_CONTROL.STOP_GOHOME, dps_map)
+    if cmd == "mapping_then_clean":
+        return _build_mode_ctrl(EUFY_CLEAN_CONTROL.START_MAPPING_THEN_CLEAN, dps_map)
     if cmd in ("locate", "find_robot"):
         return build_find_robot_command(kwargs.get("active", True), dps_map)
+    if cmd == "start_global_cruise":
+        return build_start_global_cruise_command(
+            kwargs.get("map_id", 0), dps_map
+        )
+    if cmd == "start_point_cruise":
+        return build_start_point_cruise_command(
+            kwargs.get("x", 0),
+            kwargs.get("y", 0),
+            kwargs.get("map_id", 0),
+            dps_map,
+        )
+    if cmd == "start_zones_cruise":
+        return build_start_zones_cruise_command(
+            kwargs.get("points", []),
+            kwargs.get("map_id", 0),
+            dps_map,
+        )
+    if cmd == "stop_smart_follow":
+        return build_stop_smart_follow_command(dps_map)
 
     # Manual Control
     if cmd == "go_dry":
@@ -501,6 +887,24 @@ def build_command(
             kwargs.get("mode", "GENERAL"),
             dps_map,
         )
+    if cmd == "zone_clean":
+        return build_zone_clean_command(
+            kwargs.get("zones", []),
+            kwargs.get("map_id", 0),
+            dps_map,
+        )
+    if cmd == "spot_clean":
+        return build_spot_clean_command(
+            kwargs.get("clean_times", 1),
+            dps_map,
+        )
+    if cmd == "goto_clean":
+        return build_goto_clean_command(
+            kwargs.get("x", 0),
+            kwargs.get("y", 0),
+            kwargs.get("map_id", 0),
+            dps_map,
+        )
     if cmd == "set_room_custom":
         return build_set_room_custom_command(
             kwargs.get("room_config", []),
@@ -519,6 +923,13 @@ def build_command(
         return build_reset_accessory_command(int(kwargs.get("reset_type", 0)), dps_map)
     if cmd == "set_child_lock":
         return build_set_child_lock_command(bool(kwargs.get("active", True)), dps_map)
+    if cmd == "set_unisetting":
+        return build_set_unisetting_command(
+            kwargs.get("field", ""),
+            kwargs.get("value"),
+            kwargs.get("current_state"),
+            dps_map,
+        )
     if cmd == "set_do_not_disturb":
         return build_set_undisturbed_command(
             bool(kwargs.get("active", True)),
@@ -542,6 +953,25 @@ def build_command(
         return build_set_boost_iq_command(bool(kwargs.get("active", True)), dps_map)
     if cmd == "set_volume":
         return build_set_volume_command(int(kwargs.get("volume", 50)), dps_map)
+    if cmd == "timer_inquiry":
+        return build_timer_inquiry_command(dps_map)
+    if cmd == "timer_add":
+        return build_timer_add_command(kwargs.get("timer_info", {}), dps_map)
+    if cmd == "timer_delete":
+        return build_timer_delete_command(int(kwargs.get("timer_id", 0)), dps_map)
+    if cmd == "timer_modify":
+        return build_timer_modify_command(kwargs.get("timer_info", {}), dps_map)
+    if cmd == "timer_open":
+        return build_timer_open_command(int(kwargs.get("timer_id", 0)), dps_map)
+    if cmd == "timer_close":
+        return build_timer_close_command(int(kwargs.get("timer_id", 0)), dps_map)
+
+    if cmd == "media_capture":
+        return build_media_capture_command(int(kwargs.get("seq", 1)), dps_map)
+    if cmd == "media_record":
+        return build_media_record_command(bool(kwargs.get("start", True)), int(kwargs.get("seq", 1)), dps_map)
+    if cmd == "media_set_resolution":
+        return build_media_set_resolution_command(kwargs.get("resolution", "720p"), dps_map)
 
     if cmd == "generic":
         return build_generic_command(

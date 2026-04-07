@@ -63,6 +63,7 @@ class EufyCleanCoordinator(DataUpdateCoordinator[VacuumState]):
             None  # Timer for segment updates debounce
         )
         self._catalog_refresh_cancel: CALLBACK_TYPE | None = None
+        self._timer_inquiry_cancel: CALLBACK_TYPE | None = None
         self._pending_dock_status: str | None = None
         self.last_seen_segments: list[Any] | None = None
         self._store = Store(hass, 1, f"{DOMAIN}.{self.device_id}")
@@ -99,13 +100,18 @@ class EufyCleanCoordinator(DataUpdateCoordinator[VacuumState]):
     @property
     def device_info(self) -> DeviceInfo:
         """Return device info."""
+        fw = (
+            self.data.firmware_version
+            if self.data.firmware_version
+            else self._device_info.get("softVersion")
+        )
         info = DeviceInfo(
             identifiers={(DOMAIN, self.device_id)},
             name=self.device_name,
             manufacturer="Eufy",
             model=self.device_model,
             serial_number=self.serial_number,
-            sw_version=self.firmware_version,
+            sw_version=fw,
         )
         # Add MAC address from DPS 169 DeviceInfo if available
         if mac := self.data.device_mac:
@@ -150,6 +156,11 @@ class EufyCleanCoordinator(DataUpdateCoordinator[VacuumState]):
                 self._async_refresh_catalog,
                 timedelta(hours=24),
             )
+
+            if "TIMING" in self.supported_dps:
+                self._timer_inquiry_cancel = async_call_later(
+                    self.hass, 5.0, self._async_request_schedules
+                )
 
         except Exception as e:
             _LOGGER.error(
@@ -261,6 +272,21 @@ class EufyCleanCoordinator(DataUpdateCoordinator[VacuumState]):
         if self._catalog_refresh_cancel:
             self._catalog_refresh_cancel()
             self._catalog_refresh_cancel = None
+        if self._timer_inquiry_cancel:
+            self._timer_inquiry_cancel()
+            self._timer_inquiry_cancel = None
+
+    @callback
+    def _async_request_schedules(self, _now: Any) -> None:
+        self._timer_inquiry_cancel = None
+        self.hass.async_create_task(self._async_send_timer_inquiry())
+
+    async def _async_send_timer_inquiry(self) -> None:
+        from .api.commands import build_command
+
+        cmd = build_command("timer_inquiry", dps_map=self.dps_map)
+        if cmd:
+            await self.async_send_command(cmd)
 
     @callback
     def set_active_cleaning_targets(

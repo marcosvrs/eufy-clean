@@ -268,6 +268,8 @@ class EUFY_CLEAN_CONTROL(int, Enum):
     START_MAPPING_THEN_CLEAN = 25
 
 
+EUFY_CLEAN_PROMPT_CODES: dict[int, str] = {}
+
 EUFY_CLEAN_ERROR_CODES = {
     0: "NONE",
     1: "CRASH BUFFER STUCK",
@@ -539,6 +541,8 @@ DEFAULT_DPS_MAP = {
     "BOOST_IQ": "159",
     "VOLUME": "161",
     "POWER": "151",
+    "TOAST": "178",
+    "MEDIA_MANAGER": "174",
 }
 DPS_MAP = DEFAULT_DPS_MAP  # backward-compatible alias
 
@@ -567,6 +571,7 @@ CLOUD_CODE_TO_FUNC: dict[str, list[str]] = {
     "unisetting": ["UNSETTING"],
     "error_warning": ["ERROR_CODE"],
     "scenes": ["SCENE_INFO"],
+    "media_manager": ["MEDIA_MANAGER"],
 }
 
 
@@ -609,15 +614,12 @@ def supported_dps_from_catalog(catalog: list[dict]) -> frozenset[str]:
 # Values are already stored in raw_dps for diagnostics.
 KNOWN_UNPROCESSED_DPS: frozenset[str] = frozenset(
     {
-        DPS_MAP["TIMING"],  # 164 - timing: TimerRequest/TimerResponse
         DPS_MAP["LOG_DEBUG"],  # 166 - log_debug: DebugRequest/DebugResponse
         DPS_MAP["MAP_EDIT_REQUEST"],  # 170 - map_edit: MapEditRequest echo
         "150",  # proto: reserved, not used
         "162",  # user_language: LanguageRequest/LanguageResponse
         "171",  # multi_maps_ctrl: MultiMapsCtrlRequest/Response
-        "174",  # media_manager: MediaManagerRequest/Response
         "175",  # reserved3: reserved
-        "178",  # toast: PromptCode notification messages
     }
 )
 
@@ -629,8 +631,11 @@ HANDLED_DPS_IDS: frozenset[str] = frozenset({
     DEFAULT_DPS_MAP["POWER"],                # "151" - restart button (send false)
     DEFAULT_DPS_MAP["WORK_STATUS"],          # "153" - WorkStatus proto
     DEFAULT_DPS_MAP["CLEANING_PARAMETERS"],  # "154" - CleanParam proto
+    DEFAULT_DPS_MAP["REMOTE_CTRL"],          # "155" - RC direction buttons (send)
+    DEFAULT_DPS_MAP["PAUSE_JOB"],
     DEFAULT_DPS_MAP["UNDISTURBED"],          # "157" - UndisturbedRequest proto
     DEFAULT_DPS_MAP["RESERVED2"],            # "165" - reserved proto
+    DEFAULT_DPS_MAP["TIMING"],               # "164" - TimerResponse proto
     DEFAULT_DPS_MAP["CLEANING_STATISTICS"],  # "167" - CleanStatistics proto
     DEFAULT_DPS_MAP["ACCESSORIES_STATUS"],   # "168" - ConsumableResponse proto
     DEFAULT_DPS_MAP["APP_DEV_INFO"],         # "169" - DeviceInfo proto
@@ -639,6 +644,8 @@ HANDLED_DPS_IDS: frozenset[str] = frozenset({
     DEFAULT_DPS_MAP["GO_HOME"],              # "173" - StationRequest/Response proto
     DEFAULT_DPS_MAP["UNSETTING"],            # "176" - UnisettingResponse proto
     DEFAULT_DPS_MAP["ERROR_CODE"],           # "177" - ErrorCode proto
+    DEFAULT_DPS_MAP["TOAST"],               # "178" - PromptCode proto
+    DEFAULT_DPS_MAP["MEDIA_MANAGER"],        # "174" - MediaManagerResponse proto
     DEFAULT_DPS_MAP["SCENE_INFO"],           # "180" - SceneResponse proto
     DPS_ROBOT_TELEMETRY,                     # "179" - analysis raw
 })
@@ -676,18 +683,6 @@ AUTO_ENTITY_OVERRIDES: dict[str, dict[str, Any]] = {
         "max": 100,
         "step": 1,
         "enabled_default": True,
-    },
-    "remote_ctrl": {
-        "name": "Remote Control",
-        "icon": "mdi:gamepad-variant",
-        "enabled_default": True,
-        "entity_category": None,
-    },
-    "pause_job": {
-        "name": "Resume from Breakpoint",
-        "icon": "mdi:play-pause",
-        "enabled_default": True,
-        "entity_category": None,
     },
 }
 
@@ -729,3 +724,29 @@ EUFY_CLEAN_APP_TRIGGER_MODES = {
 }
 
 DRY_DURATION_MAP = {"SHORT": "2h", "MEDIUM": "3h", "LONG": "4h"}
+
+SCHEDULE_ACTION_NAMES: dict[int, str] = {
+    0: "Auto Clean",
+    1: "Room Clean",
+    2: "Cruise",
+    3: "Scene Clean",
+}
+
+MEDIA_RESOLUTION_NAMES: dict[int, str] = {
+    0: "480p",
+    1: "720p",
+    2: "1080p",
+}
+
+MEDIA_RESOLUTION_REVERSE: dict[str, int] = {v: k for k, v in MEDIA_RESOLUTION_NAMES.items()}
+
+MEDIA_RECORDING_STATE_NAMES: dict[int, str] = {
+    0: "Idle",
+    1: "Recording",
+}
+
+MEDIA_STORAGE_STATE_NAMES: dict[int, str] = {
+    0: "Normal",
+    1: "Threshold",
+    2: "Full",
+}

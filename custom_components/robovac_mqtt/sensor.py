@@ -74,6 +74,10 @@ async def async_setup_entry(
                 state_class=None,
                 icon="mdi:alert-circle-outline",
                 category=EntityCategory.DIAGNOSTIC,
+                extra_state_attributes_fn=lambda s: {
+                    "all_codes": s.error_codes_all,
+                    "all_messages": s.error_messages_all,
+                },
             )
         )
 
@@ -152,6 +156,132 @@ async def async_setup_entry(
             )
         )
 
+        # Analysis diagnostics (DPS 179 AnalysisResponse)
+        entities.extend([
+            RoboVacSensor(
+                coordinator,
+                "robotapp_state",
+                "Robot App State",
+                lambda s: s.robotapp_state or None,
+                icon="mdi:state-machine",
+                category=EntityCategory.DIAGNOSTIC,
+                availability_fn=lambda s: "robotapp_state" in s.received_fields,
+            ),
+            RoboVacSensor(
+                coordinator,
+                "motion_state",
+                "Motion State",
+                lambda s: s.motion_state or None,
+                icon="mdi:motion",
+                category=EntityCategory.DIAGNOSTIC,
+                availability_fn=lambda s: "motion_state" in s.received_fields,
+            ),
+            RoboVacSensor(
+                coordinator,
+                "battery_real_level",
+                "Battery Real Level",
+                lambda s: s.battery_real_level,
+                unit=PERCENTAGE,
+                state_class=SensorStateClass.MEASUREMENT,
+                icon="mdi:battery-heart-variant",
+                category=EntityCategory.DIAGNOSTIC,
+                availability_fn=lambda s: "battery_real_level" in s.received_fields,
+            ),
+            RoboVacSensor(
+                coordinator,
+                "battery_voltage",
+                "Battery Voltage",
+                lambda s: s.battery_voltage,
+                unit="mV",
+                state_class=SensorStateClass.MEASUREMENT,
+                icon="mdi:flash-triangle-outline",
+                category=EntityCategory.DIAGNOSTIC,
+                availability_fn=lambda s: "battery_voltage" in s.received_fields,
+            ),
+            RoboVacSensor(
+                coordinator,
+                "battery_current",
+                "Battery Current",
+                lambda s: s.battery_current,
+                unit="mA",
+                state_class=SensorStateClass.MEASUREMENT,
+                icon="mdi:current-dc",
+                category=EntityCategory.DIAGNOSTIC,
+                availability_fn=lambda s: "battery_current" in s.received_fields,
+            ),
+            RoboVacSensor(
+                coordinator,
+                "battery_temperature",
+                "Battery Temperature",
+                lambda s: s.battery_temperature,
+                device_class=SensorDeviceClass.TEMPERATURE,
+                unit="°C",
+                state_class=SensorStateClass.MEASUREMENT,
+                icon="mdi:thermometer",
+                category=EntityCategory.DIAGNOSTIC,
+                availability_fn=lambda s: "battery_temperature" in s.received_fields,
+                suggested_display_precision=1,
+            ),
+        ])
+
+        # WorkStatus extended sensors (T9, gated by received_fields)
+        entities.extend([
+            RoboVacSensor(
+                coordinator,
+                "mapping_state",
+                "Mapping State",
+                lambda s: s.mapping_state,
+                icon="mdi:map",
+                category=EntityCategory.DIAGNOSTIC,
+                availability_fn=lambda s: "mapping_state" in s.received_fields,
+            ),
+            RoboVacSensor(
+                coordinator,
+                "mapping_mode",
+                "Mapping Mode",
+                lambda s: s.mapping_mode,
+                icon="mdi:map-clock",
+                category=EntityCategory.DIAGNOSTIC,
+                availability_fn=lambda s: "mapping_state" in s.received_fields,
+            ),
+            RoboVacSensor(
+                coordinator,
+                "cruise_state",
+                "Cruise State",
+                lambda s: s.cruise_state,
+                icon="mdi:navigation",
+                category=EntityCategory.DIAGNOSTIC,
+                availability_fn=lambda s: "cruise_state" in s.received_fields,
+            ),
+            RoboVacSensor(
+                coordinator,
+                "cruise_mode",
+                "Cruise Mode",
+                lambda s: s.cruise_mode,
+                icon="mdi:navigation-variant",
+                category=EntityCategory.DIAGNOSTIC,
+                availability_fn=lambda s: "cruise_state" in s.received_fields,
+            ),
+            RoboVacSensor(
+                coordinator,
+                "smart_follow_state",
+                "Smart Follow State",
+                lambda s: s.smart_follow_state,
+                icon="mdi:motion-sensor",
+                category=EntityCategory.DIAGNOSTIC,
+                availability_fn=lambda s: "smart_follow_state" in s.received_fields,
+            ),
+            RoboVacSensor(
+                coordinator,
+                "station_work_status",
+                "Station Work Status",
+                lambda s: s.station_work_status,
+                icon="mdi:robot-vacuum",
+                category=EntityCategory.DIAGNOSTIC,
+                availability_fn=lambda s: "station_work_status" in s.received_fields,
+            ),
+        ])
+
         # Cleaning statistics sensors
         if "CLEANING_STATISTICS" in coordinator.supported_dps:
             entities.append(
@@ -181,6 +311,67 @@ async def async_setup_entry(
                     availability_fn=lambda s: "cleaning_stats" in s.received_fields,
                 )
             )
+
+            entities.extend([
+                RoboVacSensor(
+                    coordinator,
+                    "total_cleaning_time",
+                    "Total Cleaning Time",
+                    lambda s: s.total_cleaning_time,
+                    unit="s",
+                    icon="mdi:timer",
+                    category=EntityCategory.DIAGNOSTIC,
+                    availability_fn=lambda s: "total_stats" in s.received_fields,
+                ),
+                RoboVacSensor(
+                    coordinator,
+                    "total_cleaning_area",
+                    "Total Cleaning Area",
+                    lambda s: s.total_cleaning_area,
+                    unit="m²",
+                    icon="mdi:floor-plan",
+                    category=EntityCategory.DIAGNOSTIC,
+                    availability_fn=lambda s: "total_stats" in s.received_fields,
+                ),
+                RoboVacSensor(
+                    coordinator,
+                    "total_cleaning_count",
+                    "Total Cleaning Count",
+                    lambda s: s.total_cleaning_count,
+                    icon="mdi:counter",
+                    category=EntityCategory.DIAGNOSTIC,
+                    availability_fn=lambda s: "total_stats" in s.received_fields,
+                ),
+                RoboVacSensor(
+                    coordinator,
+                    "user_total_cleaning_time",
+                    "User Total Cleaning Time",
+                    lambda s: s.user_total_cleaning_time,
+                    unit="s",
+                    icon="mdi:timer-outline",
+                    category=EntityCategory.DIAGNOSTIC,
+                    availability_fn=lambda s: "user_total_stats" in s.received_fields,
+                ),
+                RoboVacSensor(
+                    coordinator,
+                    "user_total_cleaning_area",
+                    "User Total Cleaning Area",
+                    lambda s: s.user_total_cleaning_area,
+                    unit="m²",
+                    icon="mdi:floor-plan",
+                    category=EntityCategory.DIAGNOSTIC,
+                    availability_fn=lambda s: "user_total_stats" in s.received_fields,
+                ),
+                RoboVacSensor(
+                    coordinator,
+                    "user_total_cleaning_count",
+                    "User Total Cleaning Count",
+                    lambda s: s.user_total_cleaning_count,
+                    icon="mdi:counter",
+                    category=EntityCategory.DIAGNOSTIC,
+                    availability_fn=lambda s: "user_total_stats" in s.received_fields,
+                ),
+            ])
 
         # Station/dock sensors
         if "STATION_STATUS" in coordinator.supported_dps:
@@ -260,6 +451,68 @@ async def async_setup_entry(
                 )
             )
 
+            # Unistate sensors (T14)
+            entities.extend([
+                RoboVacSensor(
+                    coordinator,
+                    "mop_state",
+                    "Mop State",
+                    lambda s: s.mop_state,
+                    icon="mdi:mop",
+                    category=EntityCategory.DIAGNOSTIC,
+                    availability_fn=lambda s: "mop_state" in s.received_fields,
+                ),
+                RoboVacSensor(
+                    coordinator,
+                    "clean_strategy_version",
+                    "Clean Strategy Version",
+                    lambda s: s.clean_strategy_version,
+                    icon="mdi:strategy",
+                    category=EntityCategory.DIAGNOSTIC,
+                    availability_fn=lambda s: "clean_strategy_version" in s.received_fields,
+                ),
+                RoboVacSensor(
+                    coordinator,
+                    "live_map_state_bits",
+                    "Live Map State",
+                    lambda s: s.live_map_state_bits,
+                    icon="mdi:map-clock",
+                    category=EntityCategory.DIAGNOSTIC,
+                    availability_fn=lambda s: "live_map_state_bits" in s.received_fields,
+                ),
+            ])
+
+            # WiFi data sensors (T15)
+            entities.extend([
+                RoboVacSensor(
+                    coordinator,
+                    "wifi_frequency",
+                    "WiFi Frequency",
+                    lambda s: "5 GHz" if s.wifi_frequency == 1 else "2.4 GHz" if s.wifi_frequency == 0 else str(s.wifi_frequency),
+                    icon="mdi:wifi",
+                    category=EntityCategory.DIAGNOSTIC,
+                    availability_fn=lambda s: "wifi_frequency" in s.received_fields,
+                ),
+                RoboVacSensor(
+                    coordinator,
+                    "wifi_connection_result",
+                    "WiFi Connection Result",
+                    lambda s: "OK" if s.wifi_connection_result == 0 else "Password Error" if s.wifi_connection_result == 1 else str(s.wifi_connection_result),
+                    icon="mdi:wifi-check",
+                    category=EntityCategory.DIAGNOSTIC,
+                    availability_fn=lambda s: "wifi_connection_result" in s.received_fields,
+                ),
+                RoboVacSensor(
+                    coordinator,
+                    "wifi_connection_timestamp",
+                    "WiFi Connection Timestamp",
+                    lambda s: s.wifi_connection_timestamp,
+                    icon="mdi:clock-outline",
+                    category=EntityCategory.DIAGNOSTIC,
+                    availability_fn=lambda s: "wifi_connection_timestamp" in s.received_fields,
+                ),
+            ])
+
         # App/device info sensors
         if "APP_DEV_INFO" in coordinator.supported_dps:
             entities.append(
@@ -333,6 +586,50 @@ async def async_setup_entry(
                     )
                 )
 
+            consumables = [
+                ("dustbag_usage", "Dustbag Usage", "mdi:delete"),
+                (
+                    "dirty_watertank_usage",
+                    "Waste Water Tank Usage",
+                    "mdi:water-alert",
+                ),
+                (
+                    "dirty_waterfilter_usage",
+                    "Water Filter Usage",
+                    "mdi:water-check",
+                ),
+            ]
+
+            for attr, name, icon in consumables:
+                entities.append(
+                    RoboVacSensor(
+                        coordinator,
+                        attr,
+                        name,
+                        lambda s, a=attr: getattr(s.accessories, a) or 0,
+                        device_class=SensorDeviceClass.DURATION,
+                        unit="h",
+                        state_class=SensorStateClass.MEASUREMENT,
+                        icon=icon,
+                        category=EntityCategory.DIAGNOSTIC,
+                        availability_fn=lambda s: "accessories"
+                        in s.received_fields,
+                    )
+                )
+
+        entities.append(
+            RoboVacSensor(
+                coordinator,
+                "last_notification",
+                "Last Notification",
+                lambda s: s.notification_message or None,
+                icon="mdi:bell",
+                category=EntityCategory.DIAGNOSTIC,
+                extra_state_attributes_fn=lambda s: {"codes": s.notification_codes},
+                availability_fn=lambda s: "notification" in s.received_fields,
+            )
+        )
+
         # Auto-generated sensors from DPS catalog
         entities.extend(get_auto_sensors(coordinator))
 
@@ -374,6 +671,7 @@ class RoboVacSensor(CoordinatorEntity[EufyCleanCoordinator], SensorEntity):
         self._attr_has_entity_name = True
         self._attr_name = name_suffix
         self._attr_entity_registry_enabled_default = enabled_default
+        self._attr_entity_registry_visible_default = False
 
         self._attr_device_info = coordinator.device_info
 

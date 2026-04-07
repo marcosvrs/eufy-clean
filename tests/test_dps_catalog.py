@@ -761,8 +761,8 @@ def test_power_in_handled_dps_ids():
 def test_auto_select_parses_property_range():
     from custom_components.robovac_mqtt.auto_entities import get_auto_selects
     coord = _make_coordinator([{
-        "dp_id": 155,
-        "code": "remote_ctrl",
+        "dp_id": 998,
+        "code": "test_range_enum",
         "data_type": "Enum",
         "mode": "rw",
         "property": '{"range":["Brake","Forward","Back","Left","Right"]}',
@@ -842,7 +842,7 @@ def test_auto_switch_151_power_created():
     entities = get_auto_switches(coord)
     assert len(entities) == 0
 
-def test_auto_switch_156_pause_created():
+def test_auto_switch_156_pause_not_created():
     from custom_components.robovac_mqtt.auto_entities import get_auto_switches
     coord = _make_coordinator([{
         "dp_id": 156,
@@ -852,5 +852,4 @@ def test_auto_switch_156_pause_created():
         "property": "{}",
     }])
     entities = get_auto_switches(coord)
-    assert len(entities) == 1
-    assert entities[0]._attr_name == "Resume from Breakpoint"
+    assert len(entities) == 0

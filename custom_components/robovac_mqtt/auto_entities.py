@@ -57,6 +57,7 @@ class _AutoEntityBase(CoordinatorEntity[EufyCleanCoordinator]):
         )
         if icon := override.get("icon"):
             self._attr_icon = icon
+        self._attr_entity_registry_visible_default = False
 
     @property
     def available(self) -> bool:

@@ -66,7 +66,25 @@ async def async_setup_entry(
         if "UNSETTING" in coordinator.supported_dps:
             entities.append(ChildLockSwitchEntity(coordinator))
 
+            unisetting_switches = [
+                ("ai_see", "AI See", "mdi:eye"),
+                ("pet_mode_sw", "Pet Mode", "mdi:paw"),
+                ("poop_avoidance_sw", "Poop Avoidance", "mdi:emoticon-poop"),
+                ("live_photo_sw", "Live Photo", "mdi:camera"),
+                ("deep_mop_corner_sw", "Deep Mop Corner", "mdi:broom"),
+                ("smart_follow_sw", "Smart Follow", "mdi:motion-sensor"),
+                ("cruise_continue_sw", "Cruise Continue", "mdi:refresh"),
+                ("multi_map_sw", "Multi Map", "mdi:map-plus"),
+                ("suggest_restricted_zone_sw", "Suggest Restricted Zone", "mdi:map-marker-off"),
+                ("water_level_sw", "Water Level Monitor", "mdi:water-check"),
+            ]
+            for field, name, icon in unisetting_switches:
+                entities.append(UnisettingSwitch(coordinator, field, name, icon))
+
         entities.append(SmartModeSwitchEntity(coordinator))
+
+        if "MEDIA_MANAGER" in coordinator.supported_dps:
+            entities.append(MediaRecordingSwitchEntity(coordinator))
 
         entities.extend(get_auto_switches(coordinator))
 
@@ -129,6 +147,7 @@ class DockSwitchEntity(CoordinatorEntity[EufyCleanCoordinator], SwitchEntity):
             self._attr_icon = icon
 
         self._attr_device_info = coordinator.device_info
+        self._attr_entity_registry_visible_default = False
 
     @property
     def is_on(self) -> bool | None:
@@ -176,6 +195,7 @@ class ChildLockSwitchEntity(CoordinatorEntity[EufyCleanCoordinator], SwitchEntit
         self._attr_icon = "mdi:lock-outline"
         self._attr_entity_category = EntityCategory.CONFIG
         self._attr_device_info = coordinator.device_info
+        self._attr_entity_registry_visible_default = False
 
     @property
     def is_on(self) -> bool | None:
@@ -218,6 +238,7 @@ class DoNotDisturbSwitchEntity(CoordinatorEntity[EufyCleanCoordinator], SwitchEn
         self._attr_icon = "mdi:minus-circle-off-outline"
         self._attr_entity_category = EntityCategory.CONFIG
         self._attr_device_info = coordinator.device_info
+        self._attr_entity_registry_visible_default = False
 
     @property
     def is_on(self) -> bool | None:
@@ -272,6 +293,7 @@ class SmartModeSwitchEntity(CoordinatorEntity[EufyCleanCoordinator], SwitchEntit
         self._attr_icon = "mdi:brain"
         self._attr_entity_category = EntityCategory.CONFIG
         self._attr_device_info = coordinator.device_info
+        self._attr_entity_registry_visible_default = False
 
     @property
     def is_on(self) -> bool | None:
@@ -299,4 +321,84 @@ class SmartModeSwitchEntity(CoordinatorEntity[EufyCleanCoordinator], SwitchEntit
         await self.coordinator.async_send_command(command)
         self.coordinator.async_set_updated_data(
             replace(self.coordinator.data, smart_mode=state)
+        )
+
+
+class UnisettingSwitch(CoordinatorEntity[EufyCleanCoordinator], SwitchEntity):
+
+    def __init__(
+        self,
+        coordinator: EufyCleanCoordinator,
+        field_name: str,
+        display_name: str,
+        icon: str,
+    ) -> None:
+        super().__init__(coordinator)
+        self._field_name = field_name
+        self._attr_unique_id = f"{coordinator.device_id}_{field_name}"
+        self._attr_has_entity_name = True
+        self._attr_name = display_name
+        self._attr_icon = icon
+        self._attr_entity_category = EntityCategory.CONFIG
+        self._attr_device_info = coordinator.device_info
+        self._attr_entity_registry_visible_default = False
+
+    @property
+    def is_on(self) -> bool | None:
+        return getattr(self.coordinator.data, self._field_name, None)
+
+    @property
+    def available(self) -> bool:
+        return super().available and self._field_name in self.coordinator.data.received_fields
+
+    async def async_turn_on(self, **kwargs: Any) -> None:
+        await self._set(True)
+
+    async def async_turn_off(self, **kwargs: Any) -> None:
+        await self._set(False)
+
+    async def _set(self, value: bool) -> None:
+        cmd = build_command(
+            "set_unisetting",
+            field=self._field_name,
+            value=value,
+            current_state=self.coordinator.data,
+        )
+        await self.coordinator.async_send_command(cmd)
+
+
+class MediaRecordingSwitchEntity(CoordinatorEntity[EufyCleanCoordinator], SwitchEntity):
+
+    def __init__(self, coordinator: EufyCleanCoordinator) -> None:
+        super().__init__(coordinator)
+        self._attr_unique_id = f"{coordinator.device_id}_media_recording"
+        self._attr_has_entity_name = True
+        self._attr_name = "Recording"
+        self._attr_icon = "mdi:record-rec"
+        self._attr_entity_category = EntityCategory.CONFIG
+        self._attr_device_info = coordinator.device_info
+        self._attr_entity_registry_visible_default = False
+
+    @property
+    def is_on(self) -> bool | None:
+        return self.coordinator.data.media_recording
+
+    @property
+    def available(self) -> bool:
+        return (
+            super().available
+            and "media_status" in self.coordinator.data.received_fields
+        )
+
+    async def async_turn_on(self, **kwargs: Any) -> None:
+        await self._set_state(True)
+
+    async def async_turn_off(self, **kwargs: Any) -> None:
+        await self._set_state(False)
+
+    async def _set_state(self, state: bool) -> None:
+        cmd = build_command("media_record", start=state)
+        await self.coordinator.async_send_command(cmd)
+        self.coordinator.async_set_updated_data(
+            replace(self.coordinator.data, media_recording=state)
         )

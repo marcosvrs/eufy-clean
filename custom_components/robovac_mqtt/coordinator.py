@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import logging
 from dataclasses import replace
+from datetime import timedelta
 from typing import Any
 
 from homeassistant.core import CALLBACK_TYPE, HomeAssistant, callback
@@ -12,14 +13,19 @@ from homeassistant.helpers.device_registry import (
     format_mac,
 )
 from homeassistant.helpers.dispatcher import async_dispatcher_send
-from homeassistant.helpers.event import async_call_later
+from homeassistant.helpers.event import async_call_later, async_track_time_interval
 from homeassistant.helpers.storage import Store
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
 from .api.client import EufyCleanClient
 from .api.cloud import EufyLogin
 from .api.parser import update_state
-from .const import DOMAIN
+from .const import (
+    DEFAULT_DPS_MAP,
+    DOMAIN,
+    build_dps_map_from_catalog,
+    supported_dps_from_catalog,
+)
 from .models import VacuumState
 
 _LOGGER = logging.getLogger(__name__)
@@ -56,12 +62,39 @@ class EufyCleanCoordinator(DataUpdateCoordinator[VacuumState]):
         self._segment_update_cancel: CALLBACK_TYPE | None = (
             None  # Timer for segment updates debounce
         )
+        self._catalog_refresh_cancel: CALLBACK_TYPE | None = None
         self._pending_dock_status: str | None = None
         self.last_seen_segments: list[Any] | None = None
         self._store = Store(hass, 1, f"{DOMAIN}.{self.device_id}")
 
+        catalog = device_info.get("dps_catalog", [])
+        self._raw_catalog: list[dict] = catalog
+        if catalog:
+            self.dps_map: dict[str, str] = build_dps_map_from_catalog(catalog)
+            _LOGGER.info(
+                "Built dynamic DPS map for %s from cloud catalog (%d entries)",
+                self.device_name,
+                len(catalog),
+            )
+        else:
+            self.dps_map = dict(DEFAULT_DPS_MAP)
+            _LOGGER.debug(
+                "Using default DPS map for %s — no catalog yet", self.device_name
+            )
+        self.supported_dps: frozenset[str] = supported_dps_from_catalog(catalog)
+        self.dps_catalog: dict[str, dict] = (
+            {str(item.get("dp_id", "")): item for item in catalog} if catalog else {}
+        )
+        self.catalog_types: dict[str, str] = (
+            {str(item.get("dp_id", "")): item.get("data_type", "") for item in catalog}
+            if catalog
+            else {}
+        )
+
         if dps := device_info.get("dps"):
-            self.data, _ = update_state(self.data, dps)
+            self.data, _ = update_state(
+                self.data, dps, dps_map=self.dps_map, catalog_types=self.catalog_types
+            )
 
     @property
     def device_info(self) -> DeviceInfo:
@@ -107,6 +140,17 @@ class EufyCleanCoordinator(DataUpdateCoordinator[VacuumState]):
             await self.client.connect()
             await self.async_load_storage()
 
+            if self._raw_catalog:
+                existing = await self._store.async_load() or {}
+                existing["dps_catalog"] = self._raw_catalog
+                await self._store.async_save(existing)
+
+            self._catalog_refresh_cancel = async_track_time_interval(
+                self.hass,
+                self._async_refresh_catalog,
+                timedelta(hours=24),
+            )
+
         except Exception as e:
             _LOGGER.error(
                 "Failed to initialize coordinator for %s: %s", self.device_name, e
@@ -126,7 +170,9 @@ class EufyCleanCoordinator(DataUpdateCoordinator[VacuumState]):
 
             if dps := payload_data.get("data"):
                 # Calculate new state based on connection
-                new_state, changes = update_state(self.data, dps)
+                new_state, changes = update_state(
+                    self.data, dps, dps_map=self.dps_map, catalog_types=self.catalog_types
+                )
 
                 # Only consider debounce if dock_status was explicitly set in this message
                 # This prevents messages without dock info (like DPS 154) from
@@ -212,6 +258,9 @@ class EufyCleanCoordinator(DataUpdateCoordinator[VacuumState]):
         if self._segment_update_cancel:
             self._segment_update_cancel()
             self._segment_update_cancel = None
+        if self._catalog_refresh_cancel:
+            self._catalog_refresh_cancel()
+            self._catalog_refresh_cancel = None
 
     @callback
     def set_active_cleaning_targets(
@@ -285,12 +334,66 @@ class EufyCleanCoordinator(DataUpdateCoordinator[VacuumState]):
                 self.device_name,
             )
 
+            if not self._raw_catalog:
+                stored_catalog = data.get("dps_catalog")
+                if stored_catalog:
+                    self._raw_catalog = stored_catalog
+                    self.dps_map = build_dps_map_from_catalog(stored_catalog)
+                    self.supported_dps = supported_dps_from_catalog(stored_catalog)
+                    self.dps_catalog = {
+                        str(item.get("dp_id", "")): item for item in stored_catalog
+                    }
+                    self.catalog_types = {
+                        str(item.get("dp_id", "")): item.get("data_type", "")
+                        for item in stored_catalog
+                    }
+                    _LOGGER.info(
+                        "Loaded stored DPS catalog for %s (%d entries)",
+                        self.device_name,
+                        len(stored_catalog),
+                    )
+
     async def async_save_segments(self, segments_payload: list[dict[str, Any]]) -> None:
         """Save segments to storage."""
         self.last_seen_segments = segments_payload
-        await self._store.async_save({"last_seen_segments": segments_payload})
+        existing = await self._store.async_load() or {}
+        existing["last_seen_segments"] = segments_payload
+        if self._raw_catalog:
+            existing["dps_catalog"] = self._raw_catalog
+        await self._store.async_save(existing)
         _LOGGER.debug(
             "Saved %s segments to storage for %s",
             len(segments_payload),
             self.device_name,
         )
+
+    async def _async_refresh_catalog(self, _now: Any) -> None:
+        """Periodically refresh the DPS catalog from the cloud (every 24h)."""
+        try:
+            new_catalog = await self.eufy_login.eufyApi.get_product_data_points(
+                self.device_model
+            )
+            if new_catalog and new_catalog != self._raw_catalog:
+                self._raw_catalog = new_catalog
+                self.dps_map = build_dps_map_from_catalog(new_catalog)
+                self.supported_dps = supported_dps_from_catalog(new_catalog)
+                self.dps_catalog = {
+                    str(item.get("dp_id", "")): item for item in new_catalog
+                }
+                self.catalog_types = {
+                    str(item.get("dp_id", "")): item.get("data_type", "")
+                    for item in new_catalog
+                }
+                existing = await self._store.async_load() or {}
+                existing["dps_catalog"] = new_catalog
+                await self._store.async_save(existing)
+                _LOGGER.info(
+                    "DPS catalog refreshed for %s (%d entries). "
+                    "Changes take effect on next restart.",
+                    self.device_name,
+                    len(new_catalog),
+                )
+        except Exception as exc:
+            _LOGGER.warning(
+                "DPS catalog refresh failed for %s: %s", self.device_name, exc
+            )

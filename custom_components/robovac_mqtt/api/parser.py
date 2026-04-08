@@ -172,10 +172,6 @@ def update_state(
     _process_play_pause(state, dps, changes, dps_map)
     _process_other_dps(state, dps, changes, dps_map, catalog_types, dps_catalog)
 
-    # Log received_fields for debugging sensor availability
-    if "received_fields" in changes:
-        _LOGGER.debug("Received fields now: %s", changes["received_fields"])
-
     return replace(state, **changes), changes
 
 
@@ -190,7 +186,6 @@ def _process_station_status(
     value = dps[dps_map["STATION_STATUS"]]
     try:
         station = decode(StationResponse, value)
-        _LOGGER.debug("Decoded StationResponse: %s", station)
         new_dock_status = _map_dock_status(station)
         # Debouncing is handled in coordinator, not here
         changes["dock_status"] = new_dock_status
@@ -226,7 +221,6 @@ def _process_work_status(
     value = dps[dps_map["WORK_STATUS"]]
     try:
         work_status = decode(WorkStatus, value)
-        _LOGGER.debug("Decoded WorkStatus: %s", work_status)
         changes["activity"] = _map_work_status(work_status)
         changes["status_code"] = work_status.state
 
@@ -437,7 +431,6 @@ def _process_play_pause(
     value = dps[dps_map["PLAY_PAUSE"]]
     try:
         mode_ctrl = decode(ModeCtrlRequest, value)
-        _LOGGER.debug("Decoded ModeCtrlRequest: %s", mode_ctrl)
 
         if mode_ctrl.HasField("select_rooms_clean"):
             room_ids = [r.id for r in mode_ctrl.select_rooms_clean.rooms]
@@ -534,7 +527,6 @@ def _process_other_dps(
 
             elif key == dps_map["ERROR_CODE"]:
                 error_proto = decode(ErrorCode, value)
-                _LOGGER.debug("Decoded ErrorCode: %s", error_proto)
                 all_codes = list(error_proto.error) + list(error_proto.warn)
                 changes["error_codes_all"] = all_codes
                 changes["error_messages_all"] = [
@@ -553,7 +545,6 @@ def _process_other_dps(
             elif key == dps_map.get("TOAST", "178"):
                 try:
                     prompt = decode(PromptCode, value)
-                    _LOGGER.debug("Decoded PromptCode (DPS 178): %s", prompt)
                     codes = list(prompt.value)
                     changes["notification_codes"] = codes
                     if codes:
@@ -570,7 +561,6 @@ def _process_other_dps(
                     _LOGGER.debug("DPS 178: PromptCode decode failed: %s", e)
 
             elif key == dps_map["ACCESSORIES_STATUS"]:
-                _LOGGER.debug("Received ACCESSORIES_STATUS: %s", value)
                 changes["accessories"] = _parse_accessories(state.accessories, value)
                 _track_field(state, changes, "accessories")
                 try:
@@ -583,7 +573,6 @@ def _process_other_dps(
 
             elif key == dps_map["CLEANING_STATISTICS"]:
                 stats = decode(CleanStatistics, value)
-                _LOGGER.debug("Decoded CleanStatistics: %s", stats)
                 if stats.HasField("single"):
                     changes["cleaning_time"] = stats.single.clean_duration
                     changes["cleaning_area"] = stats.single.clean_area
@@ -602,14 +591,12 @@ def _process_other_dps(
                     _track_field(state, changes, "user_total_stats")
 
             elif key == dps_map["SCENE_INFO"]:
-                _LOGGER.debug("Received SCENE_INFO: %s", value)
                 changes["scenes"] = _parse_scene_info(value)
 
             elif key == dps_map["TIMING"]:
                 _process_timer_response(state, value, changes)
 
             elif key == dps_map["RESERVED2"]:
-                _LOGGER.debug("Received RESERVED2: %s", value)
                 map_info = _parse_map_data(value)
                 if map_info:
                     changes["map_id"] = map_info.get("map_id", 0)
@@ -617,7 +604,6 @@ def _process_other_dps(
                     _track_field(state, changes, "map_id")
 
             elif key == dps_map["CLEANING_PARAMETERS"]:
-                _LOGGER.debug("Received CLEANING_PARAMETERS: %s", value)
                 _process_cleaning_parameters(state, value, changes)
 
             elif key == dps_map["FIND_ROBOT"]:
@@ -629,7 +615,6 @@ def _process_other_dps(
 
             elif key == dps_map["APP_DEV_INFO"]:
                 info = decode(DeviceInfo, value)
-                _LOGGER.debug("Decoded DeviceInfo: %s", info)
                 if info.device_mac:
                     changes["device_mac"] = info.device_mac
                 if info.wifi_name:
@@ -653,19 +638,14 @@ def _process_other_dps(
                         changes["station_firmware"] = info.station.software
                     if info.station.hardware:
                         changes["station_hardware"] = info.station.hardware
-                if info.last_user_id:
-                    _LOGGER.debug("Device last_user_id: %s", info.last_user_id)
-
             elif key == dps_map["MULTI_MAP_MANAGE"]:
                 if value is None:
                     _LOGGER.debug("DPS 172: None value (initial state)")
                 else:
-                    _LOGGER.debug("Received MULTI_MAP_MANAGE (DPS 172): %.100s", value)
                     _parse_multi_map_response(value)
 
             elif key == dps_map["UNSETTING"]:
                 settings = decode(UnisettingResponse, value)
-                _LOGGER.debug("Decoded UnisettingResponse: %s", settings)
                 changes["wifi_signal"] = (settings.ap_signal_strength / 2) - 100
                 _track_field(state, changes, "wifi_signal")
                 if settings.HasField("children_lock"):
@@ -742,7 +722,6 @@ def _process_other_dps(
 
             elif key == dps_map["UNDISTURBED"]:
                 undisturbed = decode(UndisturbedResponse, value)
-                _LOGGER.debug("Decoded UndisturbedResponse: %s", undisturbed)
                 if undisturbed.HasField("undisturbed"):
                     changes["dnd_enabled"] = undisturbed.undisturbed.sw.value
                     if undisturbed.undisturbed.HasField("begin"):
@@ -761,11 +740,6 @@ def _process_other_dps(
 
             elif key == DPS_ROBOT_TELEMETRY:
                 pos = _parse_robot_telemetry(value)
-                _LOGGER.debug(
-                    "DPS 179 telemetry: parsed=%s, raw_b64=%.60s...",
-                    pos,
-                    value,
-                )
                 if pos:
                     raw_x, raw_y = pos["x"], pos["y"]
                     changes["robot_position_x"] = raw_x
@@ -1005,16 +979,6 @@ def _map_dock_status(value: StationResponse) -> str:
     """Map StationResponse to status string."""
     try:
         status = value.status
-        _LOGGER.debug(
-            "Dock status raw: state=%s, collecting_dust=%s, clear_water_adding=%s, "
-            "waste_water_recycling=%s, disinfectant_making=%s, cutting_hair=%s",
-            status.state,
-            status.collecting_dust,
-            status.clear_water_adding,
-            status.waste_water_recycling,
-            status.disinfectant_making,
-            status.cutting_hair,
-        )
 
         if status.collecting_dust:
             return "Emptying dust"
@@ -1040,7 +1004,6 @@ def _parse_scene_info(value: Any) -> list[dict[str, Any]]:
     """Parse SceneResponse from DPS."""
     try:
         scene_response = decode(SceneResponse, value, has_length=True)
-        _LOGGER.debug("Decoded SceneResponse: %s", scene_response)
         if not scene_response or not scene_response.infos:
             return []
 
@@ -1075,8 +1038,6 @@ def _parse_map_data(value: Any) -> dict[str, Any] | None:
     # UniversalDataResponse
     try:
         universal_data = decode(UniversalDataResponse, value, has_length=True)
-        if universal_data:
-            _LOGGER.debug("Decoded UniversalDataResponse: %s", universal_data)
         if universal_data and (
             universal_data.cur_map_room.map_id or universal_data.cur_map_room.data
         ):
@@ -1094,8 +1055,6 @@ def _parse_map_data(value: Any) -> dict[str, Any] | None:
     # RoomParams
     try:
         room_params = decode(RoomParams, value, has_length=True)
-        if room_params:
-            _LOGGER.debug("Decoded RoomParams: %s", room_params)
         if room_params and (room_params.map_id or room_params.rooms):
             rooms = []
             for rm in room_params.rooms:
@@ -1121,11 +1080,6 @@ def _parse_multi_map_response(value: Any) -> dict[str, Any] | None:
     """
     try:
         resp = decode(MultiMapsManageResponse, value)
-        _LOGGER.debug(
-            "Decoded MultiMapsManageResponse: method=%s, result=%s",
-            resp.method,
-            resp.result,
-        )
         return None
     except Exception as e:
         _LOGGER.debug("Error parsing TimerInfo: %s", e)
@@ -1137,7 +1091,6 @@ def _process_media_manager(
 ) -> None:
     try:
         resp = decode(MediaManagerResponse, value)
-        _LOGGER.debug("Decoded MediaManagerResponse: %s", resp)
 
         if resp.HasField("status"):
             changes["media_recording"] = resp.status.state == 1
@@ -1169,7 +1122,6 @@ def _parse_accessories(current_state: AccessoryState, value: Any) -> AccessorySt
     """Parse ConsumableResponse from DPS."""
     try:
         response = decode(ConsumableResponse, value)
-        _LOGGER.debug("Decoded ConsumableResponse: %s", response)
         if not response.HasField("runtime"):
             return current_state
 
@@ -1246,9 +1198,7 @@ def _process_cleaning_parameters(
         fan_val = clean_param.fan.suction
         changes["fan_speed"] = FAN_SUCTION_NAMES.get(fan_val, "Standard")
         _track_field(state, changes, "fan_speed")
-        _LOGGER.debug(
-            "DPS 154: Extracted fan speed %s (value: %s)", changes["fan_speed"], fan_val
-        )
+        
 
     # Extract Mop Water Level
     if clean_param.HasField("mop_mode"):
@@ -1257,24 +1207,15 @@ def _process_cleaning_parameters(
             MopWaterLevel(level_val), "Medium"
         )
         _track_field(state, changes, "mop_water_level")
-        _LOGGER.debug(
-            "DPS 154: Extracted mop water level %s (value: %s)",
-            changes["mop_water_level"],
-            level_val,
-        )
     else:
-        _LOGGER.debug("DPS 154: mop_mode not present in cleaning parameters")
+        pass
 
     # Extract Corner Cleaning Mode
     if clean_param.HasField("mop_mode"):
         corner_val = clean_param.mop_mode.corner_clean
         changes["corner_cleaning"] = CORNER_CLEANING_NAMES.get(corner_val, "Normal")
         _track_field(state, changes, "corner_cleaning")
-        _LOGGER.debug(
-            "DPS 154: Extracted corner cleaning %s (value: %s)",
-            changes["corner_cleaning"],
-            corner_val,
-        )
+        
 
     # Extract Cleaning Intensity
     if clean_param.HasField("clean_extent"):
@@ -1283,48 +1224,22 @@ def _process_cleaning_parameters(
             extent_val, "Normal"
         )
         _track_field(state, changes, "cleaning_intensity")
-        _LOGGER.debug(
-            "DPS 154: Extracted cleaning intensity %s (value: %s)",
-            changes["cleaning_intensity"],
-            extent_val,
-        )
+        
 
     # Extract Carpet Strategy
     if clean_param.HasField("clean_carpet"):
         carpet_val = clean_param.clean_carpet.strategy
         changes["carpet_strategy"] = CARPET_STRATEGY_NAMES.get(carpet_val, "Auto Raise")
         _track_field(state, changes, "carpet_strategy")
-        _LOGGER.debug(
-            "DPS 154: Extracted carpet strategy %s (value: %s)",
-            changes["carpet_strategy"],
-            carpet_val,
-        )
+        
 
     # Extract Smart Mode Switch
     if clean_param.HasField("smart_mode_sw"):
         changes["smart_mode"] = clean_param.smart_mode_sw.value
         _track_field(state, changes, "smart_mode")
-        _LOGGER.debug("DPS 154: Extracted smart mode %s", changes["smart_mode"])
-
     if clean_param.clean_times:
         changes["clean_times"] = clean_param.clean_times
         _track_field(state, changes, "clean_times")
-
-    if _LOGGER.isEnabledFor(logging.DEBUG):
-        tracked_fields = {
-            "cleaning_mode",
-            "fan_speed",
-            "mop_water_level",
-            "corner_cleaning",
-            "cleaning_intensity",
-            "carpet_strategy",
-            "smart_mode",
-        }
-        field_count = sum(1 for k in changes if k in tracked_fields)
-        _LOGGER.debug(
-            "DPS 154: Successfully processed cleaning parameters - extracted %d fields",
-            field_count,
-        )
 
 
 def _parse_analysis_response(
@@ -1388,10 +1303,6 @@ def _parse_analysis_response(
             changes["ctrl_event_timestamp"] = ce.timestamp
             _track_field(state, changes, "ctrl_event")
 
-        if stats.HasField("relocate"):
-            _LOGGER.debug("DPS 179: relocate record present")
-        if stats.HasField("collect"):
-            _LOGGER.debug("DPS 179: collect record present")
 
 
 def _process_timer_response(
@@ -1399,11 +1310,6 @@ def _process_timer_response(
 ) -> None:
     try:
         timer_resp = decode(TimerResponse, value)
-        _LOGGER.debug(
-            "Decoded TimerResponse: method=%s, timers=%d",
-            timer_resp.method,
-            len(timer_resp.timers),
-        )
 
         schedules = []
         for timer in timer_resp.timers:

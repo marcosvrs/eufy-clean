@@ -35,6 +35,17 @@ _LOGGER = logging.getLogger(__name__)
 class EufyCleanCoordinator(DataUpdateCoordinator[VacuumState]):
     """Coordinator to manage Eufy Clean device connection and state."""
 
+    @callback
+    def async_set_updated_data(self, data: VacuumState) -> None:
+        """Update data and notify listeners without noisy debug logging."""
+        self._async_unsub_refresh()
+        self._debounced_refresh.async_cancel()
+        self.data = data
+        self.last_update_success = True
+        if self._listeners:
+            self._schedule_refresh()
+        self.async_update_listeners()
+
     def __init__(
         self,
         hass: HomeAssistant,
@@ -215,7 +226,6 @@ class EufyCleanCoordinator(DataUpdateCoordinator[VacuumState]):
                             self.data.dock_status,
                         )
                         if self._dock_idle_cancel:
-                            _LOGGER.debug("Cancelling existing debounce timer.")
                             self._dock_idle_cancel()
 
                         self._pending_dock_status = new_dock
@@ -295,9 +305,6 @@ class EufyCleanCoordinator(DataUpdateCoordinator[VacuumState]):
     @callback
     def _async_commit_dock_status(self, _now: Any) -> None:
         """Commit the pending dock status."""
-        _LOGGER.debug(
-            "Debounce timer fired. Committing status: %s", self._pending_dock_status
-        )
         self._dock_idle_cancel = None
         final_dock = self._pending_dock_status
         self._pending_dock_status = None
@@ -409,11 +416,6 @@ class EufyCleanCoordinator(DataUpdateCoordinator[VacuumState]):
         """Load data from storage."""
         if data := await self._store.async_load():
             self.last_seen_segments = data.get("last_seen_segments")
-            _LOGGER.debug(
-                "Loaded %s segments from storage for %s",
-                len(self.last_seen_segments) if self.last_seen_segments else 0,
-                self.device_name,
-            )
 
             if not self._raw_catalog:
                 stored_catalog = data.get("dps_catalog")
@@ -442,11 +444,6 @@ class EufyCleanCoordinator(DataUpdateCoordinator[VacuumState]):
         if self._raw_catalog:
             existing["dps_catalog"] = self._raw_catalog
         await self._store.async_save(existing)
-        _LOGGER.debug(
-            "Saved %s segments to storage for %s",
-            len(segments_payload),
-            self.device_name,
-        )
 
     async def _async_refresh_catalog(self, _now: Any) -> None:
         """Periodically refresh the DPS catalog from the cloud (every 24h)."""

@@ -93,6 +93,90 @@ def _decode_raw_varints(data: bytes) -> dict[int, int | bytes]:
     return fields
 
 
+# -- Proto novelty detection --------------------------------------------------
+# Logs new field paths and unknown wire tags ONCE per runtime, per DPS key.
+# This catches: (a) known-schema fields the parser doesn't extract,
+#               (b) wire-level tags not in our .proto definitions.
+_seen_field_shapes: dict[str, set[str]] = {}  # "dps_key" -> set of field paths
+_seen_wire_tags: dict[str, set[int]] = {}     # "dps_key" -> set of known+unknown tags
+
+
+def _flatten_proto_paths(d: dict, prefix: str = "") -> set[str]:
+    paths: set[str] = set()
+    for k, v in d.items():
+        path = f"{prefix}.{k}" if prefix else k
+        paths.add(path)
+        if isinstance(v, dict):
+            paths |= _flatten_proto_paths(v, path)
+        elif isinstance(v, list):
+            for item in v:
+                if isinstance(item, dict):
+                    paths |= _flatten_proto_paths(item, path)
+    return paths
+
+
+def _extract_top_level_tags(raw_bytes: bytes) -> set[int]:
+    tags: set[int] = set()
+    i = 0
+    while i < len(raw_bytes):
+        tag, i = _decode_varint(raw_bytes, i)
+        fn, wt = tag >> 3, tag & 7
+        if fn == 0:
+            break
+        tags.add(fn)
+        if wt == 0:  # varint
+            _, i = _decode_varint(raw_bytes, i)
+        elif wt == 2:  # length-delimited
+            blen, i = _decode_varint(raw_bytes, i)
+            i += blen
+        elif wt == 5:  # 32-bit fixed
+            i += 4
+        elif wt == 1:  # 64-bit fixed
+            i += 8
+        else:
+            break
+    return tags
+
+
+def _log_proto_novelty(
+    dps_key: str, proto_msg: Any, raw_b64: str, has_length: bool = True,
+) -> None:
+    try:
+        d = MessageToDict(proto_msg, preserving_proto_field_name=True)
+        paths = _flatten_proto_paths(d)
+
+        cache_key = dps_key
+        prev = _seen_field_shapes.get(cache_key, set())
+        new_paths = paths - prev
+        if new_paths:
+            _LOGGER.debug(
+                "PROTO_NOVELTY | dps=%s | type=%s | new_field_paths=%s",
+                dps_key, type(proto_msg).__name__, sorted(new_paths),
+            )
+        _seen_field_shapes[cache_key] = prev | paths
+
+        # Wire tag scan for unknown top-level fields
+        raw = base64.b64decode(raw_b64)
+        if has_length and raw:
+            _, pos = _decode_varint(raw, 0)
+            raw = raw[pos:]
+        wire_tags = _extract_top_level_tags(raw)
+        known_nums = set(proto_msg.DESCRIPTOR.fields_by_number.keys())
+        unknown_tags = wire_tags - known_nums
+
+        prev_tags = _seen_wire_tags.get(cache_key, set())
+        new_unknown = unknown_tags - prev_tags
+        if new_unknown:
+            _LOGGER.warning(
+                "PROTO_UNKNOWN_TAGS | dps=%s | type=%s | unknown_field_numbers=%s "
+                "(not in .proto schema)",
+                dps_key, type(proto_msg).__name__, sorted(new_unknown),
+            )
+        _seen_wire_tags[cache_key] = prev_tags | unknown_tags
+    except Exception:
+        pass  # Novelty detection must never break parsing
+
+
 def _parse_robot_telemetry(value: str) -> dict[str, Any] | None:
     """Parse DPS 179 robot telemetry (no proto definition available).
 
@@ -186,6 +270,7 @@ def _process_station_status(
     value = dps[dps_map["STATION_STATUS"]]
     try:
         station = decode(StationResponse, value)
+        _log_proto_novelty("173", station, value)
         new_dock_status = _map_dock_status(station)
         # Debouncing is handled in coordinator, not here
         changes["dock_status"] = new_dock_status
@@ -221,6 +306,7 @@ def _process_work_status(
     value = dps[dps_map["WORK_STATUS"]]
     try:
         work_status = decode(WorkStatus, value)
+        _log_proto_novelty("153", work_status, value)
         changes["activity"] = _map_work_status(work_status)
         changes["status_code"] = work_status.state
 
@@ -646,6 +732,7 @@ def _process_other_dps(
 
             elif key == dps_map["UNSETTING"]:
                 settings = decode(UnisettingResponse, value)
+                _log_proto_novelty("176", settings, value)
                 changes["wifi_signal"] = (settings.ap_signal_strength / 2) - 100
                 _track_field(state, changes, "wifi_signal")
                 if settings.HasField("children_lock"):
@@ -1122,6 +1209,7 @@ def _parse_accessories(current_state: AccessoryState, value: Any) -> AccessorySt
     """Parse ConsumableResponse from DPS."""
     try:
         response = decode(ConsumableResponse, value)
+        _log_proto_novelty("168", response, value)
         if not response.HasField("runtime"):
             return current_state
 
@@ -1248,6 +1336,7 @@ def _parse_analysis_response(
     """Try to decode DPS 179 as AnalysisResponse for battery_info and internal_status."""
     try:
         analysis = decode(AnalysisResponse, value)
+        _log_proto_novelty("179", analysis, value)
     except Exception:
         _LOGGER.debug("DPS 179: AnalysisResponse decode failed, skipping")
         return

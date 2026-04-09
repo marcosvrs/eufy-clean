@@ -20,7 +20,13 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, Upda
 
 from .api.client import EufyCleanClient
 from .api.cloud import EufyLogin
-from .api.parser import update_state
+from .api.parser import (
+    clear_novelty_dirty,
+    get_novelty_caches,
+    is_novelty_dirty,
+    load_novelty_caches,
+    update_state,
+)
 from .const import (
     DEFAULT_DPS_MAP,
     DOMAIN,
@@ -104,12 +110,7 @@ class EufyCleanCoordinator(DataUpdateCoordinator[VacuumState]):
             else {}
         )
 
-        if dps := device_info.get("dps"):
-            self.data, _ = update_state(
-                self.data, dps, dps_map=self.dps_map,
-                catalog_types=self.catalog_types,
-                dps_catalog=self.dps_catalog,
-            )
+        self._initial_dps = device_info.get("dps")
 
     @property
     def device_info(self) -> DeviceInfo:
@@ -157,8 +158,17 @@ class EufyCleanCoordinator(DataUpdateCoordinator[VacuumState]):
             )
 
             self.client.set_on_message(self._handle_mqtt_message)
-            await self.client.connect()
             await self.async_load_storage()
+
+            if self._initial_dps:
+                self.data, _ = update_state(
+                    self.data, self._initial_dps, dps_map=self.dps_map,
+                    catalog_types=self.catalog_types,
+                    dps_catalog=self.dps_catalog,
+                )
+                self._initial_dps = None
+
+            await self.client.connect()
 
             async_call_later(self.hass, 2.0, self._async_enable_new_entities_cb)
 
@@ -277,6 +287,9 @@ class EufyCleanCoordinator(DataUpdateCoordinator[VacuumState]):
                     self._segment_update_cancel = async_call_later(
                         self.hass, 2.0, self._async_commit_segment_changes
                     )
+
+                if is_novelty_dirty():
+                    self.hass.async_create_task(self._async_save_novelty())
 
         except Exception as e:
             _LOGGER.warning("Error handling MQTT message: %s", e)
@@ -440,6 +453,15 @@ class EufyCleanCoordinator(DataUpdateCoordinator[VacuumState]):
                         self.device_name,
                         len(stored_catalog),
                     )
+
+            if novelty := data.get("novelty_caches"):
+                load_novelty_caches(novelty)
+
+    async def _async_save_novelty(self) -> None:
+        clear_novelty_dirty()
+        existing = await self._store.async_load() or {}
+        existing["novelty_caches"] = get_novelty_caches()
+        await self._store.async_save(existing)
 
     async def async_save_segments(self, segments_payload: list[dict[str, Any]]) -> None:
         """Save segments to storage."""

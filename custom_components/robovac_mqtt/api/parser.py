@@ -101,17 +101,50 @@ _seen_field_shapes: dict[str, set[str]] = {}  # "dps_key" -> set of field paths
 _seen_wire_tags: dict[str, set[int]] = {}     # "dps_key" -> set of known+unknown tags
 _seen_scalar_values: dict[str, set[str]] = {}  # "dps_key" -> set of "type:value" strings
 _seen_telemetry_tags: dict[str, set[int]] = {}
+_seen_recursive_tags: dict[str, set[str]] = {}  # "dps_key:path" -> set of unknown tags
+_novelty_dirty = False  # Set True when any cache grows; coordinator checks and saves
+
+
+def get_novelty_caches() -> dict[str, Any]:
+    return {
+        "field_shapes": {k: sorted(v) for k, v in _seen_field_shapes.items()},
+        "wire_tags": {k: sorted(v) for k, v in _seen_wire_tags.items()},
+        "scalar_values": {k: sorted(v) for k, v in _seen_scalar_values.items()},
+        "telemetry_tags": {k: sorted(v) for k, v in _seen_telemetry_tags.items()},
+        "recursive_tags": {k: sorted(v) for k, v in _seen_recursive_tags.items()},
+    }
+
+
+def load_novelty_caches(data: dict[str, Any]) -> None:
+    global _novelty_dirty
+    _seen_field_shapes.update({k: set(v) for k, v in data.get("field_shapes", {}).items()})
+    _seen_wire_tags.update({k: set(v) for k, v in data.get("wire_tags", {}).items()})
+    _seen_scalar_values.update({k: set(v) for k, v in data.get("scalar_values", {}).items()})
+    _seen_telemetry_tags.update({k: set(v) for k, v in data.get("telemetry_tags", {}).items()})
+    _seen_recursive_tags.update({k: set(v) for k, v in data.get("recursive_tags", {}).items()})
+    _novelty_dirty = False
+
+
+def is_novelty_dirty() -> bool:
+    return _novelty_dirty
+
+
+def clear_novelty_dirty() -> None:
+    global _novelty_dirty
+    _novelty_dirty = False
 
 
 def _log_scalar_novelty(dps_key: str, value: Any) -> None:
     sig = f"{type(value).__name__}:{value}"
     prev = _seen_scalar_values.get(dps_key, set())
     if sig not in prev:
+        global _novelty_dirty
         _LOGGER.debug(
             "SCALAR_NOVELTY | dps=%s | value=%s | type=%s",
             dps_key, value, type(value).__name__,
         )
         _seen_scalar_values[dps_key] = prev | {sig}
+        _novelty_dirty = True
 
 
 def _flatten_proto_paths(d: dict, prefix: str = "") -> set[str]:
@@ -170,9 +203,6 @@ def _extract_wire_tags(raw_bytes: bytes) -> tuple[set[int], dict[int, bytes]]:
     return tags, ld_fields
 
 
-_seen_recursive_tags: dict[str, set[str]] = {}  # "dps_key:path" -> set of unknown tags
-
-
 def _scan_unknown_tags_recursive(
     dps_key: str, proto_msg: Any, raw_bytes: bytes, path: str = "",
 ) -> None:
@@ -193,6 +223,8 @@ def _scan_unknown_tags_recursive(
             dps_key, label, sorted(int(t) for t in new_unknown),
         )
         _seen_recursive_tags[cache_key] = prev | new_unknown
+        global _novelty_dirty
+        _novelty_dirty = True
 
     # Recurse into known sub-message fields that have raw wire data
     for fn, raw_sub in ld_fields.items():
@@ -222,6 +254,8 @@ def _log_proto_novelty(
                 "PROTO_NOVELTY | dps=%s | type=%s | new_field_paths=%s",
                 dps_key, type(proto_msg).__name__, sorted(new_paths),
             )
+            global _novelty_dirty
+            _novelty_dirty = True
         _seen_field_shapes[cache_key] = prev | paths
 
         # Recursive wire tag scan for unknown fields at all nesting levels
@@ -283,6 +317,8 @@ def _log_raw_telemetry_novelty(
                 level_name, sorted(new_tags), sorted(tags),
             )
             _seen_telemetry_tags[cache_key] = prev | tags
+            global _novelty_dirty
+            _novelty_dirty = True
 
 
 def _track_field(state: VacuumState, changes: dict[str, Any], field_name: str) -> None:

@@ -99,6 +99,19 @@ def _decode_raw_varints(data: bytes) -> dict[int, int | bytes]:
 #               (b) wire-level tags not in our .proto definitions.
 _seen_field_shapes: dict[str, set[str]] = {}  # "dps_key" -> set of field paths
 _seen_wire_tags: dict[str, set[int]] = {}     # "dps_key" -> set of known+unknown tags
+_seen_scalar_values: dict[str, set[str]] = {}  # "dps_key" -> set of "type:value" strings
+_seen_telemetry_tags: dict[str, set[int]] = {}
+
+
+def _log_scalar_novelty(dps_key: str, value: Any) -> None:
+    sig = f"{type(value).__name__}:{value}"
+    prev = _seen_scalar_values.get(dps_key, set())
+    if sig not in prev:
+        _LOGGER.debug(
+            "SCALAR_NOVELTY | dps=%s | value=%s | type=%s",
+            dps_key, value, type(value).__name__,
+        )
+        _seen_scalar_values[dps_key] = prev | {sig}
 
 
 def _flatten_proto_paths(d: dict, prefix: str = "") -> set[str]:
@@ -115,8 +128,26 @@ def _flatten_proto_paths(d: dict, prefix: str = "") -> set[str]:
     return paths
 
 
-def _extract_top_level_tags(raw_bytes: bytes) -> set[int]:
+def _listfields_paths(msg: Any, prefix: str = "") -> set[str]:
+    """Walk proto via ListFields() to catch explicitly-set default values."""
+    from google.protobuf.descriptor import FieldDescriptor
+    paths: set[str] = set()
+    for fd, val in msg.ListFields():
+        path = f"{prefix}.{fd.name}" if prefix else fd.name
+        paths.add(path)
+        if fd.type == FieldDescriptor.TYPE_MESSAGE:
+            if fd.label == FieldDescriptor.LABEL_REPEATED:
+                for item in val:
+                    paths |= _listfields_paths(item, path)
+            else:
+                paths |= _listfields_paths(val, path)
+    return paths
+
+
+def _extract_wire_tags(raw_bytes: bytes) -> tuple[set[int], dict[int, bytes]]:
+    """Extract top-level field numbers and raw bytes for length-delimited fields."""
     tags: set[int] = set()
+    ld_fields: dict[int, bytes] = {}  # field_num -> raw bytes (for recursion)
     i = 0
     while i < len(raw_bytes):
         tag, i = _decode_varint(raw_bytes, i)
@@ -128,6 +159,7 @@ def _extract_top_level_tags(raw_bytes: bytes) -> set[int]:
             _, i = _decode_varint(raw_bytes, i)
         elif wt == 2:  # length-delimited
             blen, i = _decode_varint(raw_bytes, i)
+            ld_fields[fn] = raw_bytes[i : i + blen]
             i += blen
         elif wt == 5:  # 32-bit fixed
             i += 4
@@ -135,15 +167,52 @@ def _extract_top_level_tags(raw_bytes: bytes) -> set[int]:
             i += 8
         else:
             break
-    return tags
+    return tags, ld_fields
+
+
+_seen_recursive_tags: dict[str, set[str]] = {}  # "dps_key:path" -> set of unknown tags
+
+
+def _scan_unknown_tags_recursive(
+    dps_key: str, proto_msg: Any, raw_bytes: bytes, path: str = "",
+) -> None:
+    """Scan for unknown wire tags at this level and recurse into known sub-messages."""
+    from google.protobuf.descriptor import FieldDescriptor
+    wire_tags, ld_fields = _extract_wire_tags(raw_bytes)
+    known_nums = set(proto_msg.DESCRIPTOR.fields_by_number.keys())
+    unknown = wire_tags - known_nums
+
+    cache_key = f"{dps_key}:{path}" if path else dps_key
+    prev = _seen_recursive_tags.get(cache_key, set())
+    new_unknown = {str(t) for t in unknown} - prev
+    if new_unknown:
+        label = f"{type(proto_msg).__name__}" + (f".{path}" if path else "")
+        _LOGGER.warning(
+            "PROTO_UNKNOWN_TAGS | dps=%s | location=%s | unknown_field_numbers=%s "
+            "(not in .proto schema)",
+            dps_key, label, sorted(int(t) for t in new_unknown),
+        )
+        _seen_recursive_tags[cache_key] = prev | new_unknown
+
+    # Recurse into known sub-message fields that have raw wire data
+    for fn, raw_sub in ld_fields.items():
+        fd = proto_msg.DESCRIPTOR.fields_by_number.get(fn)
+        if fd and fd.type == FieldDescriptor.TYPE_MESSAGE:
+            sub_msg = getattr(proto_msg, fd.name, None)
+            if sub_msg is not None:
+                sub_path = f"{path}.{fd.name}" if path else fd.name
+                _scan_unknown_tags_recursive(dps_key, sub_msg, raw_sub, sub_path)
 
 
 def _log_proto_novelty(
     dps_key: str, proto_msg: Any, raw_b64: str, has_length: bool = True,
 ) -> None:
     try:
+        # Presence-aware field path detection via ListFields()
+        paths = _listfields_paths(proto_msg)
+        # Also get MessageToDict paths (catches map fields, oneof display names)
         d = MessageToDict(proto_msg, preserving_proto_field_name=True)
-        paths = _flatten_proto_paths(d)
+        paths |= _flatten_proto_paths(d)
 
         cache_key = dps_key
         prev = _seen_field_shapes.get(cache_key, set())
@@ -155,24 +224,12 @@ def _log_proto_novelty(
             )
         _seen_field_shapes[cache_key] = prev | paths
 
-        # Wire tag scan for unknown top-level fields
+        # Recursive wire tag scan for unknown fields at all nesting levels
         raw = base64.b64decode(raw_b64)
         if has_length and raw:
             _, pos = _decode_varint(raw, 0)
             raw = raw[pos:]
-        wire_tags = _extract_top_level_tags(raw)
-        known_nums = set(proto_msg.DESCRIPTOR.fields_by_number.keys())
-        unknown_tags = wire_tags - known_nums
-
-        prev_tags = _seen_wire_tags.get(cache_key, set())
-        new_unknown = unknown_tags - prev_tags
-        if new_unknown:
-            _LOGGER.warning(
-                "PROTO_UNKNOWN_TAGS | dps=%s | type=%s | unknown_field_numbers=%s "
-                "(not in .proto schema)",
-                dps_key, type(proto_msg).__name__, sorted(new_unknown),
-            )
-        _seen_wire_tags[cache_key] = prev_tags | unknown_tags
+        _scan_unknown_tags_recursive(dps_key, proto_msg, raw)
     except Exception:
         pass  # Novelty detection must never break parsing
 
@@ -206,9 +263,26 @@ def _parse_robot_telemetry(value: str) -> dict[str, Any] | None:
     if not isinstance(inner_bytes, bytes):
         return None
     inner = _decode_raw_varints(inner_bytes)
+    _log_raw_telemetry_novelty(outer, sub, inner)
     if 4 not in inner or 5 not in inner:
         return None
     return {"x": inner[4], "y": inner[5]}
+
+
+def _log_raw_telemetry_novelty(
+    outer: dict[int, Any], sub: dict[int, Any], inner: dict[int, Any],
+) -> None:
+    for level_name, fields in [("outer", outer), ("sub", sub), ("inner", inner)]:
+        cache_key = f"179_telemetry_{level_name}"
+        tags = set(fields.keys())
+        prev = _seen_telemetry_tags.get(cache_key, set())
+        new_tags = tags - prev
+        if new_tags:
+            _LOGGER.debug(
+                "TELEMETRY_NOVELTY | level=%s | new_tags=%s | all_tags=%s",
+                level_name, sorted(new_tags), sorted(tags),
+            )
+            _seen_telemetry_tags[cache_key] = prev | tags
 
 
 def _track_field(state: VacuumState, changes: dict[str, Any], field_name: str) -> None:
@@ -517,6 +591,7 @@ def _process_play_pause(
     value = dps[dps_map["PLAY_PAUSE"]]
     try:
         mode_ctrl = decode(ModeCtrlRequest, value)
+        _log_proto_novelty("152", mode_ctrl, value)
 
         if mode_ctrl.HasField("select_rooms_clean"):
             room_ids = [r.id for r in mode_ctrl.select_rooms_clean.rooms]
@@ -598,6 +673,7 @@ def _process_other_dps(
         try:
             if key == dps_map["BATTERY_LEVEL"]:
                 changes["battery_level"] = int(value)
+                _log_scalar_novelty("163", value)
                 new_dynamic = dict(changes.get("dynamic_values", state.dynamic_values))
                 new_dynamic[key] = int(value)
                 changes["dynamic_values"] = new_dynamic
@@ -606,6 +682,7 @@ def _process_other_dps(
             elif key == dps_map["CLEAN_SPEED"]:
                 mapped = _map_clean_speed(value)
                 changes["fan_speed"] = mapped
+                _log_scalar_novelty("158", value)
                 new_dynamic = dict(changes.get("dynamic_values", state.dynamic_values))
                 new_dynamic[key] = int(value)
                 changes["dynamic_values"] = new_dynamic
@@ -613,6 +690,7 @@ def _process_other_dps(
 
             elif key == dps_map["ERROR_CODE"]:
                 error_proto = decode(ErrorCode, value)
+                _log_proto_novelty("177", error_proto, value)
                 all_codes = list(error_proto.error) + list(error_proto.warn)
                 changes["error_codes_all"] = all_codes
                 changes["error_messages_all"] = [
@@ -631,6 +709,7 @@ def _process_other_dps(
             elif key == dps_map.get("TOAST", "178"):
                 try:
                     prompt = decode(PromptCode, value)
+                    _log_proto_novelty("178", prompt, value)
                     codes = list(prompt.value)
                     changes["notification_codes"] = codes
                     if codes:
@@ -651,6 +730,7 @@ def _process_other_dps(
                 _track_field(state, changes, "accessories")
                 try:
                     _cr = decode(ConsumableResponse, value)
+                    _log_proto_novelty("168", _cr, value)
                     if _cr.HasField("runtime") and _cr.runtime.last_time:
                         changes["consumable_last_time"] = _cr.runtime.last_time
                         _track_field(state, changes, "consumable_last_time")
@@ -659,6 +739,7 @@ def _process_other_dps(
 
             elif key == dps_map["CLEANING_STATISTICS"]:
                 stats = decode(CleanStatistics, value)
+                _log_proto_novelty("167", stats, value)
                 if stats.HasField("single"):
                     changes["cleaning_time"] = stats.single.clean_duration
                     changes["cleaning_area"] = stats.single.clean_area
@@ -695,12 +776,14 @@ def _process_other_dps(
             elif key == dps_map["FIND_ROBOT"]:
                 parsed = str(value).lower() == "true"
                 changes["find_robot"] = parsed
+                _log_scalar_novelty("160", value)
                 new_dynamic = dict(changes.get("dynamic_values", state.dynamic_values))
                 new_dynamic[key] = parsed
                 changes["dynamic_values"] = new_dynamic
 
             elif key == dps_map["APP_DEV_INFO"]:
                 info = decode(DeviceInfo, value)
+                _log_proto_novelty("169", info, value)
                 if info.device_mac:
                     changes["device_mac"] = info.device_mac
                 if info.wifi_name:
@@ -809,6 +892,7 @@ def _process_other_dps(
 
             elif key == dps_map["UNDISTURBED"]:
                 undisturbed = decode(UndisturbedResponse, value)
+                _log_proto_novelty("157", undisturbed, value)
                 if undisturbed.HasField("undisturbed"):
                     changes["dnd_enabled"] = undisturbed.undisturbed.sw.value
                     if undisturbed.undisturbed.HasField("begin"):
@@ -838,6 +922,7 @@ def _process_other_dps(
             elif key == dps_map.get("BOOST_IQ"):
                 if isinstance(value, bool):
                     changes["boost_iq"] = value
+                    _log_scalar_novelty("159", value)
                     new_dynamic = dict(changes.get("dynamic_values", state.dynamic_values))
                     new_dynamic[key] = value
                     changes["dynamic_values"] = new_dynamic
@@ -847,6 +932,7 @@ def _process_other_dps(
                 if isinstance(value, (int, float)):
                     vol = int(value)
                     changes["volume"] = vol
+                    _log_scalar_novelty("161", value)
                     new_dynamic = dict(changes.get("dynamic_values", state.dynamic_values))
                     new_dynamic[key] = vol
                     changes["dynamic_values"] = new_dynamic
@@ -1091,6 +1177,7 @@ def _parse_scene_info(value: Any) -> list[dict[str, Any]]:
     """Parse SceneResponse from DPS."""
     try:
         scene_response = decode(SceneResponse, value, has_length=True)
+        _log_proto_novelty("180", scene_response, value)
         if not scene_response or not scene_response.infos:
             return []
 
@@ -1125,6 +1212,7 @@ def _parse_map_data(value: Any) -> dict[str, Any] | None:
     # UniversalDataResponse
     try:
         universal_data = decode(UniversalDataResponse, value, has_length=True)
+        _log_proto_novelty("165", universal_data, value)
         if universal_data and (
             universal_data.cur_map_room.map_id or universal_data.cur_map_room.data
         ):
@@ -1142,6 +1230,7 @@ def _parse_map_data(value: Any) -> dict[str, Any] | None:
     # RoomParams
     try:
         room_params = decode(RoomParams, value, has_length=True)
+        _log_proto_novelty("165", room_params, value)
         if room_params and (room_params.map_id or room_params.rooms):
             rooms = []
             for rm in room_params.rooms:
@@ -1167,6 +1256,7 @@ def _parse_multi_map_response(value: Any) -> dict[str, Any] | None:
     """
     try:
         resp = decode(MultiMapsManageResponse, value)
+        _log_proto_novelty("172", resp, value)
         return None
     except Exception as e:
         _LOGGER.debug("Error parsing TimerInfo: %s", e)
@@ -1178,6 +1268,7 @@ def _process_media_manager(
 ) -> None:
     try:
         resp = decode(MediaManagerResponse, value)
+        _log_proto_novelty("174", resp, value)
 
         if resp.HasField("status"):
             changes["media_recording"] = resp.status.state == 1
@@ -1250,6 +1341,7 @@ def _process_cleaning_parameters(
     clean_param = None
     try:
         response = decode(CleanParamResponse, value, has_length=True)
+        _log_proto_novelty("154", response, value)
         if response and response.HasField("clean_param"):
             clean_param = response.clean_param
         elif response and response.HasField("running_clean_param"):
@@ -1262,6 +1354,7 @@ def _process_cleaning_parameters(
     if not clean_param:
         try:
             request = decode(CleanParamRequest, value, has_length=True)
+            _log_proto_novelty("154", request, value)
             if request and request.HasField("clean_param"):
                 clean_param = request.clean_param
             elif request and request.HasField("area_clean_param"):
@@ -1399,6 +1492,7 @@ def _process_timer_response(
 ) -> None:
     try:
         timer_resp = decode(TimerResponse, value)
+        _log_proto_novelty("164", timer_resp, value)
 
         schedules = []
         for timer in timer_resp.timers:

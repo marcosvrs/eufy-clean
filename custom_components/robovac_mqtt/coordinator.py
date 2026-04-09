@@ -195,6 +195,11 @@ class EufyCleanCoordinator(DataUpdateCoordinator[VacuumState]):
             if isinstance(payload_data, str):
                 payload_data = json.loads(payload_data)
 
+            # Filter non-DPS protocol messages (cloud handshake/sync)
+            protocol = payload_data.get("protocol")
+            if protocol in (4, 5, 7):
+                return
+
             if dps := payload_data.get("data"):
                 # Calculate new state based on connection
                 new_state, changes = update_state(

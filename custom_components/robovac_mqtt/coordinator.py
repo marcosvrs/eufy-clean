@@ -1,8 +1,9 @@
 from __future__ import annotations
 
+import asyncio
 import json
 import logging
-from dataclasses import replace
+from dataclasses import asdict, replace
 from datetime import timedelta
 from typing import Any
 
@@ -17,6 +18,7 @@ from homeassistant.helpers.dispatcher import async_dispatcher_send
 from homeassistant.helpers.event import async_call_later, async_track_time_interval
 from homeassistant.helpers.storage import Store
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
+from homeassistant.util import dt as dt_util
 
 from .api.client import EufyCleanClient
 from .api.cloud import EufyLogin
@@ -33,9 +35,19 @@ from .const import (
     build_dps_map_from_catalog,
     supported_dps_from_catalog,
 )
-from .models import VacuumState
+from .models import CleaningSession, VacuumState
 
 _LOGGER = logging.getLogger(__name__)
+
+_ACTIVE_SESSION_STATUSES = frozenset({
+    "Cleaning", "Returning to Wash", "Paused", "Washing Mop",
+    "Emptying Dust", "Returning", "Returning to Empty",
+    "Adding clean water", "Recycling waste water",
+})
+
+_DOCK_VISIT_STATUSES = frozenset({
+    "Returning to Wash", "Returning to Empty",
+})
 
 
 class EufyCleanCoordinator(DataUpdateCoordinator[VacuumState]):
@@ -82,6 +94,10 @@ class EufyCleanCoordinator(DataUpdateCoordinator[VacuumState]):
         )
         self._catalog_refresh_cancel: CALLBACK_TYPE | None = None
         self._timer_inquiry_cancel: CALLBACK_TYPE | None = None
+        self._current_session: CleaningSession | None = None
+        self._cleaning_history: list[dict] = []
+        self._prev_task_status: str = ""
+        self._store_lock = asyncio.Lock()
         self._pending_dock_status: str | None = None
         self.last_seen_segments: list[Any] | None = None
         self._store = Store(hass, 1, f"{DOMAIN}.{self.device_id}")
@@ -133,6 +149,16 @@ class EufyCleanCoordinator(DataUpdateCoordinator[VacuumState]):
             info["connections"] = {(CONNECTION_NETWORK_MAC, format_mac(mac))}
         return info
 
+    @property
+    def cleaning_history(self) -> list[dict]:
+        """Return list of past cleaning sessions (max 100)."""
+        return self._cleaning_history
+
+    @property
+    def current_cleaning_session(self) -> CleaningSession | None:
+        """Return the in-progress cleaning session, or None."""
+        return self._current_session
+
     async def initialize(self) -> None:
         """Initialize connection to the device."""
         try:
@@ -167,15 +193,17 @@ class EufyCleanCoordinator(DataUpdateCoordinator[VacuumState]):
                     dps_catalog=self.dps_catalog,
                 )
                 self._initial_dps = None
+                self._prev_task_status = self.data.task_status
 
             await self.client.connect()
 
             async_call_later(self.hass, 2.0, self._async_enable_new_entities_cb)
 
             if self._raw_catalog:
-                existing = await self._store.async_load() or {}
-                existing["dps_catalog"] = self._raw_catalog
-                await self._store.async_save(existing)
+                async with self._store_lock:
+                    existing = await self._store.async_load() or {}
+                    existing["dps_catalog"] = self._raw_catalog
+                    await self._store.async_save(existing)
 
             self._catalog_refresh_cancel = async_track_time_interval(
                 self.hass,
@@ -276,6 +304,10 @@ class EufyCleanCoordinator(DataUpdateCoordinator[VacuumState]):
 
                 self.async_set_updated_data(state_to_publish)
 
+                # Track cleaning sessions
+                if "task_status" in changes:
+                    self._track_cleaning_session(state_to_publish)
+
                 # Auto-enable entities when device reports new fields
                 if "received_fields" in changes:
                     self._async_enable_new_entities(state_to_publish)
@@ -340,6 +372,82 @@ class EufyCleanCoordinator(DataUpdateCoordinator[VacuumState]):
         """Commit segment changes."""
         self._segment_update_cancel = None
         async_dispatcher_send(self.hass, f"{DOMAIN}_{self.device_id}_rooms_updated")
+
+    @callback
+    def _track_cleaning_session(self, state: VacuumState) -> None:
+        """Track cleaning session start/end based on task_status transitions."""
+        new_status = state.task_status
+        prev_status = self._prev_task_status
+        self._prev_task_status = new_status
+
+        if new_status == "Cleaning" and prev_status not in _ACTIVE_SESSION_STATUSES:
+            self._current_session = CleaningSession(
+                start_time=dt_util.utcnow().isoformat(),
+                trigger_source=state.trigger_source,
+                rooms=(
+                    [n.strip() for n in state.active_room_names.split(",") if n.strip()]
+                    if state.active_room_names else []
+                ),
+                scene_name=state.current_scene_name,
+                fan_speed=state.fan_speed,
+                work_mode=state.work_mode,
+            )
+            _LOGGER.debug("Cleaning session started: trigger=%s", state.trigger_source)
+            return
+
+        if self._current_session is None:
+            return
+
+        if new_status in _DOCK_VISIT_STATUSES and prev_status != new_status:
+            self._current_session.dock_visits += 1
+            return
+
+        if new_status == "Completed":
+            self._current_session.end_time = dt_util.utcnow().isoformat()
+            self._current_session.duration_seconds = state.cleaning_time
+            self._current_session.area_m2 = state.cleaning_area
+            self._current_session.error_message = state.error_message or ""
+            self._current_session.completed = True
+            _LOGGER.info(
+                "Cleaning session completed: %ds, %dm², %d dock visits",
+                state.cleaning_time, state.cleaning_area,
+                self._current_session.dock_visits,
+            )
+            self._cleaning_history.append(asdict(self._current_session))
+            self._cleaning_history = self._cleaning_history[-100:]
+            self._current_session = None
+            self.hass.async_create_task(self._async_save_cleaning_history())
+            return
+
+        if (
+            new_status not in _ACTIVE_SESSION_STATUSES
+            and new_status not in ("", "unavailable")
+        ):
+            self._current_session.end_time = dt_util.utcnow().isoformat()
+            self._current_session.duration_seconds = state.cleaning_time
+            self._current_session.area_m2 = state.cleaning_area
+            self._current_session.error_message = state.error_message or ""
+            self._current_session.completed = False
+            _LOGGER.warning(
+                "Cleaning session aborted (status=%s): %ds, %dm²",
+                new_status, state.cleaning_time, state.cleaning_area,
+            )
+            self._cleaning_history.append(asdict(self._current_session))
+            self._cleaning_history = self._cleaning_history[-100:]
+            self._current_session = None
+            self.hass.async_create_task(self._async_save_cleaning_history())
+
+    async def _async_save_cleaning_history(self) -> None:
+        """Persist cleaning history to store."""
+        try:
+            async with self._store_lock:
+                existing = await self._store.async_load() or {}
+                existing["cleaning_history"] = self._cleaning_history
+                await self._store.async_save(existing)
+        except Exception:
+            _LOGGER.exception(
+                "Failed to save cleaning history for %s", self.device_name
+            )
 
     def async_shutdown_timers(self) -> None:
         """Cancel active debounce timers (call before teardown)."""
@@ -457,20 +565,49 @@ class EufyCleanCoordinator(DataUpdateCoordinator[VacuumState]):
             if novelty := data.get("novelty_caches"):
                 load_novelty_caches(novelty)
 
+            raw_history = data.get("cleaning_history", [])
+            if not isinstance(raw_history, list):
+                _LOGGER.warning(
+                    "Cleaning history for %s is corrupted (type=%s), resetting",
+                    self.device_name, type(raw_history).__name__,
+                )
+                self._cleaning_history = []
+            else:
+                valid = []
+                for entry in raw_history:
+                    if (
+                        isinstance(entry, dict)
+                        and entry.get("start_time")
+                        and "completed" in entry
+                    ):
+                        valid.append(entry)
+                    else:
+                        _LOGGER.warning(
+                            "Dropping malformed cleaning history entry for %s: %s",
+                            self.device_name, entry,
+                        )
+                self._cleaning_history = valid
+            _LOGGER.debug(
+                "Loaded %d cleaning history records for %s",
+                len(self._cleaning_history), self.device_name,
+            )
+
     async def _async_save_novelty(self) -> None:
         clear_novelty_dirty()
-        existing = await self._store.async_load() or {}
-        existing["novelty_caches"] = get_novelty_caches()
-        await self._store.async_save(existing)
+        async with self._store_lock:
+            existing = await self._store.async_load() or {}
+            existing["novelty_caches"] = get_novelty_caches()
+            await self._store.async_save(existing)
 
     async def async_save_segments(self, segments_payload: list[dict[str, Any]]) -> None:
         """Save segments to storage."""
         self.last_seen_segments = segments_payload
-        existing = await self._store.async_load() or {}
-        existing["last_seen_segments"] = segments_payload
-        if self._raw_catalog:
-            existing["dps_catalog"] = self._raw_catalog
-        await self._store.async_save(existing)
+        async with self._store_lock:
+            existing = await self._store.async_load() or {}
+            existing["last_seen_segments"] = segments_payload
+            if self._raw_catalog:
+                existing["dps_catalog"] = self._raw_catalog
+            await self._store.async_save(existing)
 
     async def _async_refresh_catalog(self, _now: Any) -> None:
         """Periodically refresh the DPS catalog from the cloud (every 24h)."""
@@ -489,9 +626,10 @@ class EufyCleanCoordinator(DataUpdateCoordinator[VacuumState]):
                     str(item.get("dp_id", "")): item.get("data_type", "")
                     for item in new_catalog
                 }
-                existing = await self._store.async_load() or {}
-                existing["dps_catalog"] = new_catalog
-                await self._store.async_save(existing)
+                async with self._store_lock:
+                    existing = await self._store.async_load() or {}
+                    existing["dps_catalog"] = new_catalog
+                    await self._store.async_save(existing)
                 _LOGGER.info(
                     "DPS catalog refreshed for %s (%d entries). "
                     "Changes take effect on next restart.",

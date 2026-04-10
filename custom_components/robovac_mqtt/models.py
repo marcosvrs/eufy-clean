@@ -228,3 +228,20 @@ class VacuumState:
     # Track which optional fields have ever been received from the device
     # Used by sensors to determine availability (e.g., water level on C20)
     received_fields: set[str] = field(default_factory=set)
+
+
+@dataclass
+class CleaningSession:
+    """Record of a completed or in-progress cleaning session."""
+    start_time: str = ""
+    end_time: str | None = None
+    duration_seconds: int = 0
+    area_m2: int = 0
+    trigger_source: str = "unknown"
+    rooms: list[str] = field(default_factory=list)
+    scene_name: str | None = None
+    fan_speed: str = "Standard"
+    work_mode: str = "unknown"
+    dock_visits: int = 0
+    error_message: str = ""
+    completed: bool = False

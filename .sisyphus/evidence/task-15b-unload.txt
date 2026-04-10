@@ -1,9 +1,0 @@
-============================= test session starts ==============================
-tests/integration/test_ha_lifecycle.py::test_unload_entry_cleans_up PASSED [ 82%]
-tests/integration/test_ha_lifecycle.py::test_unload_entry_shuts_down_timers PASSED [ 84%]
-tests/integration/test_ha_lifecycle.py::test_remove_config_entry_device_returns_true PASSED [ 85%]
-tests/integration/test_ha_lifecycle.py::test_storage_save_and_load_roundtrip PASSED [ 87%]
-tests/integration/test_ha_lifecycle.py::test_storage_load_empty_does_not_overwrite PASSED [ 88%]
-tests/integration/test_ha_lifecycle.py::test_segment_migration_single_device PASSED [ 90%]
-tests/integration/test_ha_lifecycle.py::test_segment_migration_skipped_multi_device PASSED [ 92%]
-============================= 7 passed ==============================

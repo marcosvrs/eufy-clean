@@ -3,12 +3,13 @@ from __future__ import annotations
 import base64
 import logging
 from dataclasses import replace
-from typing import Any
+from typing import Any, cast
 
 from google.protobuf.json_format import MessageToDict
 
 from ..const import (
     CARPET_STRATEGY_NAMES,
+    CHARGING_STATE_NAMES,
     CLEANING_INTENSITY_NAMES,
     CLEANING_MODE_NAMES,
     CORNER_CLEANING_NAMES,
@@ -20,6 +21,8 @@ from ..const import (
     EUFY_CLEAN_NOVEL_CLEAN_SPEED,
     EUFY_CLEAN_PROMPT_CODES,
     FAN_SUCTION_NAMES,
+    GO_WASH_MODE_NAMES,
+    GO_WASH_STATE_NAMES,
     HANDLED_DPS_IDS,
     KNOWN_UNPROCESSED_DPS,
     MEDIA_RECORDING_STATE_NAMES,
@@ -420,6 +423,10 @@ def _process_station_status(
             changes["station_clean_water"] = station.clean_water.value
             _track_field(state, changes, "station_clean_water")
 
+        if station.HasField("status"):
+            changes["dock_connected"] = station.status.connected
+            _track_field(state, changes, "dock_connected")
+
         changes["station_waste_water"] = int(station.dirty_level)
         _track_field(state, changes, "station_waste_water")
 
@@ -468,6 +475,14 @@ def _process_work_status(
             changes["charging"] = False
         else:
             changes["charging"] = False
+
+        if work_status.HasField("charging"):
+            changes["charging_state"] = CHARGING_STATE_NAMES.get(
+                int(work_status.charging.state), ""
+            )
+            _track_field(state, changes, "charging_state")
+        elif state.charging_state:
+            changes["charging_state"] = ""
 
         # Check for trigger source
         trigger_source = "unknown"
@@ -540,6 +555,13 @@ def _process_work_status(
                 else:
                     changes["dock_status"] = "Recycling waste water"
 
+            if st.HasField("water_tank_state"):
+                changes["water_tank_clear_adding"] = st.water_tank_state.clear_water_adding
+                changes["water_tank_waste_recycling"] = (
+                    st.water_tank_state.waste_water_recycling
+                )
+                _track_field(state, changes, "water_tank_state")
+
             if not has_dock_activity:
                 current_dock = changes.get("dock_status", state.dock_status)
                 if current_dock in DOCK_ACTIVITY_STATES:
@@ -557,6 +579,15 @@ def _process_work_status(
                 current_dock = changes.get("dock_status", state.dock_status)
                 if current_dock in DOCK_ACTIVITY_STATES:
                     changes["dock_status"] = "Idle"
+
+        if work_status.HasField("go_wash"):
+            gw = work_status.go_wash
+            changes["go_wash_state"] = GO_WASH_STATE_NAMES.get(int(gw.state), "")
+            changes["go_wash_mode"] = GO_WASH_MODE_NAMES.get(int(gw.mode), "")
+            _track_field(state, changes, "go_wash_state")
+        elif state.go_wash_state:
+            changes["go_wash_state"] = ""
+            changes["go_wash_mode"] = ""
 
         # Process Current Scene
         # 1. If explicit scene info provided, use it.
@@ -866,6 +897,10 @@ def _process_other_dps(
                     _track_field(state, changes, "hardware_version")
                 if info.product_name:
                     changes["product_name"] = info.product_name
+                ota_channel = getattr(cast(Any, info), "ota_channel", "")
+                if ota_channel:
+                    changes["ota_channel"] = ota_channel
+                    _track_field(state, changes, "ota_channel")
                 if info.video_sn:
                     changes["video_sn"] = info.video_sn
                 if info.HasField("station"):
@@ -1392,6 +1427,16 @@ def _parse_accessories(current_state: AccessoryState, value: Any) -> AccessorySt
         if runtime.HasField("dirty_waterfilter"):
             changes["dirty_waterfilter_usage"] = runtime.dirty_waterfilter.duration
 
+        runtime_any = cast(Any, runtime)
+        if runtime.HasField("accessory_12"):
+            changes["accessory_12_usage"] = runtime_any.accessory_12.duration
+        if runtime.HasField("accessory_13"):
+            changes["accessory_13_usage"] = runtime_any.accessory_13.duration
+        if runtime.HasField("accessory_15"):
+            changes["accessory_15_usage"] = runtime_any.accessory_15.duration
+        if runtime.HasField("accessory_19"):
+            changes["accessory_19_usage"] = runtime_any.accessory_19.duration
+
         return replace(current_state, **changes)
 
     except Exception as e:
@@ -1523,6 +1568,12 @@ def _parse_analysis_response(
         if bat.temperature:
             changes["battery_temperature"] = round(bat.temperature[0] / 1000.0, 1)
             _track_field(state, changes, "battery_temperature")
+        if bat.show_level:
+            changes["battery_show_level"] = bat.show_level
+            _track_field(state, changes, "battery_show_level")
+        if bat.update_time:
+            changes["battery_update_time"] = bat.update_time
+            _track_field(state, changes, "battery_update_time")
 
     if analysis.HasField("statistics"):
         stats = analysis.statistics
@@ -1543,6 +1594,12 @@ def _parse_analysis_response(
             changes["last_gohome_start"] = gh.start_time
             changes["last_gohome_end"] = gh.end_time
             _track_field(state, changes, "last_gohome_stats")
+
+        if stats.HasField("collect"):
+            col = stats.collect
+            changes["dust_collect_result"] = bool(col.result)
+            changes["dust_collect_start_time"] = col.start_time
+            _track_field(state, changes, "dust_collect_stats")
 
         if stats.HasField("ctrl_event"):
             ce = stats.ctrl_event

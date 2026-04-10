@@ -214,6 +214,23 @@ WORK_MODE_NAMES = {
     9: "Smart Follow",
 }
 
+CHARGING_STATE_NAMES: dict[int, str] = {
+    0: "Charging",
+    1: "Done",
+    2: "Abnormal",
+}
+
+GO_WASH_STATE_NAMES: dict[int, str] = {
+    0: "Doing",
+    1: "Paused",
+}
+
+GO_WASH_MODE_NAMES: dict[int, str] = {
+    0: "Navigation",
+    1: "Washing",
+    2: "Drying",
+}
+
 
 class EUFY_CLEAN_VACUUMCLEANER_STATE(str, Enum):
     STOPPED = "stopped"
@@ -694,6 +711,10 @@ ACCESSORY_MAX_LIFE = {
     "sensor_usage": 60,  # Maintain/clean interval
     "scrape_usage": 30,  # Cleaning Tray maintain/clean interval
     "mop_usage": 180,
+    "accessory_12_usage": 300,
+    "accessory_13_usage": 300,
+    "accessory_15_usage": 300,
+    "accessory_19_usage": 300,
 }
 
 # Dock statuses that indicate active dock operations

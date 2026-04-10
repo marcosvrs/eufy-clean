@@ -62,6 +62,42 @@ async def async_setup_entry(
                 )
             )
 
+        entities.extend([
+            RoboVacBinarySensor(
+                coordinator,
+                "water_tank_clear_adding",
+                "Water Tank Adding",
+                lambda s: s.water_tank_clear_adding,
+                category=EntityCategory.DIAGNOSTIC,
+                availability_fn=lambda s: "water_tank_state" in s.received_fields,
+            ),
+            RoboVacBinarySensor(
+                coordinator,
+                "water_tank_waste_recycling",
+                "Water Tank Recycling",
+                lambda s: s.water_tank_waste_recycling,
+                category=EntityCategory.DIAGNOSTIC,
+                availability_fn=lambda s: "water_tank_state" in s.received_fields,
+            ),
+            RoboVacBinarySensor(
+                coordinator,
+                "dock_connected",
+                "Dock Connected",
+                lambda s: s.dock_connected,
+                device_class=BinarySensorDeviceClass.CONNECTIVITY,
+                category=EntityCategory.DIAGNOSTIC,
+                availability_fn=lambda s: "dock_connected" in s.received_fields,
+            ),
+            RoboVacBinarySensor(
+                coordinator,
+                "dust_collect_result",
+                "Last Dust Collection Success",
+                lambda s: s.dust_collect_result,
+                category=EntityCategory.DIAGNOSTIC,
+                availability_fn=lambda s: "dust_collect_stats" in s.received_fields,
+            ),
+        ])
+
         # Unistate binary sensors (T14)
         if "UNSETTING" in coordinator.supported_dps:
             for id_suffix, name, bs_field in [

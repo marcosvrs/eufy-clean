@@ -227,10 +227,44 @@ async def async_setup_entry(
                 availability_fn=lambda s: "battery_temperature" in s.received_fields,
                 suggested_display_precision=1,
             ),
+            RoboVacSensor(
+                coordinator,
+                "battery_show_level",
+                "Battery Display Level",
+                lambda s: s.battery_show_level,
+                device_class=SensorDeviceClass.BATTERY,
+                unit=PERCENTAGE,
+                category=EntityCategory.DIAGNOSTIC,
+                availability_fn=lambda s: "battery_show_level" in s.received_fields,
+            ),
         ])
 
         # WorkStatus extended sensors (T9, gated by received_fields)
         entities.extend([
+            RoboVacSensor(
+                coordinator,
+                "charging_state",
+                "Charging State",
+                lambda s: s.charging_state or None,
+                category=EntityCategory.DIAGNOSTIC,
+                availability_fn=lambda s: "charging_state" in s.received_fields,
+            ),
+            RoboVacSensor(
+                coordinator,
+                "go_wash_state",
+                "Go Wash State",
+                lambda s: s.go_wash_state or None,
+                category=EntityCategory.DIAGNOSTIC,
+                availability_fn=lambda s: "go_wash_state" in s.received_fields,
+            ),
+            RoboVacSensor(
+                coordinator,
+                "go_wash_mode",
+                "Go Wash Mode",
+                lambda s: s.go_wash_mode or None,
+                category=EntityCategory.DIAGNOSTIC,
+                availability_fn=lambda s: "go_wash_state" in s.received_fields,
+            ),
             RoboVacSensor(
                 coordinator,
                 "mapping_state",
@@ -548,6 +582,28 @@ async def async_setup_entry(
                 )
             )
 
+            entities.append(
+                RoboVacSensor(
+                    coordinator,
+                    "ota_channel",
+                    "OTA Channel",
+                    lambda s: s.ota_channel or None,
+                    category=EntityCategory.DIAGNOSTIC,
+                    availability_fn=lambda s: "ota_channel" in s.received_fields,
+                )
+            )
+
+        entities.append(
+            RoboVacSensor(
+                coordinator,
+                "dust_collect_start_time",
+                "Last Dust Collection",
+                lambda s: s.dust_collect_start_time,
+                category=EntityCategory.DIAGNOSTIC,
+                availability_fn=lambda s: "dust_collect_stats" in s.received_fields,
+            )
+        )
+
         if "MEDIA_MANAGER" in coordinator.supported_dps:
             entities.append(
                 RoboVacSensor(
@@ -620,6 +676,10 @@ async def async_setup_entry(
                     "Water Filter Usage",
                     "mdi:water-check",
                 ),
+                ("accessory_12_usage", "Accessory 12 Usage", "mdi:tools"),
+                ("accessory_13_usage", "Accessory 13 Usage", "mdi:tools"),
+                ("accessory_15_usage", "Accessory 15 Usage", "mdi:tools"),
+                ("accessory_19_usage", "Accessory 19 Usage", "mdi:tools"),
             ]
 
             for attr, name, icon in consumables:

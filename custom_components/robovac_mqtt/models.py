@@ -27,6 +27,10 @@ class AccessoryState:
     dustbag_usage: int = 0
     dirty_watertank_usage: int = 0
     dirty_waterfilter_usage: int = 0
+    accessory_12_usage: int = 0
+    accessory_13_usage: int = 0
+    accessory_15_usage: int = 0
+    accessory_19_usage: int = 0
 
 
 @dataclass
@@ -44,6 +48,7 @@ class VacuumState:
     error_codes_all: list[int] = field(default_factory=list)
     error_messages_all: list[str] = field(default_factory=list)
     charging: bool = False
+    charging_state: str = ""
 
     # Cleaning Stats
     cleaning_time: int = 0  # seconds
@@ -69,10 +74,15 @@ class VacuumState:
     # Detailed Status
     status_code: int = 0  # Raw status value if needed
     dock_status: str | None = None  # Text description (debounced in coordinator)
+    water_tank_clear_adding: bool = False
+    water_tank_waste_recycling: bool = False
     station_clean_water: int = 0  # Percentage?
     station_waste_water: int = 0
     station_clean_level: int = 0
     dock_auto_cfg: dict[str, Any] = field(default_factory=dict)
+    go_wash_state: str = ""
+    go_wash_mode: str = ""
+    dock_connected: bool = False
     trigger_source: str = "unknown"
     work_mode: str = "unknown"
     current_scene_id: int = 0
@@ -147,6 +157,7 @@ class VacuumState:
     firmware_version: str = ""
     hardware_version: int = 0
     product_name: str = ""
+    ota_channel: str = ""
     video_sn: str = ""
     station_firmware: str = ""
     station_hardware: int = 0
@@ -174,6 +185,8 @@ class VacuumState:
     robotapp_state: str = ""       # Internal robot app state string
     motion_state: str = ""         # Internal motion state string
     battery_real_level: int = 0    # True battery percentage (0-100)
+    battery_show_level: int = 0
+    battery_update_time: int = 0
     battery_voltage: int = 0       # Battery voltage in mV
     battery_current: int = 0       # Battery current in mA (signed)
     battery_temperature: float = 0.0  # Battery temperature in °C (from millidegree units)
@@ -187,6 +200,8 @@ class VacuumState:
     last_gohome_fail_code: int = 0
     last_gohome_start: int = 0
     last_gohome_end: int = 0
+    dust_collect_result: bool = False
+    dust_collect_start_time: int = 0
     ctrl_event_type: int = 0
     ctrl_event_source: int = 0
     ctrl_event_timestamp: int = 0

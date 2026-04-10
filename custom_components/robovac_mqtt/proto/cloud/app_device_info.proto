@@ -51,4 +51,6 @@ message DeviceInfo {
     Station station = 11;       // 基站信息（机器在基站开机才有这个字段）
 
     ProtoInfo proto_info = 12;
+    // Wire analysis: field=13 string="T2351_ota"
+    string ota_channel = 13;
 }

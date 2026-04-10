@@ -177,10 +177,11 @@ def _listfields_paths(msg: Any, prefix: str = "") -> set[str]:
     return paths
 
 
-def _extract_wire_tags(raw_bytes: bytes) -> tuple[set[int], dict[int, bytes]]:
-    """Extract top-level field numbers and raw bytes for length-delimited fields."""
+def _extract_wire_tags(raw_bytes: bytes) -> tuple[set[int], dict[int, bytes], dict[int, tuple[int, Any]]]:
+    """Extract field numbers, length-delimited raw bytes, and per-field wire details."""
     tags: set[int] = set()
     ld_fields: dict[int, bytes] = {}  # field_num -> raw bytes (for recursion)
+    field_details: dict[int, tuple[int, Any]] = {}  # field_num -> (wire_type, value)
     i = 0
     while i < len(raw_bytes):
         tag, i = _decode_varint(raw_bytes, i)
@@ -189,18 +190,45 @@ def _extract_wire_tags(raw_bytes: bytes) -> tuple[set[int], dict[int, bytes]]:
             break
         tags.add(fn)
         if wt == 0:  # varint
-            _, i = _decode_varint(raw_bytes, i)
+            val, i = _decode_varint(raw_bytes, i)
+            field_details[fn] = (0, val)
         elif wt == 2:  # length-delimited
             blen, i = _decode_varint(raw_bytes, i)
-            ld_fields[fn] = raw_bytes[i : i + blen]
+            data = raw_bytes[i : i + blen]
+            ld_fields[fn] = data
+            field_details[fn] = (2, data)
             i += blen
         elif wt == 5:  # 32-bit fixed
+            field_details[fn] = (5, raw_bytes[i : i + 4])
             i += 4
         elif wt == 1:  # 64-bit fixed
+            field_details[fn] = (1, raw_bytes[i : i + 8])
             i += 8
         else:
             break
-    return tags, ld_fields
+    return tags, ld_fields, field_details
+
+
+_WIRE_TYPE_NAMES = {0: "varint", 1: "fixed64", 2: "bytes", 5: "fixed32"}
+
+
+def _format_unknown_field(wt: int, val: Any) -> str:
+    if wt == 0:
+        return f"varint={val}"
+    if wt == 2:
+        hexval = val.hex()[:80]
+        try:
+            s = val.decode("utf-8")
+            if all(32 <= c < 127 for c in val):
+                return f'string[{len(val)}]="{s}"'
+        except (UnicodeDecodeError, ValueError):
+            pass
+        return f"bytes[{len(val)}]={hexval}"
+    if wt == 5:
+        return f"fixed32={int.from_bytes(val, 'little')}"
+    if wt == 1:
+        return f"fixed64={int.from_bytes(val, 'little')}"
+    return f"wire{wt}=?"
 
 
 def _scan_unknown_tags_recursive(
@@ -208,7 +236,7 @@ def _scan_unknown_tags_recursive(
 ) -> None:
     """Scan for unknown wire tags at this level and recurse into known sub-messages."""
     from google.protobuf.descriptor import FieldDescriptor
-    wire_tags, ld_fields = _extract_wire_tags(raw_bytes)
+    wire_tags, ld_fields, field_details = _extract_wire_tags(raw_bytes)
     known_nums = set(proto_msg.DESCRIPTOR.fields_by_number.keys())
     unknown = wire_tags - known_nums
 
@@ -217,16 +245,18 @@ def _scan_unknown_tags_recursive(
     new_unknown = {str(t) for t in unknown} - prev
     if new_unknown:
         label = f"{type(proto_msg).__name__}" + (f".{path}" if path else "")
+        details = []
+        for t in sorted(int(t) for t in new_unknown):
+            wt, val = field_details.get(t, (-1, None))
+            details.append(f"field={t} {_format_unknown_field(wt, val)}")
         _LOGGER.warning(
-            "PROTO_UNKNOWN_TAGS | dps=%s | location=%s | unknown_field_numbers=%s "
-            "(not in .proto schema)",
-            dps_key, label, sorted(int(t) for t in new_unknown),
+            "PROTO_UNKNOWN_TAGS | dps=%s | location=%s | fields: %s",
+            dps_key, label, "; ".join(details),
         )
         _seen_recursive_tags[cache_key] = prev | new_unknown
         global _novelty_dirty
         _novelty_dirty = True
 
-    # Recurse into known sub-message fields that have raw wire data
     for fn, raw_sub in ld_fields.items():
         fd = proto_msg.DESCRIPTOR.fields_by_number.get(fn)
         if fd and fd.type == FieldDescriptor.TYPE_MESSAGE:

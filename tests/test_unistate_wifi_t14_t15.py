@@ -147,6 +147,7 @@ def _mock_coordinator(received: list[str] | None = None) -> MagicMock:
 
 def test_live_map_binary_sensor_availability():
     from custom_components.robovac_mqtt.binary_sensor import RoboVacBinarySensor
+    from custom_components.robovac_mqtt.descriptions.binary_sensor import RoboVacBinarySensorDescription
 
     coord = _mock_coordinator(received=["live_map_state_bits"])
     coord.data = VacuumState(
@@ -154,15 +155,19 @@ def test_live_map_binary_sensor_availability():
         received_fields={"live_map_state_bits"},
     )
     bs = RoboVacBinarySensor(
-        coord, "live_map", "Live Map",
-        lambda s: bool(s.live_map_state_bits),
-        availability_fn=lambda s: "live_map_state_bits" in s.received_fields,
+        coord,
+        RoboVacBinarySensorDescription(
+            key="live_map", name="Live Map",
+            value_fn=lambda s: bool(s.live_map_state_bits),
+            availability_fn=lambda s: "live_map_state_bits" in s.received_fields,
+        ),
     )
     assert bs.is_on is True
 
 
 def test_live_map_binary_sensor_off_when_zero():
     from custom_components.robovac_mqtt.binary_sensor import RoboVacBinarySensor
+    from custom_components.robovac_mqtt.descriptions.binary_sensor import RoboVacBinarySensorDescription
 
     coord = _mock_coordinator(received=["live_map_state_bits"])
     coord.data = VacuumState(
@@ -170,8 +175,11 @@ def test_live_map_binary_sensor_off_when_zero():
         received_fields={"live_map_state_bits"},
     )
     bs = RoboVacBinarySensor(
-        coord, "live_map", "Live Map",
-        lambda s: bool(s.live_map_state_bits),
-        availability_fn=lambda s: "live_map_state_bits" in s.received_fields,
+        coord,
+        RoboVacBinarySensorDescription(
+            key="live_map", name="Live Map",
+            value_fn=lambda s: bool(s.live_map_state_bits),
+            availability_fn=lambda s: "live_map_state_bits" in s.received_fields,
+        ),
     )
     assert bs.is_on is False

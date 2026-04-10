@@ -13,6 +13,7 @@ from custom_components.robovac_mqtt.const import DPS_MAP
 from custom_components.robovac_mqtt.models import VacuumState
 from custom_components.robovac_mqtt.number import UnisettingNumber
 from custom_components.robovac_mqtt.proto.cloud.unisetting_pb2 import UnisettingRequest
+from custom_components.robovac_mqtt.descriptions.switch import RoboVacUnisettingSwitchDescription
 from custom_components.robovac_mqtt.switch import UnisettingSwitch
 from custom_components.robovac_mqtt.utils import decode
 
@@ -82,6 +83,10 @@ class TestBuildSetUnisettingCommand:
             assert hasattr(decoded, field)
 
 
+def _sw_desc(field_name, name, icon):
+    return RoboVacUnisettingSwitchDescription(field_name=field_name, name=name, icon=icon)
+
+
 class TestUnisettingSwitch:
 
     def test_is_on_reads_from_coordinator(self):
@@ -89,46 +94,46 @@ class TestUnisettingSwitch:
         coord.data = VacuumState(
             pet_mode_sw=True, received_fields={"pet_mode_sw"}
         )
-        sw = UnisettingSwitch(coord, "pet_mode_sw", "Pet Mode", "mdi:paw")
+        sw = UnisettingSwitch(coord, _sw_desc("pet_mode_sw", "Pet Mode", "mdi:paw"))
         assert sw.is_on is True
 
     def test_is_on_false(self):
         coord = _mock_coordinator(received=["ai_see"])
-        sw = UnisettingSwitch(coord, "ai_see", "AI See", "mdi:eye")
+        sw = UnisettingSwitch(coord, _sw_desc("ai_see", "AI See", "mdi:eye"))
         assert sw.is_on is False
 
     def test_available_requires_received_field(self):
         coord = _mock_coordinator(received=[])
-        sw = UnisettingSwitch(coord, "ai_see", "AI See", "mdi:eye")
+        sw = UnisettingSwitch(coord, _sw_desc("ai_see", "AI See", "mdi:eye"))
         assert sw.available is False
 
     def test_available_when_field_received(self):
         coord = _mock_coordinator(received=["ai_see"])
-        sw = UnisettingSwitch(coord, "ai_see", "AI See", "mdi:eye")
+        sw = UnisettingSwitch(coord, _sw_desc("ai_see", "AI See", "mdi:eye"))
         assert sw.available is True
 
     def test_unique_id(self):
         coord = _mock_coordinator()
-        sw = UnisettingSwitch(coord, "pet_mode_sw", "Pet Mode", "mdi:paw")
+        sw = UnisettingSwitch(coord, _sw_desc("pet_mode_sw", "Pet Mode", "mdi:paw"))
         assert sw._attr_unique_id == "test_pet_mode_sw"
 
     def test_entity_category_config(self):
         from homeassistant.const import EntityCategory
 
         coord = _mock_coordinator()
-        sw = UnisettingSwitch(coord, "ai_see", "AI See", "mdi:eye")
+        sw = UnisettingSwitch(coord, _sw_desc("ai_see", "AI See", "mdi:eye"))
         assert sw._attr_entity_category == EntityCategory.CONFIG
 
     def test_visible_default_false(self):
         coord = _mock_coordinator()
-        sw = UnisettingSwitch(coord, "ai_see", "AI See", "mdi:eye")
+        sw = UnisettingSwitch(coord, _sw_desc("ai_see", "AI See", "mdi:eye"))
         assert sw._attr_entity_registry_visible_default is False
 
     @pytest.mark.asyncio
     async def test_turn_on_sends_command(self):
         coord = _mock_coordinator(received=["pet_mode_sw"])
         coord.async_send_command = AsyncMock()
-        sw = UnisettingSwitch(coord, "pet_mode_sw", "Pet Mode", "mdi:paw")
+        sw = UnisettingSwitch(coord, _sw_desc("pet_mode_sw", "Pet Mode", "mdi:paw"))
         await sw.async_turn_on()
         coord.async_send_command.assert_called_once()
         sent = coord.async_send_command.call_args[0][0]
@@ -138,7 +143,7 @@ class TestUnisettingSwitch:
     async def test_turn_off_sends_command(self):
         coord = _mock_coordinator(received=["pet_mode_sw"])
         coord.async_send_command = AsyncMock()
-        sw = UnisettingSwitch(coord, "pet_mode_sw", "Pet Mode", "mdi:paw")
+        sw = UnisettingSwitch(coord, _sw_desc("pet_mode_sw", "Pet Mode", "mdi:paw"))
         await sw.async_turn_off()
         coord.async_send_command.assert_called_once()
 

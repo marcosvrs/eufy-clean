@@ -29,6 +29,7 @@ from custom_components.robovac_mqtt.select import (
     CarpetStrategySelectEntity,
     CornerCleaningSelectEntity,
 )
+from custom_components.robovac_mqtt.descriptions.sensor import RoboVacSensorDescription
 from custom_components.robovac_mqtt.sensor import RoboVacSensor
 from custom_components.robovac_mqtt.switch import SmartModeSwitchEntity
 
@@ -50,6 +51,17 @@ def mock_coordinator():
 # ---------------------------------------------------------------------------
 
 
+def _waste_water_desc():
+    return RoboVacSensorDescription(
+        key="waste_water_level",
+        name="Waste Water Level",
+        native_unit_of_measurement="%",
+        icon="mdi:water-minus",
+        value_fn=lambda s: s.station_waste_water,
+        availability_fn=lambda s: "dock_status" in s.received_fields,
+    )
+
+
 def test_waste_water_sensor_value(mock_coordinator):
     mock_coordinator.data = replace(
         mock_coordinator.data,
@@ -57,30 +69,14 @@ def test_waste_water_sensor_value(mock_coordinator):
         received_fields={"dock_status"},
     )
 
-    entity = RoboVacSensor(
-        mock_coordinator,
-        "waste_water_level",
-        "Waste Water Level",
-        lambda s: s.station_waste_water,
-        unit="%",
-        icon="mdi:water-minus",
-        availability_fn=lambda s: "dock_status" in s.received_fields,
-    )
+    entity = RoboVacSensor(mock_coordinator, _waste_water_desc())
 
     assert entity.native_value == 42
     assert entity.available is True
 
 
 def test_waste_water_sensor_unavailable_without_dock_status(mock_coordinator):
-    entity = RoboVacSensor(
-        mock_coordinator,
-        "waste_water_level",
-        "Waste Water Level",
-        lambda s: s.station_waste_water,
-        unit="%",
-        icon="mdi:water-minus",
-        availability_fn=lambda s: "dock_status" in s.received_fields,
-    )
+    entity = RoboVacSensor(mock_coordinator, _waste_water_desc())
 
     assert entity.available is False
 

@@ -17,6 +17,10 @@ from .api.commands import build_command
 from .auto_entities import get_auto_switches
 from .const import DOMAIN
 from .coordinator import EufyCleanCoordinator
+from .descriptions.switch import (
+    UNISETTING_SWITCH_DESCRIPTIONS,
+    RoboVacUnisettingSwitchDescription,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -65,21 +69,10 @@ async def async_setup_entry(
 
         if "UNSETTING" in coordinator.supported_dps:
             entities.append(ChildLockSwitchEntity(coordinator))
-
-            unisetting_switches = [
-                ("ai_see", "AI See", "mdi:eye"),
-                ("pet_mode_sw", "Pet Mode", "mdi:paw"),
-                ("poop_avoidance_sw", "Poop Avoidance", "mdi:emoticon-poop"),
-                ("live_photo_sw", "Live Photo", "mdi:camera"),
-                ("deep_mop_corner_sw", "Deep Mop Corner", "mdi:broom"),
-                ("smart_follow_sw", "Smart Follow", "mdi:motion-sensor"),
-                ("cruise_continue_sw", "Cruise Continue", "mdi:refresh"),
-                ("multi_map_sw", "Multi Map", "mdi:map-plus"),
-                ("suggest_restricted_zone_sw", "Suggest Restricted Zone", "mdi:map-marker-off"),
-                ("water_level_sw", "Water Level Monitor", "mdi:water-check"),
-            ]
-            for field, name, icon in unisetting_switches:
-                entities.append(UnisettingSwitch(coordinator, field, name, icon))
+            entities.extend(
+                UnisettingSwitch(coordinator, description)
+                for description in UNISETTING_SWITCH_DESCRIPTIONS
+            )
 
         entities.append(SmartModeSwitchEntity(coordinator))
 
@@ -332,16 +325,14 @@ class UnisettingSwitch(CoordinatorEntity[EufyCleanCoordinator], SwitchEntity):
     def __init__(
         self,
         coordinator: EufyCleanCoordinator,
-        field_name: str,
-        display_name: str,
-        icon: str,
+        description: RoboVacUnisettingSwitchDescription,
     ) -> None:
         super().__init__(coordinator)
-        self._field_name = field_name
-        self._attr_unique_id = f"{coordinator.device_id}_{field_name}"
+        self._field_name = description.field_name
+        self._attr_unique_id = f"{coordinator.device_id}_{description.field_name}"
         self._attr_has_entity_name = True
-        self._attr_name = display_name
-        self._attr_icon = icon
+        self._attr_name = description.name
+        self._attr_icon = description.icon
         self._attr_entity_category = EntityCategory.CONFIG
         self._attr_device_info = coordinator.device_info
         self._attr_entity_registry_enabled_default = False

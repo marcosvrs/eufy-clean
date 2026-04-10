@@ -3,6 +3,8 @@ from unittest.mock import MagicMock
 import pytest
 
 from custom_components.robovac_mqtt.binary_sensor import RoboVacBinarySensor
+from custom_components.robovac_mqtt.descriptions.binary_sensor import RoboVacBinarySensorDescription
+from custom_components.robovac_mqtt.descriptions.sensor import RoboVacSensorDescription
 from custom_components.robovac_mqtt.models import VacuumState
 from custom_components.robovac_mqtt.sensor import RoboVacSensor
 
@@ -40,25 +42,30 @@ NEW_BINARY_SENSOR_FIELDS = [
 ]
 
 
+def _sensor_desc(key, name, availability_fn=None):
+    return RoboVacSensorDescription(
+        key=key,
+        name=name,
+        value_fn=lambda s, k=key: getattr(s, k),
+        availability_fn=availability_fn,
+    )
+
+
 class TestWorkStatusSensors:
     def test_sensor_available_when_field_received(self, mock_coordinator):
         _coord_with_fields(mock_coordinator, {"mapping_state"})
         sensor = RoboVacSensor(
             mock_coordinator,
-            "mapping_state",
-            "Mapping State",
-            lambda s: s.mapping_state,
-            availability_fn=lambda s: "mapping_state" in s.received_fields,
+            _sensor_desc("mapping_state", "Mapping State",
+                         availability_fn=lambda s: "mapping_state" in s.received_fields),
         )
         assert sensor.available is True
 
     def test_sensor_unavailable_when_field_not_received(self, mock_coordinator):
         sensor = RoboVacSensor(
             mock_coordinator,
-            "mapping_state",
-            "Mapping State",
-            lambda s: s.mapping_state,
-            availability_fn=lambda s: "mapping_state" in s.received_fields,
+            _sensor_desc("mapping_state", "Mapping State",
+                         availability_fn=lambda s: "mapping_state" in s.received_fields),
         )
         assert sensor.available is False
 
@@ -68,10 +75,8 @@ class TestWorkStatusSensors:
         )
         sensor = RoboVacSensor(
             mock_coordinator,
-            "mapping_state",
-            "Mapping State",
-            lambda s: s.mapping_state,
-            availability_fn=lambda s: "mapping_state" in s.received_fields,
+            _sensor_desc("mapping_state", "Mapping State",
+                         availability_fn=lambda s: "mapping_state" in s.received_fields),
         )
         assert sensor.native_value == 1
 
@@ -79,10 +84,12 @@ class TestWorkStatusSensors:
         _coord_with_fields(mock_coordinator, {"cruise_state"})
         sensor = RoboVacSensor(
             mock_coordinator,
-            "cruise_mode",
-            "Cruise Mode",
-            lambda s: s.cruise_mode,
-            availability_fn=lambda s: "cruise_state" in s.received_fields,
+            RoboVacSensorDescription(
+                key="cruise_mode",
+                name="Cruise Mode",
+                value_fn=lambda s: s.cruise_mode,
+                availability_fn=lambda s: "cruise_state" in s.received_fields,
+            ),
         )
         assert sensor.available is True
 
@@ -90,12 +97,23 @@ class TestWorkStatusSensors:
         _coord_with_fields(mock_coordinator, {"mapping_state"})
         sensor = RoboVacSensor(
             mock_coordinator,
-            "mapping_mode",
-            "Mapping Mode",
-            lambda s: s.mapping_mode,
-            availability_fn=lambda s: "mapping_state" in s.received_fields,
+            RoboVacSensorDescription(
+                key="mapping_mode",
+                name="Mapping Mode",
+                value_fn=lambda s: s.mapping_mode,
+                availability_fn=lambda s: "mapping_state" in s.received_fields,
+            ),
         )
         assert sensor.available is True
+
+
+def _bs_desc(key, name, value_fn, availability_fn=None):
+    return RoboVacBinarySensorDescription(
+        key=key,
+        name=name,
+        value_fn=value_fn,
+        availability_fn=availability_fn,
+    )
 
 
 class TestWorkStatusBinarySensors:
@@ -103,20 +121,16 @@ class TestWorkStatusBinarySensors:
         _coord_with_fields(mock_coordinator, {"upgrading"})
         bs = RoboVacBinarySensor(
             mock_coordinator,
-            "upgrading",
-            "Upgrading",
-            lambda s: s.upgrading,
-            availability_fn=lambda s: "upgrading" in s.received_fields,
+            _bs_desc("upgrading", "Upgrading", lambda s: s.upgrading,
+                     availability_fn=lambda s: "upgrading" in s.received_fields),
         )
         assert bs.available is True
 
     def test_binary_sensor_unavailable_when_not_received(self, mock_coordinator):
         bs = RoboVacBinarySensor(
             mock_coordinator,
-            "upgrading",
-            "Upgrading",
-            lambda s: s.upgrading,
-            availability_fn=lambda s: "upgrading" in s.received_fields,
+            _bs_desc("upgrading", "Upgrading", lambda s: s.upgrading,
+                     availability_fn=lambda s: "upgrading" in s.received_fields),
         )
         assert bs.available is False
 
@@ -124,10 +138,8 @@ class TestWorkStatusBinarySensors:
         _coord_with_fields(mock_coordinator, {"upgrading"})
         bs = RoboVacBinarySensor(
             mock_coordinator,
-            "upgrading",
-            "Upgrading",
-            lambda s: s.upgrading,
-            availability_fn=lambda s: "upgrading" in s.received_fields,
+            _bs_desc("upgrading", "Upgrading", lambda s: s.upgrading,
+                     availability_fn=lambda s: "upgrading" in s.received_fields),
         )
         assert bs.is_on is False
 
@@ -143,10 +155,9 @@ class TestWorkStatusBinarySensors:
             sensors.append(
                 RoboVacBinarySensor(
                     mock_coordinator,
-                    id_suffix,
-                    name,
-                    lambda s, f=bs_field: getattr(s, f),
-                    availability_fn=lambda s, f=bs_field: f in s.received_fields,
+                    _bs_desc(id_suffix, name,
+                             lambda s, f=bs_field: getattr(s, f),
+                             availability_fn=lambda s, f=bs_field: f in s.received_fields),
                 )
             )
         for sensor in sensors:

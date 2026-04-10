@@ -2,6 +2,7 @@ from unittest.mock import MagicMock
 
 from custom_components.robovac_mqtt.auto_entities import AutoSwitch
 from custom_components.robovac_mqtt.coordinator import EufyCleanCoordinator
+from custom_components.robovac_mqtt.descriptions.sensor import RoboVacSensorDescription
 from custom_components.robovac_mqtt.models import VacuumState
 from custom_components.robovac_mqtt.sensor import RoboVacSensor
 from custom_components.robovac_mqtt.vacuum import RoboVacMQTTEntity
@@ -28,9 +29,11 @@ def test_sensor_hidden_default() -> None:
     coordinator = _mock_coordinator()
     entity = RoboVacSensor(
         coordinator,
-        "battery_level",
-        "Battery Level",
-        lambda s: s.battery_level,
+        RoboVacSensorDescription(
+            key="battery_level",
+            name="Battery Level",
+            value_fn=lambda s: s.battery_level,
+        ),
     )
 
     assert entity.entity_registry_visible_default is False

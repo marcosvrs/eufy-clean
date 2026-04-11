@@ -262,7 +262,7 @@ def _scan_unknown_tags_recursive(
 
     for fn, raw_sub in ld_fields.items():
         fd = proto_msg.DESCRIPTOR.fields_by_number.get(fn)
-        if fd and fd.type == FieldDescriptor.TYPE_MESSAGE:
+        if fd and fd.type == FieldDescriptor.TYPE_MESSAGE and fd.label != FieldDescriptor.LABEL_REPEATED:
             sub_msg = getattr(proto_msg, fd.name, None)
             if sub_msg is not None:
                 sub_path = f"{path}.{fd.name}" if path else fd.name

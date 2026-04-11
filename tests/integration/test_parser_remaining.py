@@ -967,17 +967,18 @@ class TestAdditionalCapturedValues:
     @staticmethod
     def _collect_additional_pairs():
         """Yield (fixture_path, primary_dps, additional_dps) for every entry."""
-        import glob
+        from pathlib import Path
 
-        for fpath in sorted(glob.glob("tests/fixtures/mqtt/**/*.json", recursive=True)):
-            with open(fpath) as fh:
+        fixtures_root = Path(__file__).resolve().parents[1] / "fixtures" / "mqtt"
+        for fixture_path in sorted(fixtures_root.glob("**/*.json")):
+            with fixture_path.open() as fh:
                 d = json.load(fh)
             acvs = d.get("additional_captured_values", [])
             if not acvs:
                 continue
             primary_dps = d["dps"]
             for acv in acvs:
-                yield fpath, primary_dps, acv["dps"]
+                yield str(fixture_path), primary_dps, acv["dps"]
 
     def test_all_additional_values_parse_without_crash(self):
         pairs = list(self._collect_additional_pairs())

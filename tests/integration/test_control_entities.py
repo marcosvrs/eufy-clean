@@ -11,16 +11,22 @@ from dataclasses import replace
 import pytest
 from homeassistant.helpers import entity_registry as er
 
-from custom_components.robovac_mqtt.const import DPS_MAP
+from custom_components.robovac_mqtt.const import DOMAIN, DPS_MAP
 
 
-async def _enable_registry_entity(hass, entity_id: str) -> None:
+async def _enable_registry_entity(hass, setup_integration, entity_id: str):
     """Enable an entity that is disabled by integration by default."""
     entity_registry = er.async_get(hass)
-    entry = entity_registry.async_get(entity_id)
-    assert entry is not None, f"Entity not found in registry: {entity_id}"
+    registry_entry = entity_registry.async_get(entity_id)
+    assert registry_entry is not None, f"Entity not found in registry: {entity_id}"
+
     entity_registry.async_update_entity(entity_id, disabled_by=None)
+    assert await hass.config_entries.async_reload(setup_integration["entry"].entry_id)
     await hass.async_block_till_done()
+    setup_integration["coordinators"] = hass.data[DOMAIN][
+        setup_integration["entry"].entry_id
+    ]["coordinators"]
+    return setup_integration["coordinators"][0]
 
 
 def _enable_all_entities(coordinator) -> None:
@@ -115,8 +121,10 @@ async def test_find_robot_switch_off(hass, setup_integration, mock_mqtt_client):
 @pytest.mark.asyncio
 async def test_child_lock_switch_on(hass, setup_integration, mock_mqtt_client):
     """Enabling child lock dispatches DPS 176 (UNSETTING)."""
-    await _enable_registry_entity(hass, "switch.test_vacuum_child_lock")
-    _enable_all_entities(setup_integration["coordinators"][0])
+    coordinator = await _enable_registry_entity(
+        hass, setup_integration, "switch.test_vacuum_child_lock"
+    )
+    _enable_all_entities(coordinator)
     await hass.async_block_till_done()
 
     await hass.services.async_call(
@@ -134,8 +142,10 @@ async def test_child_lock_switch_on(hass, setup_integration, mock_mqtt_client):
 @pytest.mark.asyncio
 async def test_do_not_disturb_switch_on(hass, setup_integration, mock_mqtt_client):
     """Enabling DND dispatches DPS 157 (UNDISTURBED)."""
-    await _enable_registry_entity(hass, "switch.test_vacuum_do_not_disturb")
-    _enable_all_entities(setup_integration["coordinators"][0])
+    coordinator = await _enable_registry_entity(
+        hass, setup_integration, "switch.test_vacuum_do_not_disturb"
+    )
+    _enable_all_entities(coordinator)
     await hass.async_block_till_done()
 
     await hass.services.async_call(
@@ -153,8 +163,9 @@ async def test_do_not_disturb_switch_on(hass, setup_integration, mock_mqtt_clien
 @pytest.mark.asyncio
 async def test_do_not_disturb_switch_off(hass, setup_integration, mock_mqtt_client):
     """Disabling DND dispatches DPS 157 (UNDISTURBED)."""
-    await _enable_registry_entity(hass, "switch.test_vacuum_do_not_disturb")
-    coordinator = setup_integration["coordinators"][0]
+    coordinator = await _enable_registry_entity(
+        hass, setup_integration, "switch.test_vacuum_do_not_disturb"
+    )
     _enable_all_entities(coordinator)
     coordinator.async_set_updated_data(replace(coordinator.data, dnd_enabled=True))
     await hass.async_block_till_done()
@@ -433,8 +444,10 @@ async def test_dry_duration_select(hass, setup_integration, mock_mqtt_client):
 @pytest.mark.asyncio
 async def test_wash_frequency_number(hass, setup_integration, mock_mqtt_client):
     """Setting wash frequency to 20 dispatches set_auto_cfg via DPS 173."""
-    await _enable_registry_entity(hass, "number.test_vacuum_wash_frequency_value_time")
-    _enable_all_entities(setup_integration["coordinators"][0])
+    coordinator = await _enable_registry_entity(
+        hass, setup_integration, "number.test_vacuum_wash_frequency_value_time"
+    )
+    _enable_all_entities(coordinator)
     await hass.async_block_till_done()
 
     await hass.services.async_call(
@@ -460,8 +473,10 @@ async def test_wash_frequency_number(hass, setup_integration, mock_mqtt_client):
 @pytest.mark.asyncio
 async def test_dnd_start_time(hass, setup_integration, mock_mqtt_client):
     """Setting DND start time dispatches set_do_not_disturb via DPS 157."""
-    await _enable_registry_entity(hass, "time.test_vacuum_do_not_disturb_start")
-    _enable_all_entities(setup_integration["coordinators"][0])
+    coordinator = await _enable_registry_entity(
+        hass, setup_integration, "time.test_vacuum_do_not_disturb_start"
+    )
+    _enable_all_entities(coordinator)
     await hass.async_block_till_done()
 
     await hass.services.async_call(
@@ -482,8 +497,10 @@ async def test_dnd_start_time(hass, setup_integration, mock_mqtt_client):
 @pytest.mark.asyncio
 async def test_dnd_end_time(hass, setup_integration, mock_mqtt_client):
     """Setting DND end time dispatches set_do_not_disturb via DPS 157."""
-    await _enable_registry_entity(hass, "time.test_vacuum_do_not_disturb_end")
-    _enable_all_entities(setup_integration["coordinators"][0])
+    coordinator = await _enable_registry_entity(
+        hass, setup_integration, "time.test_vacuum_do_not_disturb_end"
+    )
+    _enable_all_entities(coordinator)
     await hass.async_block_till_done()
 
     await hass.services.async_call(

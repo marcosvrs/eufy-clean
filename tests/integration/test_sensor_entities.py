@@ -77,13 +77,35 @@ async def setup_vacuum(
         }
 
 
-async def enable_entity(hass: HomeAssistant, entity_id: str) -> None:
-    """Enable an entity that is disabled by integration by default."""
+async def enable_entity(
+    hass: HomeAssistant,
+    ctx: dict,
+    mock_eufy_login: MagicMock,
+    mock_mqtt_client: MagicMock,
+    entity_id: str,
+):
+    """Enable a disabled-by-default entity and reload so it gets instantiated."""
     entity_registry = er.async_get(hass)
     entry = entity_registry.async_get(entity_id)
     assert entry is not None, f"Entity not found in registry: {entity_id}"
     entity_registry.async_update_entity(entity_id, disabled_by=None)
-    await hass.async_block_till_done()
+
+    with (
+        patch(
+            "custom_components.robovac_mqtt.EufyLogin",
+            return_value=mock_eufy_login,
+        ),
+        patch(
+            "custom_components.robovac_mqtt.coordinator.EufyCleanClient",
+            return_value=mock_mqtt_client,
+        ),
+    ):
+        await hass.config_entries.async_reload(ctx["entry"].entry_id)
+        await hass.async_block_till_done()
+
+    ctx["coordinators"] = hass.data[DOMAIN][ctx["entry"].entry_id]["coordinators"]
+    ctx["coordinator"] = ctx["coordinators"][0]
+    return ctx["coordinator"]
 
 
 # ---------------------------------------------------------------------------
@@ -192,8 +214,9 @@ async def test_task_status_returning(hass, mock_eufy_login, mock_mqtt_client):
 async def test_cleaning_area_sensor(hass, mock_eufy_login, mock_mqtt_client):
     """DPS 167 CleanStatistics → cleaning_area sensor updated."""
     ctx = await setup_vacuum(hass, mock_eufy_login, mock_mqtt_client)
-    await enable_entity(hass, "sensor.test_vacuum_cleaning_area")
-    coordinator = ctx["coordinator"]
+    coordinator = await enable_entity(
+        hass, ctx, mock_eufy_login, mock_mqtt_client, "sensor.test_vacuum_cleaning_area"
+    )
 
     stats = CleanStatistics(
         single=CleanStatistics.Single(clean_area=42, clean_duration=1200)
@@ -211,8 +234,9 @@ async def test_cleaning_area_sensor(hass, mock_eufy_login, mock_mqtt_client):
 async def test_cleaning_time_sensor(hass, mock_eufy_login, mock_mqtt_client):
     """DPS 167 CleanStatistics → cleaning_time sensor updated."""
     ctx = await setup_vacuum(hass, mock_eufy_login, mock_mqtt_client)
-    await enable_entity(hass, "sensor.test_vacuum_cleaning_time")
-    coordinator = ctx["coordinator"]
+    coordinator = await enable_entity(
+        hass, ctx, mock_eufy_login, mock_mqtt_client, "sensor.test_vacuum_cleaning_time"
+    )
 
     stats = CleanStatistics(
         single=CleanStatistics.Single(clean_area=10, clean_duration=900)
@@ -235,8 +259,9 @@ async def test_cleaning_time_sensor(hass, mock_eufy_login, mock_mqtt_client):
 async def test_consumable_filter_remaining(hass, mock_eufy_login, mock_mqtt_client):
     """DPS 168 ConsumableResponse → filter_remaining sensor shows remaining hours."""
     ctx = await setup_vacuum(hass, mock_eufy_login, mock_mqtt_client)
-    await enable_entity(hass, "sensor.test_vacuum_filter_remaining")
-    coordinator = ctx["coordinator"]
+    coordinator = await enable_entity(
+        hass, ctx, mock_eufy_login, mock_mqtt_client, "sensor.test_vacuum_filter_remaining"
+    )
 
     consumable = ConsumableResponse(
         runtime=ConsumableRuntime(
@@ -257,8 +282,13 @@ async def test_consumable_filter_remaining(hass, mock_eufy_login, mock_mqtt_clie
 async def test_consumable_side_brush_remaining(hass, mock_eufy_login, mock_mqtt_client):
     """DPS 168 ConsumableResponse → side brush remaining sensor shows correct hours."""
     ctx = await setup_vacuum(hass, mock_eufy_login, mock_mqtt_client)
-    await enable_entity(hass, "sensor.test_vacuum_side_brush_remaining")
-    coordinator = ctx["coordinator"]
+    coordinator = await enable_entity(
+        hass,
+        ctx,
+        mock_eufy_login,
+        mock_mqtt_client,
+        "sensor.test_vacuum_side_brush_remaining",
+    )
 
     consumable = ConsumableResponse(
         runtime=ConsumableRuntime(
@@ -286,7 +316,9 @@ async def test_cleaning_stats_unavailable_before_dps(
 ):
     """Before any DPS 167, cleaning_area sensor should be unavailable."""
     ctx = await setup_vacuum(hass, mock_eufy_login, mock_mqtt_client)
-    await enable_entity(hass, "sensor.test_vacuum_cleaning_area")
+    await enable_entity(
+        hass, ctx, mock_eufy_login, mock_mqtt_client, "sensor.test_vacuum_cleaning_area"
+    )
 
     state = hass.states.get("sensor.test_vacuum_cleaning_area")
     assert state is not None
@@ -299,8 +331,9 @@ async def test_cleaning_stats_available_after_dps(
 ):
     """After DPS 167, cleaning_area sensor becomes available."""
     ctx = await setup_vacuum(hass, mock_eufy_login, mock_mqtt_client)
-    await enable_entity(hass, "sensor.test_vacuum_cleaning_area")
-    coordinator = ctx["coordinator"]
+    coordinator = await enable_entity(
+        hass, ctx, mock_eufy_login, mock_mqtt_client, "sensor.test_vacuum_cleaning_area"
+    )
 
     state = hass.states.get("sensor.test_vacuum_cleaning_area")
     assert state is not None
@@ -324,7 +357,9 @@ async def test_consumable_unavailable_before_dps(
 ):
     """Before any DPS 168, consumable sensors should be unavailable."""
     ctx = await setup_vacuum(hass, mock_eufy_login, mock_mqtt_client)
-    await enable_entity(hass, "sensor.test_vacuum_filter_remaining")
+    await enable_entity(
+        hass, ctx, mock_eufy_login, mock_mqtt_client, "sensor.test_vacuum_filter_remaining"
+    )
 
     state = hass.states.get("sensor.test_vacuum_filter_remaining")
     assert state is not None

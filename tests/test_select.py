@@ -16,6 +16,7 @@
 
 # pylint: disable=redefined-outer-name
 
+import logging
 from unittest.mock import MagicMock
 
 import pytest
@@ -26,6 +27,7 @@ from custom_components.robovac_mqtt.models import VacuumState
 from custom_components.robovac_mqtt.select import (
     DockSelectEntity,
     MopIntensitySelectEntity,
+    _set_collect_dust_mode,
 )
 
 
@@ -89,3 +91,12 @@ def test_mop_intensity_select_entity_mapping(mock_coordinator):
     assert entity._state_to_option("Medium") == "Automatic"
     assert entity._state_to_option("High") == "Max"
     assert entity._state_to_option("Unknown") is None
+
+
+def test_auto_empty_mode_invalid_value_logs_warning(caplog):
+    cfg = {}
+
+    with caplog.at_level(logging.WARNING):
+        _set_collect_dust_mode(cfg, "invalid_value")
+
+    assert "Failed to parse auto-empty mode value: invalid_value" in caplog.text

@@ -521,7 +521,7 @@ class RoboVacMQTTEntity(CoordinatorEntity[EufyCleanCoordinator], StateVacuumEnti
                 try:
                     room_ids.append(int(room_id))
                 except (ValueError, TypeError):
-                    pass
+                    _LOGGER.warning("Skipping room with invalid id: %s", room_id)
             if room_ids:
                 await self._async_handle_room_clean({"room_ids": room_ids})
                 return

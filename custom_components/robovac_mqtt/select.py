@@ -200,7 +200,7 @@ def _set_collect_dust_mode(cfg: dict[str, Any], val: str) -> None:
             cfg["collectdust_v2"]["mode"]["value"] = 1
             cfg["collectdust_v2"]["mode"]["time"] = minutes
         except (ValueError, IndexError):
-            pass
+            _LOGGER.warning("Failed to parse auto-empty mode value: %s", val)
 
 
 class DockSelectEntity(CoordinatorEntity[EufyCleanCoordinator], SelectEntity):

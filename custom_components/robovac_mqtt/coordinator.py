@@ -76,6 +76,7 @@ class EufyCleanCoordinator(DataUpdateCoordinator[VacuumState]):
         self.device_name = device_info["deviceName"]
         self.serial_number = device_info.get("deviceId")  # Usually deviceId is SN
         self.firmware_version = device_info.get("softVersion")
+        self._raw_device_info = device_info
         self.eufy_login = eufy_login
 
         super().__init__(
@@ -134,7 +135,7 @@ class EufyCleanCoordinator(DataUpdateCoordinator[VacuumState]):
         fw = (
             self.data.firmware_version
             if self.data.firmware_version
-            else self._device_info.get("softVersion")
+            else self._raw_device_info.get("softVersion")
         )
         info = DeviceInfo(
             identifiers={(DOMAIN, self.device_id)},

@@ -1353,7 +1353,7 @@ def _parse_multi_map_response(value: Any) -> dict[str, Any] | None:
         _log_proto_novelty("172", resp, value)
         return None
     except Exception as e:
-        _LOGGER.debug("Error parsing TimerInfo: %s", e)
+        _LOGGER.debug("Error parsing MultiMapsManageResponse: %s", e)
         return None
 
 

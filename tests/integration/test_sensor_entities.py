@@ -65,7 +65,7 @@ async def setup_vacuum(
         assert await hass.config_entries.async_setup(config_entry.entry_id)
         await hass.async_block_till_done()
 
-        coordinators = hass.data[DOMAIN][config_entry.entry_id]["coordinators"]
+        coordinators = list(config_entry.runtime_data.coordinators.values())
         return {
             "entry": config_entry,
             "coordinators": coordinators,
@@ -99,7 +99,7 @@ async def enable_entity(
         await hass.config_entries.async_reload(ctx["entry"].entry_id)
         await hass.async_block_till_done()
 
-    ctx["coordinators"] = hass.data[DOMAIN][ctx["entry"].entry_id]["coordinators"]
+    ctx["coordinators"] = list(ctx["entry"].runtime_data.coordinators.values())
     ctx["coordinator"] = ctx["coordinators"][0]
     return ctx["coordinator"]
 

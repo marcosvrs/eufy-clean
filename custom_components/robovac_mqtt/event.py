@@ -6,6 +6,7 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
+from .__init__ import EufyCleanConfigEntry
 from .const import DOMAIN
 from .coordinator import EufyCleanCoordinator
 
@@ -14,14 +15,13 @@ PARALLEL_UPDATES = 1
 
 async def async_setup_entry(
     hass: HomeAssistant,
-    config_entry: ConfigEntry,
+    config_entry: EufyCleanConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up event entities."""
-    data = hass.data[DOMAIN][config_entry.entry_id]
-    coordinators: list[EufyCleanCoordinator] = data["coordinators"]
     async_add_entities(
-        RoboVacNotificationEvent(coordinator) for coordinator in coordinators
+        RoboVacNotificationEvent(coordinator)
+        for coordinator in config_entry.runtime_data.coordinators.values()
     )
 
 

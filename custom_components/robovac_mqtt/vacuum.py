@@ -20,6 +20,7 @@ from homeassistant.helpers.issue_registry import (
 )
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
+from .__init__ import EufyCleanConfigEntry
 from .api.commands import build_command
 from .const import DOMAIN, EUFY_CLEAN_NOVEL_CLEAN_SPEED
 from .coordinator import EufyCleanCoordinator
@@ -116,15 +117,12 @@ _ACTIVITY_MAP: dict[str, VacuumActivity] = {
 
 async def async_setup_entry(
     hass: HomeAssistant,
-    config_entry: ConfigEntry,
+    config_entry: EufyCleanConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up vacuum entities for Eufy Clean devices."""
-    data = hass.data[DOMAIN][config_entry.entry_id]
-    coordinators: list[EufyCleanCoordinator] = data["coordinators"]
-
     entities = []
-    for coordinator in coordinators:
+    for coordinator in config_entry.runtime_data.coordinators.values():
         _LOGGER.debug("Adding vacuum entity for %s", coordinator.device_name)
         entities.append(RoboVacMQTTEntity(coordinator, config_entry))
 

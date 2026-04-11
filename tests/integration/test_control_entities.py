@@ -23,9 +23,9 @@ async def _enable_registry_entity(hass, setup_integration, entity_id: str):
     entity_registry.async_update_entity(entity_id, disabled_by=None)
     assert await hass.config_entries.async_reload(setup_integration["entry"].entry_id)
     await hass.async_block_till_done()
-    setup_integration["coordinators"] = hass.data[DOMAIN][
-        setup_integration["entry"].entry_id
-    ]["coordinators"]
+    setup_integration["coordinators"] = list(
+        setup_integration["entry"].runtime_data.coordinators.values()
+    )
     return setup_integration["coordinators"][0]
 
 

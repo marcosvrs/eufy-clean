@@ -150,7 +150,7 @@ async def setup_integration(hass, mock_eufy_login, mock_mqtt_client):
         assert await hass.config_entries.async_setup(config_entry.entry_id)
         await hass.async_block_till_done()
 
-        coordinators = hass.data[DOMAIN][config_entry.entry_id]["coordinators"]
+        coordinators = list(config_entry.runtime_data.coordinators.values())
         yield {
             "hass": hass,
             "entry": config_entry,

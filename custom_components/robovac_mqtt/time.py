@@ -10,6 +10,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
+from .__init__ import EufyCleanConfigEntry
 from .api.commands import build_command
 from .const import DOMAIN
 from .coordinator import EufyCleanCoordinator
@@ -19,15 +20,12 @@ PARALLEL_UPDATES = 1
 
 async def async_setup_entry(
     hass: HomeAssistant,
-    config_entry: ConfigEntry,
+    config_entry: EufyCleanConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up DND time entities."""
-    data = hass.data[DOMAIN][config_entry.entry_id]
-    coordinators: list[EufyCleanCoordinator] = data["coordinators"]
-
     entities = []
-    for coordinator in coordinators:
+    for coordinator in config_entry.runtime_data.coordinators.values():
         if "UNDISTURBED" in coordinator.supported_dps:
             entities.append(DoNotDisturbStartTimeEntity(coordinator))
             entities.append(DoNotDisturbEndTimeEntity(coordinator))

@@ -17,6 +17,7 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.util import dt as dt_util
 
+from .__init__ import EufyCleanConfigEntry
 from .api.commands import build_command
 from .const import DOMAIN
 from .coordinator import EufyCleanCoordinator
@@ -281,14 +282,11 @@ def _expand_schedule_future(
 
 async def async_setup_entry(
     hass: HomeAssistant,
-    config_entry: ConfigEntry,
+    config_entry: EufyCleanConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-    data = hass.data[DOMAIN][config_entry.entry_id]
-    coordinators: list[EufyCleanCoordinator] = data["coordinators"]
-
     entities = []
-    for coordinator in coordinators:
+    for coordinator in config_entry.runtime_data.coordinators.values():
         if "TIMING" in coordinator.supported_dps:
             entities.append(EufyCleanCalendar(coordinator))
 

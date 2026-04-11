@@ -81,6 +81,7 @@ class EufyCleanCoordinator(DataUpdateCoordinator[VacuumState]):
         hass: HomeAssistant,
         eufy_login: EufyLogin,
         device_info: dict[str, Any],
+        config_entry: Any | None = None,
     ) -> None:
         """Initialize coordinator."""
         self.device_id = device_info["deviceId"]
@@ -94,6 +95,7 @@ class EufyCleanCoordinator(DataUpdateCoordinator[VacuumState]):
         super().__init__(
             hass,
             _LOGGER,
+            config_entry=config_entry,
             name=f"{DOMAIN}_{self.device_name}",
         )
 

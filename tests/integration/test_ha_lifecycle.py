@@ -67,7 +67,7 @@ async def _setup_entry(hass, *, login=None, client=None, extra_data=None):
         await hass.async_block_till_done()
 
     assert result is True
-    coordinators = hass.data[DOMAIN][entry.entry_id]["coordinators"]
+    coordinators = list(entry.runtime_data.coordinators.values())
     return entry, client, coordinators
 
 

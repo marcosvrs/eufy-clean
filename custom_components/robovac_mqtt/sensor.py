@@ -9,6 +9,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
+from .__init__ import EufyCleanConfigEntry
 from .auto_entities import get_auto_sensors
 from .const import DOMAIN
 from .coordinator import EufyCleanCoordinator
@@ -44,14 +45,12 @@ def _active_rooms_available(state: VacuumState) -> bool:
 
 async def async_setup_entry(
     hass: HomeAssistant,
-    config_entry: ConfigEntry,
+    config_entry: EufyCleanConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up sensor entities from descriptions."""
-    data = hass.data[DOMAIN][config_entry.entry_id]
-    coordinators: list[EufyCleanCoordinator] = data["coordinators"]
     entities: list[SensorEntity] = []
-    for coordinator in coordinators:
+    for coordinator in config_entry.runtime_data.coordinators.values():
         _LOGGER.debug("Adding sensors for %s", coordinator.device_name)
         entities.extend(
             RoboVacSensor(coordinator, description)

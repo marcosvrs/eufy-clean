@@ -12,6 +12,9 @@ from homeassistant.helpers import device_registry as dr
 from .api.cloud import EufyLogin
 from .const import DOMAIN
 from .coordinator import EufyCleanCoordinator
+from .models import EufyCleanData
+
+type EufyCleanConfigEntry = ConfigEntry[EufyCleanData]
 
 PLATFORMS: list[Platform] = [
     Platform.VACUUM,
@@ -28,7 +31,7 @@ PLATFORMS: list[Platform] = [
 _LOGGER = logging.getLogger(__name__)
 
 
-async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+async def async_setup_entry(hass: HomeAssistant, entry: EufyCleanConfigEntry) -> bool:
     """Initialize the integration."""
     entry.async_on_unload(entry.add_update_listener(update_listener))
 
@@ -46,7 +49,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         _LOGGER.error("Failed to login to Eufy Clean: %s", e)
         return False
 
-    coordinators = []
+    coordinators: dict[str, EufyCleanCoordinator] = {}
 
     # Get Devices and create coordinators
     # eufy_login.mqtt_devices populated by init/getDevices
@@ -65,7 +68,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             device_id,
         )
 
-        coordinator = EufyCleanCoordinator(hass, eufy_login, device_info)
+        coordinator = EufyCleanCoordinator(hass, eufy_login, device_info, config_entry=entry)
         try:
             await coordinator.initialize()
 
@@ -85,7 +88,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                         device_id,
                     )
 
-            coordinators.append(coordinator)
+            coordinators[device_id] = coordinator
         except Exception as e:
             _LOGGER.warning("Failed to initialize coordinator for %s: %s", device_id, e)
 
@@ -96,7 +99,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         # But if no devices, nothing to do.
 
     # Check for orphaned devices and log warnings
-    current_device_ids = {c.device_id for c in coordinators}
+    current_device_ids = set(coordinators.keys())
     device_registry = dr.async_get(hass)
     registry_devices = dr.async_entries_for_config_entry(
         device_registry, entry.entry_id
@@ -116,8 +119,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                 eufy_id,
             )
 
-    hass.data.setdefault(DOMAIN, {})
-    hass.data[DOMAIN][entry.entry_id] = {"coordinators": coordinators}
+    entry.runtime_data = EufyCleanData(coordinators=coordinators, cloud=eufy_login)
 
     # Clean up migrated data from config entry (skip for multi-device to avoid
     # deleting data that was intentionally not migrated)
@@ -134,29 +136,25 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     return True
 
 
-async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+async def async_unload_entry(hass: HomeAssistant, entry: EufyCleanConfigEntry) -> bool:
     """Unload a config entry."""
     unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
 
     if unload_ok:
-        data = hass.data[DOMAIN].get(entry.entry_id)
-        if data and "coordinators" in data:
-            for coordinator in data["coordinators"]:
-                coordinator.async_shutdown_timers()
-                if coordinator.client:
-                    await coordinator.client.disconnect()
-
-        hass.data[DOMAIN].pop(entry.entry_id)
+        for coordinator in entry.runtime_data.coordinators.values():
+            coordinator.async_shutdown_timers()
+            if coordinator.client:
+                await coordinator.client.disconnect()
 
     return unload_ok
 
 
 async def async_remove_config_entry_device(
-    hass: HomeAssistant, config_entry: ConfigEntry, device_entry: dr.DeviceEntry
+    hass: HomeAssistant, config_entry: EufyCleanConfigEntry, device_entry: dr.DeviceEntry
 ) -> bool:
     """Remove a config entry device."""
     return True
 
 
-async def update_listener(hass: HomeAssistant, entry: ConfigEntry):
+async def update_listener(hass: HomeAssistant, entry: EufyCleanConfigEntry):
     await hass.config_entries.async_reload(entry.entry_id)

@@ -8,6 +8,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
+from .__init__ import EufyCleanConfigEntry
 from .auto_entities import get_auto_binary_sensors
 from .const import DOMAIN
 from .coordinator import EufyCleanCoordinator
@@ -23,14 +24,12 @@ _LOGGER = logging.getLogger(__name__)
 
 async def async_setup_entry(
     hass: HomeAssistant,
-    config_entry: ConfigEntry,
+    config_entry: EufyCleanConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up binary sensor entities from descriptions."""
-    data = hass.data[DOMAIN][config_entry.entry_id]
-    coordinators: list[EufyCleanCoordinator] = data["coordinators"]
     entities: list[BinarySensorEntity] = []
-    for coordinator in coordinators:
+    for coordinator in config_entry.runtime_data.coordinators.values():
         _LOGGER.debug("Adding binary sensors for %s", coordinator.device_name)
         entities.extend(
             RoboVacBinarySensor(coordinator, description)

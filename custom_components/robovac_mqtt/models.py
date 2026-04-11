@@ -249,3 +249,11 @@ class CleaningSession:
     dock_visits: int = 0
     error_message: str = ""
     completed: bool = False
+
+
+@dataclass
+class EufyCleanData:
+    """Runtime data for the Eufy Clean integration."""
+
+    coordinators: dict[str, Any]  # dict[device_id, EufyCleanCoordinator]
+    cloud: Any  # EufyLogin - avoid circular import

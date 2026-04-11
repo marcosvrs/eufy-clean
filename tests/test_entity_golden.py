@@ -13,6 +13,7 @@ from custom_components.robovac_mqtt.binary_sensor import (
 from custom_components.robovac_mqtt.button import async_setup_entry as button_setup
 from custom_components.robovac_mqtt.const import DOMAIN
 from custom_components.robovac_mqtt.coordinator import EufyCleanCoordinator
+from custom_components.robovac_mqtt.models import EufyCleanData
 from custom_components.robovac_mqtt.models import VacuumState
 from custom_components.robovac_mqtt.sensor import async_setup_entry as sensor_setup
 from custom_components.robovac_mqtt.switch import async_setup_entry as switch_setup
@@ -337,7 +338,7 @@ def mock_hass_data(mock_coordinator: MagicMock) -> tuple[MagicMock, MagicMock]:
     hass = MagicMock()
     entry = MagicMock()
     entry.entry_id = "test_entry"
-    hass.data = {DOMAIN: {entry.entry_id: {"coordinators": [mock_coordinator]}}}
+    entry.runtime_data = EufyCleanData(coordinators={mock_coordinator.device_id: mock_coordinator}, cloud=MagicMock())
     return hass, entry
 
 

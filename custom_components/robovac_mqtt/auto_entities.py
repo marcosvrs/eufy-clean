@@ -73,15 +73,6 @@ class _AutoEntityBase(CoordinatorEntity[EufyCleanCoordinator]):
 class AutoSwitch(_AutoEntityBase, SwitchEntity):
     """Auto-generated switch for Bool + rw DPS entries."""
 
-    def __init__(
-        self,
-        coordinator: EufyCleanCoordinator,
-        dp_id: str,
-        cloud_code: str,
-        override: dict[str, Any],
-    ) -> None:
-        super().__init__(coordinator, dp_id, cloud_code, override)
-
     @property
     def is_on(self) -> bool | None:
         """Return current switch state."""
@@ -340,7 +331,7 @@ def _parse_enum_options(entry: dict[str, Any]) -> dict[int, str] | None:
     range_list = prop.get("range")
     if not range_list or not isinstance(range_list, list):
         return None
-    return {idx: label for idx, label in enumerate(range_list)}
+    return dict(enumerate(range_list))
 
 
 def _parse_property_json(entry: dict[str, Any]) -> dict[str, Any]:

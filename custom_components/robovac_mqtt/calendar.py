@@ -474,8 +474,8 @@ class EufyCleanCalendar(CoordinatorEntity[EufyCleanCoordinator], CalendarEntity)
         )
         return events
 
+    @staticmethod
     def _session_to_event(
-        self,
         session: dict,
         tz: dt.tzinfo,
         range_start: dt.datetime,

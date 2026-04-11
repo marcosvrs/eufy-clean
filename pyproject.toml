@@ -67,14 +67,10 @@ disable = [
     "abstract-method",
     "too-many-positional-arguments",
     "unexpected-keyword-arg",
-    "import-outside-toplevel",
-    "global-statement",
     "too-many-lines",
-    "useless-parent-delegation",
-    "unnecessary-comprehension",
-    "no-self-use",
+    "global-statement",
+    "import-outside-toplevel",
     "too-many-nested-blocks",
-    "attribute-defined-outside-init",
 ]
 
 [tool.pytest.ini_options]

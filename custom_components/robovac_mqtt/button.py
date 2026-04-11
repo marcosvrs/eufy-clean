@@ -97,9 +97,9 @@ class RoboVacButton(CoordinatorEntity[EufyCleanCoordinator], ButtonEntity):
     async def async_press(self) -> None:
         """Press the button."""
         if isinstance(self._description, RoboVacResetButtonDescription):
-            cmd = build_command("reset_accessory", reset_type=self._description.consumable_type)
+            cmd = build_command("reset_accessory", dps_map=self.coordinator.dps_map, reset_type=self._description.consumable_type)
         else:
-            cmd = build_command(self._description.command)
+            cmd = build_command(self._description.command, dps_map=self.coordinator.dps_map)
         await self.coordinator.async_send_command(cmd)
 
 

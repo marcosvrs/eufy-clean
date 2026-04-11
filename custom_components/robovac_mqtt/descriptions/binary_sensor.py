@@ -123,7 +123,7 @@ BINARY_SENSOR_DESCRIPTIONS: tuple[RoboVacBinarySensorDescription, ...] = (
         name="Live Map",
         entity_category=EntityCategory.DIAGNOSTIC,
         exists_fn=lambda c: "UNSETTING" in c.supported_dps,
-        value_fn=lambda s: s.live_map_state_bits,
+        value_fn=lambda s: bool(s.live_map_state_bits),
         availability_fn=lambda s: "live_map_state_bits" in s.received_fields,
     ),
 )

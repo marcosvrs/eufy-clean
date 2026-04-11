@@ -269,7 +269,7 @@ class DoNotDisturbSwitchEntity(CoordinatorEntity[EufyCleanCoordinator], SwitchEn
         """Send DND command and optimistically update state."""
         schedule = _current_dnd_schedule(self.coordinator)
         schedule["active"] = state
-        command = build_command("set_do_not_disturb", **schedule)
+        command = build_command("set_do_not_disturb", **schedule)  # type: ignore[arg-type]
         await self.coordinator.async_send_command(command)
         self.coordinator.async_set_updated_data(
             replace(self.coordinator.data, dnd_enabled=state)

@@ -50,10 +50,10 @@ def _make_accessory_remaining_desc(
         icon=icon,
         entity_category=EntityCategory.DIAGNOSTIC,
         exists_fn=lambda c: "ACCESSORIES_STATUS" in c.supported_dps,
-        value_fn=lambda s, a=attr, m=max_life: max(
+        value_fn=lambda s, a=attr, m=max_life: max(  # type: ignore[misc]
             0, m - (getattr(s.accessories, a) or 0)
         ),
-        extra_state_attributes_fn=lambda s, a=attr, m=max_life: {
+        extra_state_attributes_fn=lambda s, a=attr, m=max_life: {  # type: ignore[misc]
             "usage_hours": getattr(s.accessories, a) or 0,
             "total_life_hours": m,
         },
@@ -73,7 +73,7 @@ def _make_consumable_usage_desc(
         icon=icon,
         entity_category=EntityCategory.DIAGNOSTIC,
         exists_fn=lambda c: "ACCESSORIES_STATUS" in c.supported_dps,
-        value_fn=lambda s, a=attr: getattr(s.accessories, a) or 0,
+        value_fn=lambda s, a=attr: getattr(s.accessories, a) or 0,  # type: ignore[misc]
         availability_fn=lambda s: "accessories" in s.received_fields,
     )
 
@@ -184,7 +184,7 @@ SENSOR_DESCRIPTIONS: tuple[RoboVacSensorDescription, ...] = (
                 "discharge_curve": s.battery_discharge_curve,
             }
             if s.battery_discharge_curve
-            else None
+            else {}
         ),
     ),
     RoboVacSensorDescription(

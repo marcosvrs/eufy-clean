@@ -186,6 +186,7 @@ class UnisettingNumber(CoordinatorEntity[EufyCleanCoordinator], NumberEntity):
     async def async_set_native_value(self, value: float) -> None:
         cmd = build_command(
             "set_unisetting",
+            dps_map=self.coordinator.dps_map,
             field=self._field_name,
             value=int(value),
             current_state=self.coordinator.data,

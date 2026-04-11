@@ -414,7 +414,7 @@ class _StateBackedSelectEntity(CoordinatorEntity[EufyCleanCoordinator], SelectEn
 
         state_value = self._option_to_state(option)
         await self.coordinator.async_send_command(
-            build_command(self._command_name, **{self._command_arg_name: state_value})
+            build_command(self._command_name, **{self._command_arg_name: state_value})  # type: ignore[arg-type]
         )
         _optimistically_update_state(
             self.coordinator,

@@ -33,7 +33,7 @@ async def async_setup_entry(
     data = hass.data[DOMAIN][config_entry.entry_id]
     coordinators: list[EufyCleanCoordinator] = data["coordinators"]
 
-    entities = []
+    entities: list[ButtonEntity] = []
 
     for coordinator in coordinators:
         _LOGGER.debug("Adding buttons for %s", coordinator.device_name)

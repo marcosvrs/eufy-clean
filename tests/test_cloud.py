@@ -129,7 +129,7 @@ async def test_get_devices_includes_dps_catalog():
     login = _make_login(
         eufy_api_devices=[_cloud_device("DEV001")],
     )
-    catalog_data = [{"dp_id": "153", "dp_code": "work_status"}]
+    catalog_data = [{"dp_id": "153", "code": "work_status"}]
     login.eufyApi.get_cloud_device_list = AsyncMock(
         return_value=[_cloud_device("DEV001")]
     )

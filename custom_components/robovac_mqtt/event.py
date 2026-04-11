@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import logging
 from typing import Any
 
 from homeassistant.components.event import EventEntity
@@ -11,8 +10,6 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import DOMAIN
 from .coordinator import EufyCleanCoordinator
-
-_LOGGER = logging.getLogger(__name__)
 
 
 async def async_setup_entry(

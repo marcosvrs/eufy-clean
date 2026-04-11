@@ -355,6 +355,7 @@ class UnisettingSwitch(CoordinatorEntity[EufyCleanCoordinator], SwitchEntity):
     async def _set(self, value: bool) -> None:
         cmd = build_command(
             "set_unisetting",
+            dps_map=self.coordinator.dps_map,
             field=self._field_name,
             value=value,
             current_state=self.coordinator.data,

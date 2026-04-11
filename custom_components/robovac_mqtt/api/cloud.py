@@ -71,16 +71,18 @@ class EufyLogin:
             sn = device["device_sn"]
             model_info = self.findModel(sn)
             product_code = device_models.get(sn, "")
-            devices.append({
-                **model_info,
-                "apiType": self.checkApiType(device.get("dps", {})),
-                "mqtt": True,
-                "dps": device.get("dps", {}),
-                "softVersion": device.get("main_sw_version")
+            devices.append(
+                {
+                    **model_info,
+                    "apiType": self.checkApiType(device.get("dps", {})),
+                    "mqtt": True,
+                    "dps": device.get("dps", {}),
+                    "softVersion": device.get("main_sw_version")
                     or device.get("soft_version")
                     or "",
-                "dps_catalog": catalogs.get(product_code, []),
-            })
+                    "dps_catalog": catalogs.get(product_code, []),
+                }
+            )
 
         self.mqtt_devices = [d for d in devices if not d["invalid"]]
 

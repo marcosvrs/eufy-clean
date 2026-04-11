@@ -1,7 +1,7 @@
 from unittest.mock import MagicMock
 
-from custom_components.robovac_mqtt.button import ResumeFromBreakpointButton
 from custom_components.robovac_mqtt.api.commands import build_command
+from custom_components.robovac_mqtt.button import ResumeFromBreakpointButton
 from custom_components.robovac_mqtt.const import HANDLED_DPS_IDS
 from custom_components.robovac_mqtt.coordinator import EufyCleanCoordinator
 from custom_components.robovac_mqtt.models import VacuumState

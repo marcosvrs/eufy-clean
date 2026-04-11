@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-# pyright: reportMissingImports=false
-
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
@@ -9,6 +7,9 @@ from typing import TYPE_CHECKING
 from homeassistant.const import EntityCategory
 
 from ..proto.cloud.consumable_pb2 import ConsumableRequest
+
+# pyright: reportMissingImports=false
+
 
 if TYPE_CHECKING:
     from ..coordinator import EufyCleanCoordinator

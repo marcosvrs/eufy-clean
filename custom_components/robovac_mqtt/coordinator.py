@@ -8,7 +8,8 @@ from datetime import timedelta
 from typing import Any
 
 from homeassistant.core import CALLBACK_TYPE, HomeAssistant, callback
-from homeassistant.helpers import device_registry as dr, entity_registry as er
+from homeassistant.helpers import device_registry as dr
+from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.device_registry import (
     CONNECTION_NETWORK_MAC,
     DeviceInfo,
@@ -39,15 +40,26 @@ from .models import CleaningSession, VacuumState
 
 _LOGGER = logging.getLogger(__name__)
 
-_ACTIVE_SESSION_STATUSES = frozenset({
-    "Cleaning", "Returning to Wash", "Paused", "Washing Mop",
-    "Emptying Dust", "Returning", "Returning to Empty",
-    "Adding clean water", "Recycling waste water",
-})
+_ACTIVE_SESSION_STATUSES = frozenset(
+    {
+        "Cleaning",
+        "Returning to Wash",
+        "Paused",
+        "Washing Mop",
+        "Emptying Dust",
+        "Returning",
+        "Returning to Empty",
+        "Adding clean water",
+        "Recycling waste water",
+    }
+)
 
-_DOCK_VISIT_STATUSES = frozenset({
-    "Returning to Wash", "Returning to Empty",
-})
+_DOCK_VISIT_STATUSES = frozenset(
+    {
+        "Returning to Wash",
+        "Returning to Empty",
+    }
+)
 
 
 class EufyCleanCoordinator(DataUpdateCoordinator[VacuumState]):
@@ -189,7 +201,9 @@ class EufyCleanCoordinator(DataUpdateCoordinator[VacuumState]):
 
             if self._initial_dps:
                 self.data, _ = update_state(
-                    self.data, self._initial_dps, dps_map=self.dps_map,
+                    self.data,
+                    self._initial_dps,
+                    dps_map=self.dps_map,
                     catalog_types=self.catalog_types,
                     dps_catalog=self.dps_catalog,
                 )
@@ -242,7 +256,9 @@ class EufyCleanCoordinator(DataUpdateCoordinator[VacuumState]):
             if dps := payload_data.get("data"):
                 # Calculate new state based on connection
                 new_state, changes = update_state(
-                    self.data, dps, dps_map=self.dps_map,
+                    self.data,
+                    dps,
+                    dps_map=self.dps_map,
                     catalog_types=self.catalog_types,
                     dps_catalog=self.dps_catalog,
                 )
@@ -345,9 +361,7 @@ class EufyCleanCoordinator(DataUpdateCoordinator[VacuumState]):
                 entity_entry.disabled_by is er.RegistryEntryDisabler.INTEGRATION
                 and entity_entry.unique_id.partition("_")[2] in received
             ):
-                ent_reg.async_update_entity(
-                    entity_entry.entity_id, disabled_by=None
-                )
+                ent_reg.async_update_entity(entity_entry.entity_id, disabled_by=None)
                 _LOGGER.info(
                     "Auto-enabled %s (device reported new data)",
                     entity_entry.entity_id,
@@ -391,7 +405,8 @@ class EufyCleanCoordinator(DataUpdateCoordinator[VacuumState]):
                 trigger_source=state.trigger_source,
                 rooms=(
                     [n.strip() for n in state.active_room_names.split(",") if n.strip()]
-                    if state.active_room_names else []
+                    if state.active_room_names
+                    else []
                 ),
                 scene_name=state.current_scene_name,
                 fan_speed=state.fan_speed,
@@ -415,7 +430,8 @@ class EufyCleanCoordinator(DataUpdateCoordinator[VacuumState]):
             self._current_session.completed = True
             _LOGGER.info(
                 "Cleaning session completed: %ds, %dm², %d dock visits",
-                state.cleaning_time, state.cleaning_area,
+                state.cleaning_time,
+                state.cleaning_area,
                 self._current_session.dock_visits,
             )
             self._cleaning_history.append(asdict(self._current_session))
@@ -424,9 +440,9 @@ class EufyCleanCoordinator(DataUpdateCoordinator[VacuumState]):
             self.hass.async_create_task(self._async_save_cleaning_history())
             return
 
-        if (
-            new_status not in _ACTIVE_SESSION_STATUSES
-            and new_status not in ("", "unavailable")
+        if new_status not in _ACTIVE_SESSION_STATUSES and new_status not in (
+            "",
+            "unavailable",
         ):
             self._current_session.end_time = dt_util.utcnow().isoformat()
             self._current_session.duration_seconds = state.cleaning_time
@@ -435,7 +451,9 @@ class EufyCleanCoordinator(DataUpdateCoordinator[VacuumState]):
             self._current_session.completed = False
             _LOGGER.warning(
                 "Cleaning session aborted (status=%s): %ds, %dm²",
-                new_status, state.cleaning_time, state.cleaning_area,
+                new_status,
+                state.cleaning_time,
+                state.cleaning_area,
             )
             self._cleaning_history.append(asdict(self._current_session))
             self._cleaning_history = self._cleaning_history[-100:]
@@ -574,7 +592,8 @@ class EufyCleanCoordinator(DataUpdateCoordinator[VacuumState]):
             if not isinstance(raw_history, list):
                 _LOGGER.warning(
                     "Cleaning history for %s is corrupted (type=%s), resetting",
-                    self.device_name, type(raw_history).__name__,
+                    self.device_name,
+                    type(raw_history).__name__,
                 )
                 self._cleaning_history = []
             else:
@@ -589,12 +608,14 @@ class EufyCleanCoordinator(DataUpdateCoordinator[VacuumState]):
                     else:
                         _LOGGER.warning(
                             "Dropping malformed cleaning history entry for %s: %s",
-                            self.device_name, entry,
+                            self.device_name,
+                            entry,
                         )
                 self._cleaning_history = valid
             _LOGGER.debug(
                 "Loaded %d cleaning history records for %s",
-                len(self._cleaning_history), self.device_name,
+                len(self._cleaning_history),
+                self.device_name,
             )
 
     async def _async_save_novelty(self) -> None:

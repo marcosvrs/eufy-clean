@@ -243,9 +243,7 @@ async def test_vacuum_locate_command(hass, setup_integration, mock_mqtt_client):
 
 
 @pytest.mark.asyncio
-async def test_vacuum_state_transition_cleaning_to_returning(
-    hass, setup_integration
-):
+async def test_vacuum_state_transition_cleaning_to_returning(hass, setup_integration):
     """Entity state transitions from cleaning to returning when WorkStatus changes."""
     coordinator = _get_coordinator(setup_integration)
 

@@ -77,8 +77,12 @@ async def test_eufy_login_json_parse_exception_logs_debug(caplog):
     mock_response.json.side_effect = Exception("json decode error")
     mock_response.text = AsyncMock(return_value="bad json")
 
-    with patch("aiohttp.ClientSession", return_value=_mock_aiohttp_session(mock_response)):
-        with caplog.at_level(logging.DEBUG, logger="custom_components.robovac_mqtt.api.http"):
+    with patch(
+        "aiohttp.ClientSession", return_value=_mock_aiohttp_session(mock_response)
+    ):
+        with caplog.at_level(
+            logging.DEBUG, logger="custom_components.robovac_mqtt.api.http"
+        ):
             result = await client.eufy_login()
 
     assert result is None
@@ -94,8 +98,12 @@ async def test_get_device_list_non_200_logs_warning(caplog):
     mock_response.status = 503
     mock_response.json = AsyncMock(return_value={})
 
-    with patch("aiohttp.ClientSession", return_value=_mock_aiohttp_session(mock_response)):
-        with caplog.at_level(logging.WARNING, logger="custom_components.robovac_mqtt.api.http"):
+    with patch(
+        "aiohttp.ClientSession", return_value=_mock_aiohttp_session(mock_response)
+    ):
+        with caplog.at_level(
+            logging.WARNING, logger="custom_components.robovac_mqtt.api.http"
+        ):
             result = await client.get_device_list()
 
     assert result == []
@@ -109,7 +117,9 @@ async def test_get_product_data_points_none_user_info_logs_warning(caplog):
     client = _make_client()
     assert client.user_info is None
 
-    with caplog.at_level(logging.WARNING, logger="custom_components.robovac_mqtt.api.http"):
+    with caplog.at_level(
+        logging.WARNING, logger="custom_components.robovac_mqtt.api.http"
+    ):
         result = await client.get_product_data_points("T2261")
 
     assert result == []
@@ -125,8 +135,12 @@ async def test_get_cloud_device_list_non_200_logs_warning(caplog):
     mock_response.status = 401
     mock_response.json = AsyncMock(return_value={})
 
-    with patch("aiohttp.ClientSession", return_value=_mock_aiohttp_session(mock_response)):
-        with caplog.at_level(logging.WARNING, logger="custom_components.robovac_mqtt.api.http"):
+    with patch(
+        "aiohttp.ClientSession", return_value=_mock_aiohttp_session(mock_response)
+    ):
+        with caplog.at_level(
+            logging.WARNING, logger="custom_components.robovac_mqtt.api.http"
+        ):
             result = await client.get_cloud_device_list()
 
     assert result == []
@@ -143,8 +157,12 @@ async def test_get_mqtt_credentials_non_200_logs_warning(caplog):
     mock_response.status = 500
     mock_response.json = AsyncMock(return_value={})
 
-    with patch("aiohttp.ClientSession", return_value=_mock_aiohttp_session(mock_response)):
-        with caplog.at_level(logging.WARNING, logger="custom_components.robovac_mqtt.api.http"):
+    with patch(
+        "aiohttp.ClientSession", return_value=_mock_aiohttp_session(mock_response)
+    ):
+        with caplog.at_level(
+            logging.WARNING, logger="custom_components.robovac_mqtt.api.http"
+        ):
             result = await client.get_mqtt_credentials()
 
     assert result is None

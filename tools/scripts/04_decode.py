@@ -12,14 +12,14 @@ Usage:
 """
 
 import argparse
+import base64
+import gzip
 import io
+import lzma
 import os
 import struct
 import sys
 import zlib
-import gzip
-import lzma
-import base64
 from pathlib import Path
 
 try:
@@ -31,8 +31,8 @@ except ImportError:
 
 TUYA_MAP_PIXEL_COLORS = {
     0: (180, 200, 220),  # unknown / room (light blue-gray)
-    1: (40, 40, 60),     # obstacle / wall (dark)
-    2: (160, 120, 80),   # carpet (brownish)
+    1: (40, 40, 60),  # obstacle / wall (dark)
+    2: (160, 120, 80),  # carpet (brownish)
     3: (240, 240, 240),  # blank / unpartitioned (near-white)
 }
 
@@ -89,8 +89,8 @@ def find_dimensions(data: bytes) -> list[dict]:
     candidates = []
 
     for offset in range(0, min(256, len(data) - 8), 2):
-        for endian, label in [('<', 'LE'), ('>', 'BE')]:
-            for fmt_char, size in [('H', 2), ('I', 4)]:
+        for endian, label in [("<", "LE"), (">", "BE")]:
+            for fmt_char, size in [("H", 2), ("I", 4)]:
                 fmt = f"{endian}{fmt_char}{fmt_char}"
                 try:
                     w, h = struct.unpack_from(fmt, data, offset)
@@ -109,42 +109,46 @@ def find_dimensions(data: bytes) -> list[dict]:
                     expected = pixel_count * bpp
                     ratio = remaining / max(expected, 1)
                     if 0.7 < ratio < 1.5:
-                        candidates.append({
-                            "offset": offset,
-                            "endian": label,
-                            "fmt": fmt,
-                            "width": w,
-                            "height": h,
-                            "bpp": bpp,
-                            "header_size": header_size,
-                            "data_start": header_size,
-                            "remaining": remaining,
-                            "ratio": ratio,
-                        })
+                        candidates.append(
+                            {
+                                "offset": offset,
+                                "endian": label,
+                                "fmt": fmt,
+                                "width": w,
+                                "height": h,
+                                "bpp": bpp,
+                                "header_size": header_size,
+                                "data_start": header_size,
+                                "remaining": remaining,
+                                "ratio": ratio,
+                            }
+                        )
 
     candidates.sort(key=lambda c: abs(c["ratio"] - 1.0))
     return candidates[:20]
 
 
-def try_render_with_dimensions(data: bytes, candidates: list[dict], prefix: str) -> list[str]:
+def try_render_with_dimensions(
+    data: bytes, candidates: list[dict], prefix: str
+) -> list[str]:
     saved = []
     RENDER_OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
     for c in candidates:
         w, h, bpp = c["width"], c["height"], c["bpp"]
         start = c["data_start"]
-        pixels = data[start:start + w * h * bpp]
+        pixels = data[start : start + w * h * bpp]
 
         if bpp == 1:
-            img = Image.frombytes('L', (w, h), pixels[:w * h])
+            img = Image.frombytes("L", (w, h), pixels[: w * h])
         elif bpp == 2:
             raw = []
             for i in range(0, len(pixels) - 1, 2):
-                val = struct.unpack_from('<H', pixels, i)[0]
+                val = struct.unpack_from("<H", pixels, i)[0]
                 raw.append(min(val, 255))
             if len(raw) < w * h:
                 continue
-            img = Image.frombytes('L', (w, h), bytes(raw[:w * h]))
+            img = Image.frombytes("L", (w, h), bytes(raw[: w * h]))
         else:
             continue
 
@@ -156,7 +160,9 @@ def try_render_with_dimensions(data: bytes, candidates: list[dict], prefix: str)
         if nonzero_bins > 50:
             continue
 
-        path = RENDER_OUTPUT_DIR / f"{prefix}_{w}x{h}_off{c['offset']}_{c['endian']}.png"
+        path = (
+            RENDER_OUTPUT_DIR / f"{prefix}_{w}x{h}_off{c['offset']}_{c['endian']}.png"
+        )
         img.save(str(path))
         saved.append(str(path))
         print(f"    🖼️  {path.name} — {nonzero_bins} distinct values")
@@ -179,7 +185,7 @@ def try_render_brute_force(data: bytes, prefix: str) -> list[str]:
             continue
 
         try:
-            img = Image.frombytes('L', (w, h), data[:w * h])
+            img = Image.frombytes("L", (w, h), data[: w * h])
         except Exception:
             continue
 
@@ -214,17 +220,17 @@ def try_tuya_standard_decode(data: bytes, prefix: str) -> list[str]:
     if len(data) < 40:
         return saved
 
-    for endian in ['<', '>']:
+    for endian in ["<", ">"]:
         try:
-            map_id = struct.unpack_from(f'{endian}H', data, 0)[0]
-            status = struct.unpack_from(f'{endian}I', data, 2)[0]
-            width = struct.unpack_from(f'{endian}I', data, 6)[0]
-            height = struct.unpack_from(f'{endian}I', data, 10)[0]
-            resolution = struct.unpack_from(f'{endian}I', data, 14)[0]
-            origin_x = struct.unpack_from(f'{endian}i', data, 18)[0]
-            origin_y = struct.unpack_from(f'{endian}i', data, 22)[0]
-            charge_x = struct.unpack_from(f'{endian}i', data, 26)[0]
-            charge_y = struct.unpack_from(f'{endian}i', data, 30)[0]
+            map_id = struct.unpack_from(f"{endian}H", data, 0)[0]
+            status = struct.unpack_from(f"{endian}I", data, 2)[0]
+            width = struct.unpack_from(f"{endian}I", data, 6)[0]
+            height = struct.unpack_from(f"{endian}I", data, 10)[0]
+            resolution = struct.unpack_from(f"{endian}I", data, 14)[0]
+            origin_x = struct.unpack_from(f"{endian}i", data, 18)[0]
+            origin_y = struct.unpack_from(f"{endian}i", data, 22)[0]
+            charge_x = struct.unpack_from(f"{endian}i", data, 26)[0]
+            charge_y = struct.unpack_from(f"{endian}i", data, 30)[0]
         except struct.error:
             continue
 
@@ -235,18 +241,22 @@ def try_tuya_standard_decode(data: bytes, prefix: str) -> list[str]:
         if resolution == 0 or resolution > 100:
             continue
 
-        pixel_data = data[38:38 + width * height]
+        pixel_data = data[38 : 38 + width * height]
         if len(pixel_data) < width * height:
             continue
 
-        e_label = "LE" if endian == '<' else "BE"
+        e_label = "LE" if endian == "<" else "BE"
         print(f"    ✅ Tuya standard header ({e_label}):")
-        print(f"       map_id={map_id}, status={status}, "
-              f"{width}x{height}, res={resolution}cm")
-        print(f"       origin=({origin_x},{origin_y}), "
-              f"charger=({charge_x},{charge_y})")
+        print(
+            f"       map_id={map_id}, status={status}, "
+            f"{width}x{height}, res={resolution}cm"
+        )
+        print(
+            f"       origin=({origin_x},{origin_y}), "
+            f"charger=({charge_x},{charge_y})"
+        )
 
-        img = Image.new('RGB', (width, height), (0, 0, 0))
+        img = Image.new("RGB", (width, height), (0, 0, 0))
         for i, px in enumerate(pixel_data):
             x = i % width
             y = i // width
@@ -286,7 +296,9 @@ def process_file(filepath: Path):
         candidates = find_dimensions(decompressed)
         if candidates:
             print(f"    Found {len(candidates)} dimension candidates")
-            saved = try_render_with_dimensions(decompressed, candidates, f"{prefix}_{label}")
+            saved = try_render_with_dimensions(
+                decompressed, candidates, f"{prefix}_{label}"
+            )
             all_saved.extend(saved)
 
     print(f"\n  [3] Scanning raw data for dimension pairs...")
@@ -294,8 +306,10 @@ def process_file(filepath: Path):
     if candidates:
         print(f"    Found {len(candidates)} candidates")
         for c in candidates[:5]:
-            print(f"      {c['width']}x{c['height']} at offset {c['offset']} "
-                  f"({c['endian']}, {c['bpp']}bpp, ratio={c['ratio']:.2f})")
+            print(
+                f"      {c['width']}x{c['height']} at offset {c['offset']} "
+                f"({c['endian']}, {c['bpp']}bpp, ratio={c['ratio']:.2f})"
+            )
         saved = try_render_with_dimensions(data, candidates, prefix)
         all_saved.extend(saved)
 
@@ -318,13 +332,9 @@ def process_file(filepath: Path):
 
 def main():
     parser = argparse.ArgumentParser(description="Brute-force decode map payloads")
+    parser.add_argument("path", help="Path to a .bin file or directory of .bin files")
     parser.add_argument(
-        "path",
-        help="Path to a .bin file or directory of .bin files"
-    )
-    parser.add_argument(
-        "--max-files", type=int, default=50,
-        help="Maximum number of files to process"
+        "--max-files", type=int, default=50, help="Maximum number of files to process"
     )
     args = parser.parse_args()
 
@@ -333,7 +343,7 @@ def main():
     if target.is_file():
         files = [target]
     elif target.is_dir():
-        files = sorted(target.glob("**/*.bin"))[:args.max_files]
+        files = sorted(target.glob("**/*.bin"))[: args.max_files]
     else:
         print(f"ERROR: {target} not found")
         sys.exit(1)
@@ -370,7 +380,9 @@ def main():
         print(f"     - Data is encrypted (Tuya AES-128-ECB with local_key)")
         print(f"     - Format is non-standard for this Eufy model")
         print(f"     - The captured data isn't actually map data")
-        print(f"\n  Try 05_tuya_probe.py to query the vacuum directly via Tuya protocol.")
+        print(
+            f"\n  Try 05_tuya_probe.py to query the vacuum directly via Tuya protocol."
+        )
 
 
 if __name__ == "__main__":

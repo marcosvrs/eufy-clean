@@ -7,11 +7,11 @@ for debounce timer tests.
 
 from __future__ import annotations
 
-import pytest
 from dataclasses import replace
 from datetime import timedelta
 from unittest.mock import AsyncMock, MagicMock, patch
 
+import pytest
 from homeassistant.util.dt import utcnow
 from pytest_homeassistant_custom_component.common import async_fire_time_changed
 
@@ -27,7 +27,6 @@ from tests.integration.helpers import (
     make_station_response,
     make_work_status,
 )
-
 
 # ---------------------------------------------------------------------------
 # MQTT pipeline
@@ -294,11 +293,21 @@ async def test_mqtt_paused_state(hass, integration_coordinator):
 
 @pytest.mark.asyncio
 async def test_coordinator_init_with_dps(hass, mock_eufy_login):
-    """Construct coordinator with device_info containing dps → initial state parsed."""
+    """Initial DPS is applied during initialize(), not bare construction."""
     device_info = make_device_info_dict()
     device_info["dps"] = {"163": "77"}
 
+    mock_client = MagicMock()
+    mock_client.set_on_message = MagicMock()
+    mock_client.connect = AsyncMock()
+
     coordinator = EufyCleanCoordinator(hass, mock_eufy_login, device_info)
+
+    with patch(
+        "custom_components.robovac_mqtt.coordinator.EufyCleanClient",
+        return_value=mock_client,
+    ):
+        await coordinator.initialize()
 
     assert coordinator.data.battery_level == 77
 

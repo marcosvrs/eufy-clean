@@ -1,11 +1,10 @@
 from __future__ import annotations
 
+import logging
 from enum import Enum
 from typing import Any, Final
 
 from .proto.cloud.clean_param_pb2 import CleanExtent, CleanType, MopMode
-
-import logging
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -605,7 +604,9 @@ def build_dps_map_from_catalog(catalog: list[dict]) -> dict[str, str]:
             continue
         func_names = CLOUD_CODE_TO_FUNC.get(code)
         if func_names is None:
-            _LOGGER.debug("Unknown cloud code %r in catalog (dp_id=%s), skipping", code, dp_id)
+            _LOGGER.debug(
+                "Unknown cloud code %r in catalog (dp_id=%s), skipping", code, dp_id
+            )
             continue
         for func_name in func_names:
             result[func_name] = str(dp_id)
@@ -643,29 +644,31 @@ KNOWN_UNPROCESSED_DPS: frozenset[str] = frozenset(
 # DPS 179 - analysis: AnalysisRequest/AnalysisResponse (robot position telemetry)
 DPS_ROBOT_TELEMETRY = "179"
 
-HANDLED_DPS_IDS: frozenset[str] = frozenset({
-    DEFAULT_DPS_MAP["PLAY_PAUSE"],           # "152" - ModeCtrlRequest proto
-    DEFAULT_DPS_MAP["POWER"],                # "151" - restart button (send false)
-    DEFAULT_DPS_MAP["WORK_STATUS"],          # "153" - WorkStatus proto
-    DEFAULT_DPS_MAP["CLEANING_PARAMETERS"],  # "154" - CleanParam proto
-    DEFAULT_DPS_MAP["REMOTE_CTRL"],          # "155" - RC direction buttons (send)
-    DEFAULT_DPS_MAP["PAUSE_JOB"],
-    DEFAULT_DPS_MAP["UNDISTURBED"],          # "157" - UndisturbedRequest proto
-    DEFAULT_DPS_MAP["RESERVED2"],            # "165" - reserved proto
-    DEFAULT_DPS_MAP["TIMING"],               # "164" - TimerResponse proto
-    DEFAULT_DPS_MAP["CLEANING_STATISTICS"],  # "167" - CleanStatistics proto
-    DEFAULT_DPS_MAP["ACCESSORIES_STATUS"],   # "168" - ConsumableResponse proto
-    DEFAULT_DPS_MAP["APP_DEV_INFO"],         # "169" - DeviceInfo proto
-    DEFAULT_DPS_MAP["MAP_EDIT_REQUEST"],     # "170" - MapEditResponse proto
-    DEFAULT_DPS_MAP["MULTI_MAP_MANAGE"],     # "172" - MultiMapsManage proto
-    DEFAULT_DPS_MAP["GO_HOME"],              # "173" - StationRequest/Response proto
-    DEFAULT_DPS_MAP["UNSETTING"],            # "176" - UnisettingResponse proto
-    DEFAULT_DPS_MAP["ERROR_CODE"],           # "177" - ErrorCode proto
-    DEFAULT_DPS_MAP["TOAST"],               # "178" - PromptCode proto
-    DEFAULT_DPS_MAP["MEDIA_MANAGER"],        # "174" - MediaManagerResponse proto
-    DEFAULT_DPS_MAP["SCENE_INFO"],           # "180" - SceneResponse proto
-    DPS_ROBOT_TELEMETRY,                     # "179" - analysis raw
-})
+HANDLED_DPS_IDS: frozenset[str] = frozenset(
+    {
+        DEFAULT_DPS_MAP["PLAY_PAUSE"],  # "152" - ModeCtrlRequest proto
+        DEFAULT_DPS_MAP["POWER"],  # "151" - restart button (send false)
+        DEFAULT_DPS_MAP["WORK_STATUS"],  # "153" - WorkStatus proto
+        DEFAULT_DPS_MAP["CLEANING_PARAMETERS"],  # "154" - CleanParam proto
+        DEFAULT_DPS_MAP["REMOTE_CTRL"],  # "155" - RC direction buttons (send)
+        DEFAULT_DPS_MAP["PAUSE_JOB"],
+        DEFAULT_DPS_MAP["UNDISTURBED"],  # "157" - UndisturbedRequest proto
+        DEFAULT_DPS_MAP["RESERVED2"],  # "165" - reserved proto
+        DEFAULT_DPS_MAP["TIMING"],  # "164" - TimerResponse proto
+        DEFAULT_DPS_MAP["CLEANING_STATISTICS"],  # "167" - CleanStatistics proto
+        DEFAULT_DPS_MAP["ACCESSORIES_STATUS"],  # "168" - ConsumableResponse proto
+        DEFAULT_DPS_MAP["APP_DEV_INFO"],  # "169" - DeviceInfo proto
+        DEFAULT_DPS_MAP["MAP_EDIT_REQUEST"],  # "170" - MapEditResponse proto
+        DEFAULT_DPS_MAP["MULTI_MAP_MANAGE"],  # "172" - MultiMapsManage proto
+        DEFAULT_DPS_MAP["GO_HOME"],  # "173" - StationRequest/Response proto
+        DEFAULT_DPS_MAP["UNSETTING"],  # "176" - UnisettingResponse proto
+        DEFAULT_DPS_MAP["ERROR_CODE"],  # "177" - ErrorCode proto
+        DEFAULT_DPS_MAP["TOAST"],  # "178" - PromptCode proto
+        DEFAULT_DPS_MAP["MEDIA_MANAGER"],  # "174" - MediaManagerResponse proto
+        DEFAULT_DPS_MAP["SCENE_INFO"],  # "180" - SceneResponse proto
+        DPS_ROBOT_TELEMETRY,  # "179" - analysis raw
+    }
+)
 
 AUTO_ENTITY_OVERRIDES: dict[str, dict[str, Any]] = {
     "bat_level": {
@@ -759,7 +762,9 @@ MEDIA_RESOLUTION_NAMES: dict[int, str] = {
     2: "1080p",
 }
 
-MEDIA_RESOLUTION_REVERSE: dict[str, int] = {v: k for k, v in MEDIA_RESOLUTION_NAMES.items()}
+MEDIA_RESOLUTION_REVERSE: dict[str, int] = {
+    v: k for k, v in MEDIA_RESOLUTION_NAMES.items()
+}
 
 MEDIA_RECORDING_STATE_NAMES: dict[int, str] = {
     0: "Idle",

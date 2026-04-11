@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-# pyright: reportMissingImports=false
-
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any
@@ -21,6 +19,9 @@ from homeassistant.const import (
 
 from ..const import ACCESSORY_MAX_LIFE
 from ..models import VacuumState
+
+# pyright: reportMissingImports=false
+
 
 if TYPE_CHECKING:
     from ..coordinator import EufyCleanCoordinator
@@ -49,7 +50,9 @@ def _make_accessory_remaining_desc(
         icon=icon,
         entity_category=EntityCategory.DIAGNOSTIC,
         exists_fn=lambda c: "ACCESSORIES_STATUS" in c.supported_dps,
-        value_fn=lambda s, a=attr, m=max_life: max(0, m - (getattr(s.accessories, a) or 0)),
+        value_fn=lambda s, a=attr, m=max_life: max(
+            0, m - (getattr(s.accessories, a) or 0)
+        ),
         extra_state_attributes_fn=lambda s, a=attr, m=max_life: {
             "usage_hours": getattr(s.accessories, a) or 0,
             "total_life_hours": m,
@@ -106,16 +109,18 @@ SENSOR_DESCRIPTIONS: tuple[RoboVacSensorDescription, ...] = (
         name="Active Cleaning Target",
         icon="mdi:floor-plan",
         entity_category=EntityCategory.DIAGNOSTIC,
-        value_fn=lambda s: s.active_room_names
-        if s.active_room_names
-        else (
-            s.current_scene_name
-            if s.current_scene_name
+        value_fn=lambda s: (
+            s.active_room_names
+            if s.active_room_names
             else (
-                f"{s.active_zone_count} zone"
-                + ("s" if s.active_zone_count != 1 else "")
-                if s.active_zone_count
-                else None
+                s.current_scene_name
+                if s.current_scene_name
+                else (
+                    f"{s.active_zone_count} zone"
+                    + ("s" if s.active_zone_count != 1 else "")
+                    if s.active_zone_count
+                    else None
+                )
             )
         ),
         availability_fn=lambda s: bool(
@@ -174,9 +179,13 @@ SENSOR_DESCRIPTIONS: tuple[RoboVacSensorDescription, ...] = (
         entity_category=EntityCategory.DIAGNOSTIC,
         value_fn=lambda s: s.battery_real_level,
         availability_fn=lambda s: "battery_real_level" in s.received_fields,
-        extra_state_attributes_fn=lambda s: {
-            "discharge_curve": s.battery_discharge_curve,
-        } if s.battery_discharge_curve else None,
+        extra_state_attributes_fn=lambda s: (
+            {
+                "discharge_curve": s.battery_discharge_curve,
+            }
+            if s.battery_discharge_curve
+            else None
+        ),
     ),
     RoboVacSensorDescription(
         key="battery_voltage",
@@ -474,11 +483,11 @@ SENSOR_DESCRIPTIONS: tuple[RoboVacSensorDescription, ...] = (
         icon="mdi:wifi",
         entity_category=EntityCategory.DIAGNOSTIC,
         exists_fn=lambda c: "UNSETTING" in c.supported_dps,
-        value_fn=lambda s: "5 GHz"
-        if s.wifi_frequency == 1
-        else "2.4 GHz"
-        if s.wifi_frequency == 0
-        else str(s.wifi_frequency),
+        value_fn=lambda s: (
+            "5 GHz"
+            if s.wifi_frequency == 1
+            else "2.4 GHz" if s.wifi_frequency == 0 else str(s.wifi_frequency)
+        ),
         availability_fn=lambda s: "wifi_frequency" in s.received_fields,
     ),
     RoboVacSensorDescription(
@@ -487,11 +496,15 @@ SENSOR_DESCRIPTIONS: tuple[RoboVacSensorDescription, ...] = (
         icon="mdi:wifi-check",
         entity_category=EntityCategory.DIAGNOSTIC,
         exists_fn=lambda c: "UNSETTING" in c.supported_dps,
-        value_fn=lambda s: "OK"
-        if s.wifi_connection_result == 0
-        else "Password Error"
-        if s.wifi_connection_result == 1
-        else str(s.wifi_connection_result),
+        value_fn=lambda s: (
+            "OK"
+            if s.wifi_connection_result == 0
+            else (
+                "Password Error"
+                if s.wifi_connection_result == 1
+                else str(s.wifi_connection_result)
+            )
+        ),
         availability_fn=lambda s: "wifi_connection_result" in s.received_fields,
     ),
     RoboVacSensorDescription(
@@ -553,9 +566,7 @@ SENSOR_DESCRIPTIONS: tuple[RoboVacSensorDescription, ...] = (
     _make_accessory_remaining_desc(
         "scrape_usage", "Cleaning Tray Remaining", "mdi:wiper"
     ),
-    _make_accessory_remaining_desc(
-        "mop_usage", "Mopping Cloth Remaining", "mdi:water"
-    ),
+    _make_accessory_remaining_desc("mop_usage", "Mopping Cloth Remaining", "mdi:water"),
     _make_consumable_usage_desc("dustbag_usage", "Dustbag Usage", "mdi:delete"),
     _make_consumable_usage_desc(
         "dirty_watertank_usage", "Waste Water Tank Usage", "mdi:water-alert"

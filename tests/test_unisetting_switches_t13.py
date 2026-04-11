@@ -10,10 +10,12 @@ from custom_components.robovac_mqtt.api.commands import (
     build_set_unisetting_command,
 )
 from custom_components.robovac_mqtt.const import DPS_MAP
+from custom_components.robovac_mqtt.descriptions.switch import (
+    RoboVacUnisettingSwitchDescription,
+)
 from custom_components.robovac_mqtt.models import VacuumState
 from custom_components.robovac_mqtt.number import UnisettingNumber
 from custom_components.robovac_mqtt.proto.cloud.unisetting_pb2 import UnisettingRequest
-from custom_components.robovac_mqtt.descriptions.switch import RoboVacUnisettingSwitchDescription
 from custom_components.robovac_mqtt.switch import UnisettingSwitch
 from custom_components.robovac_mqtt.utils import decode
 
@@ -84,16 +86,16 @@ class TestBuildSetUnisettingCommand:
 
 
 def _sw_desc(field_name, name, icon):
-    return RoboVacUnisettingSwitchDescription(field_name=field_name, name=name, icon=icon)
+    return RoboVacUnisettingSwitchDescription(
+        field_name=field_name, name=name, icon=icon
+    )
 
 
 class TestUnisettingSwitch:
 
     def test_is_on_reads_from_coordinator(self):
         coord = _mock_coordinator(received=["pet_mode_sw"])
-        coord.data = VacuumState(
-            pet_mode_sw=True, received_fields={"pet_mode_sw"}
-        )
+        coord.data = VacuumState(pet_mode_sw=True, received_fields={"pet_mode_sw"})
         sw = UnisettingSwitch(coord, _sw_desc("pet_mode_sw", "Pet Mode", "mdi:paw"))
         assert sw.is_on is True
 

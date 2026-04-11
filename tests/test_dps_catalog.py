@@ -98,6 +98,7 @@ def test_cloud_code_to_func_station():
 
 def test_vacuum_state_has_dynamic_values():
     from custom_components.robovac_mqtt.models import VacuumState
+
     state = VacuumState()
     assert hasattr(state, "dynamic_values")
     assert isinstance(state.dynamic_values, dict)
@@ -106,6 +107,7 @@ def test_vacuum_state_has_dynamic_values():
 def test_update_state_accepts_dps_map_param():
     from custom_components.robovac_mqtt.api.parser import update_state
     from custom_components.robovac_mqtt.models import VacuumState
+
     state, changes = update_state(VacuumState(), {}, dps_map=DEFAULT_DPS_MAP)
     assert state is not None
 
@@ -113,6 +115,7 @@ def test_update_state_accepts_dps_map_param():
 def test_battery_written_to_dynamic_values():
     from custom_components.robovac_mqtt.api.parser import update_state
     from custom_components.robovac_mqtt.models import VacuumState
+
     state, _ = update_state(VacuumState(), {"163": "85"})
     assert state.battery_level == 85
     assert state.dynamic_values.get("163") == 85
@@ -121,6 +124,7 @@ def test_battery_written_to_dynamic_values():
 def test_generic_handler_bool_in_dynamic_values():
     from custom_components.robovac_mqtt.api.parser import update_state
     from custom_components.robovac_mqtt.models import VacuumState
+
     catalog_types = {"200": "Bool"}
     state, _ = update_state(VacuumState(), {"200": "true"}, catalog_types=catalog_types)
     assert state.dynamic_values.get("200") is True
@@ -129,6 +133,7 @@ def test_generic_handler_bool_in_dynamic_values():
 def test_generic_handler_value_in_dynamic_values():
     from custom_components.robovac_mqtt.api.parser import update_state
     from custom_components.robovac_mqtt.models import VacuumState
+
     catalog_types = {"200": "Value"}
     state, _ = update_state(VacuumState(), {"200": "42"}, catalog_types=catalog_types)
     assert state.dynamic_values.get("200") == 42
@@ -137,13 +142,19 @@ def test_generic_handler_value_in_dynamic_values():
 def test_generic_handler_accumulates_multiple_dps():
     from custom_components.robovac_mqtt.api.parser import update_state
     from custom_components.robovac_mqtt.models import VacuumState
+
     catalog_types = {"200": "Bool", "201": "Value"}
-    state, _ = update_state(VacuumState(), {"200": "true", "201": "7"}, catalog_types=catalog_types)
+    state, _ = update_state(
+        VacuumState(), {"200": "true", "201": "7"}, catalog_types=catalog_types
+    )
     assert state.dynamic_values.get("200") is True
     assert state.dynamic_values.get("201") == 7
 
 
-from custom_components.robovac_mqtt.api.commands import build_command, build_generic_command
+from custom_components.robovac_mqtt.api.commands import (
+    build_command,
+    build_generic_command,
+)
 
 
 def test_build_generic_command_bool():
@@ -168,10 +179,12 @@ def test_existing_commands_unchanged_with_default_dps_map():
 
 # ─── T3: additional parser dynamic_values tests ───────────────────────────────
 
+
 def test_generic_handler_bool_false():
     """Unknown Bool DPS stored as False."""
     from custom_components.robovac_mqtt.api.parser import update_state
     from custom_components.robovac_mqtt.models import VacuumState
+
     state, _ = update_state(
         VacuumState(),
         {"200": "false"},
@@ -184,6 +197,7 @@ def test_generic_handler_skips_raw():
     """Raw DPS without catalog_types does NOT go into dynamic_values."""
     from custom_components.robovac_mqtt.api.parser import update_state
     from custom_components.robovac_mqtt.models import VacuumState
+
     state, _ = update_state(
         VacuumState(),
         {"200": "some_value"},
@@ -195,6 +209,7 @@ def test_generic_handler_skips_handled_dps():
     """DPS in HANDLED_DPS_IDS are not put into dynamic_values by generic handler."""
     from custom_components.robovac_mqtt.api.parser import update_state
     from custom_components.robovac_mqtt.models import VacuumState
+
     # "152" is in HANDLED_DPS_IDS — it goes through _process_play_pause, not generic
     state, _ = update_state(VacuumState(), {"152": ""})
     assert "152" not in state.dynamic_values
@@ -204,6 +219,7 @@ def test_dps_map_param_respected():
     """Custom dps_map parameter is used instead of DEFAULT_DPS_MAP."""
     from custom_components.robovac_mqtt.api.parser import update_state
     from custom_components.robovac_mqtt.models import VacuumState
+
     custom_map = dict(DEFAULT_DPS_MAP)
     custom_map["BATTERY_LEVEL"] = "999"
     state, _ = update_state(VacuumState(), {"999": "75"}, dps_map=custom_map)
@@ -213,6 +229,7 @@ def test_dps_map_param_respected():
 def test_update_state_find_robot_dual_writes_dynamic_values():
     from custom_components.robovac_mqtt.api.parser import update_state
     from custom_components.robovac_mqtt.models import VacuumState
+
     state, _ = update_state(VacuumState(), {"160": "true"})
     assert state.find_robot is True
     assert state.dynamic_values.get("160") is True
@@ -221,6 +238,7 @@ def test_update_state_find_robot_dual_writes_dynamic_values():
 def test_update_state_custom_dps_map():
     from custom_components.robovac_mqtt.api.parser import update_state
     from custom_components.robovac_mqtt.models import VacuumState
+
     custom_map = dict(DEFAULT_DPS_MAP)
     custom_map["BATTERY_LEVEL"] = "999"
     state, _ = update_state(VacuumState(), {"999": "77"}, dps_map=custom_map)
@@ -231,6 +249,7 @@ def test_multiple_dps_in_one_message_accumulate_dynamic_values():
     """Critical: multiple DPS in one MQTT message must all appear in dynamic_values."""
     from custom_components.robovac_mqtt.api.parser import update_state
     from custom_components.robovac_mqtt.models import VacuumState
+
     catalog_types = {"200": "Bool", "199": "Value"}
     state, _ = update_state(
         VacuumState(),
@@ -244,10 +263,13 @@ def test_multiple_dps_in_one_message_accumulate_dynamic_values():
 
 # ── T6: auto_entities factory tests ──────────────────────────────────────────
 
+
 def _make_coordinator(catalog_entries, dynamic_values=None):
     """Helper: build a minimal mock coordinator for factory tests."""
     from unittest.mock import MagicMock
+
     from custom_components.robovac_mqtt.models import VacuumState
+
     coord = MagicMock()
     coord.dps_catalog = {str(e["dp_id"]): e for e in catalog_entries}
     coord.data = VacuumState(dynamic_values=dynamic_values or {})
@@ -258,7 +280,10 @@ def _make_coordinator(catalog_entries, dynamic_values=None):
 
 def test_get_auto_switches_creates_for_bool_rw():
     from custom_components.robovac_mqtt.auto_entities import get_auto_switches
-    coord = _make_coordinator([{"dp_id": 200, "code": "boost_iq", "data_type": "Bool", "mode": "rw"}])
+
+    coord = _make_coordinator(
+        [{"dp_id": 200, "code": "boost_iq", "data_type": "Bool", "mode": "rw"}]
+    )
     entities = get_auto_switches(coord)
     assert len(entities) == 1
     assert entities[0]._dp_id == "200"
@@ -268,22 +293,31 @@ def test_get_auto_switches_creates_for_bool_rw():
 
 def test_get_auto_switches_skips_handled_dps():
     from custom_components.robovac_mqtt.auto_entities import get_auto_switches
+
     # DPS 152 is in HANDLED_DPS_IDS — must be skipped
-    coord = _make_coordinator([{"dp_id": 152, "code": "mode_ctrl", "data_type": "Bool", "mode": "rw"}])
+    coord = _make_coordinator(
+        [{"dp_id": 152, "code": "mode_ctrl", "data_type": "Bool", "mode": "rw"}]
+    )
     entities = get_auto_switches(coord)
     assert len(entities) == 0
 
 
 def test_get_auto_switches_skips_raw_type():
     from custom_components.robovac_mqtt.auto_entities import get_auto_switches
-    coord = _make_coordinator([{"dp_id": 200, "code": "some_raw", "data_type": "Raw", "mode": "rw"}])
+
+    coord = _make_coordinator(
+        [{"dp_id": 200, "code": "some_raw", "data_type": "Raw", "mode": "rw"}]
+    )
     entities = get_auto_switches(coord)
     assert len(entities) == 0
 
 
 def test_get_auto_sensors_creates_for_value_ro():
     from custom_components.robovac_mqtt.auto_entities import get_auto_sensors
-    coord = _make_coordinator([{"dp_id": 163, "code": "bat_level", "data_type": "Value", "mode": "ro"}])
+
+    coord = _make_coordinator(
+        [{"dp_id": 163, "code": "bat_level", "data_type": "Value", "mode": "ro"}]
+    )
     entities = get_auto_sensors(coord)
     assert len(entities) == 1
     assert entities[0]._dp_id == "163"
@@ -294,7 +328,10 @@ def test_get_auto_sensors_creates_for_value_ro():
 
 def test_get_auto_numbers_creates_for_value_rw():
     from custom_components.robovac_mqtt.auto_entities import get_auto_numbers
-    coord = _make_coordinator([{"dp_id": 161, "code": "volume", "data_type": "Value", "mode": "rw"}])
+
+    coord = _make_coordinator(
+        [{"dp_id": 161, "code": "volume", "data_type": "Value", "mode": "rw"}]
+    )
     entities = get_auto_numbers(coord)
     assert len(entities) == 1
     assert entities[0]._dp_id == "161"
@@ -304,7 +341,10 @@ def test_get_auto_numbers_creates_for_value_rw():
 
 def test_get_auto_selects_creates_for_enum_with_options_map():
     from custom_components.robovac_mqtt.auto_entities import get_auto_selects
-    coord = _make_coordinator([{"dp_id": 158, "code": "suction_level", "data_type": "Enum", "mode": "rw"}])
+
+    coord = _make_coordinator(
+        [{"dp_id": 158, "code": "suction_level", "data_type": "Enum", "mode": "rw"}]
+    )
     entities = get_auto_selects(coord)
     assert len(entities) == 1
     assert set(entities[0].options) == {"Quiet", "Standard", "Turbo", "Max", "Boost_IQ"}
@@ -312,16 +352,23 @@ def test_get_auto_selects_creates_for_enum_with_options_map():
 
 def test_get_auto_selects_skips_enum_without_options_map():
     from custom_components.robovac_mqtt.auto_entities import get_auto_selects
+
     # Unknown enum — no options_map in override → skip
-    coord = _make_coordinator([{"dp_id": 200, "code": "unknown_enum", "data_type": "Enum", "mode": "rw"}])
+    coord = _make_coordinator(
+        [{"dp_id": 200, "code": "unknown_enum", "data_type": "Enum", "mode": "rw"}]
+    )
     entities = get_auto_selects(coord)
     assert len(entities) == 0
 
 
 def test_unknown_code_gets_defaults():
-    from custom_components.robovac_mqtt.auto_entities import get_auto_switches
     from homeassistant.helpers.entity import EntityCategory
-    coord = _make_coordinator([{"dp_id": 200, "code": "pet_avoidance", "data_type": "Bool", "mode": "rw"}])
+
+    from custom_components.robovac_mqtt.auto_entities import get_auto_switches
+
+    coord = _make_coordinator(
+        [{"dp_id": 200, "code": "pet_avoidance", "data_type": "Bool", "mode": "rw"}]
+    )
     entities = get_auto_switches(coord)
     assert len(entities) == 1
     assert entities[0]._attr_name == "Pet Avoidance"
@@ -331,30 +378,43 @@ def test_unknown_code_gets_defaults():
 
 def test_primary_entity_category_none_from_override():
     from custom_components.robovac_mqtt.auto_entities import get_auto_switches
+
     # calling_robot has entity_category: None in override → PRIMARY (no category)
-    coord = _make_coordinator([{"dp_id": 160, "code": "calling_robot", "data_type": "Bool", "mode": "rw"}])
+    coord = _make_coordinator(
+        [{"dp_id": 160, "code": "calling_robot", "data_type": "Bool", "mode": "rw"}]
+    )
     entities = get_auto_switches(coord)
     assert len(entities) == 1
     # PRIMARY entities must NOT have _attr_entity_category set to CONFIGURATION
-    assert not hasattr(entities[0], '_attr_entity_category') or entities[0]._attr_entity_category is None
+    assert (
+        not hasattr(entities[0], "_attr_entity_category")
+        or entities[0]._attr_entity_category is None
+    )
 
 
 def test_get_auto_binary_sensors_creates_for_bool_ro():
     from custom_components.robovac_mqtt.auto_entities import get_auto_binary_sensors
-    coord = _make_coordinator([{"dp_id": 200, "code": "dust_full", "data_type": "Bool", "mode": "ro"}])
+
+    coord = _make_coordinator(
+        [{"dp_id": 200, "code": "dust_full", "data_type": "Bool", "mode": "ro"}]
+    )
     entities = get_auto_binary_sensors(coord)
     assert len(entities) == 1
     assert entities[0]._dp_id == "200"
     assert entities[0]._attr_name == "Dust Full"
+
 
 # ── T7: coordinator DPS catalog integration tests ─────────────────────────────
 
 
 def test_coordinator_builds_dps_map_from_catalog():
     from unittest.mock import MagicMock
+
     from custom_components.robovac_mqtt.coordinator import EufyCleanCoordinator
 
-    catalog = [{"dp_id": 158, "code": "suction_level", "data_type": "Enum", "mode": "rw"}]
+    catalog = [
+        {"dp_id": 158, "code": "suction_level", "data_type": "Enum", "mode": "rw"}
+    ]
     device_info = {
         "deviceId": "test_id",
         "deviceModel": "T2351",
@@ -367,6 +427,7 @@ def test_coordinator_builds_dps_map_from_catalog():
 
 def test_coordinator_defaults_without_catalog():
     from unittest.mock import MagicMock
+
     from custom_components.robovac_mqtt.const import DEFAULT_DPS_MAP
     from custom_components.robovac_mqtt.coordinator import EufyCleanCoordinator
 
@@ -381,6 +442,7 @@ def test_coordinator_defaults_without_catalog():
 
 def test_coordinator_catalog_types_from_catalog():
     from unittest.mock import MagicMock
+
     from custom_components.robovac_mqtt.coordinator import EufyCleanCoordinator
 
     catalog = [
@@ -400,6 +462,7 @@ def test_coordinator_catalog_types_from_catalog():
 
 def test_coordinator_shutdown_cancels_catalog_timer():
     from unittest.mock import MagicMock
+
     from custom_components.robovac_mqtt.coordinator import EufyCleanCoordinator
 
     device_info = {
@@ -420,6 +483,7 @@ def test_coordinator_shutdown_cancels_catalog_timer():
 def _make_setup_coordinator(supported_dps=None, catalog_entries=None):
     """Helper: build a mock coordinator for platform setup tests."""
     from unittest.mock import MagicMock
+
     from custom_components.robovac_mqtt.models import VacuumState
 
     entries = catalog_entries or []
@@ -439,6 +503,7 @@ def _make_setup_coordinator(supported_dps=None, catalog_entries=None):
 @pytest.mark.asyncio
 async def test_sensor_entity_gating_excludes_station_sensors():
     from unittest.mock import MagicMock
+
     from custom_components.robovac_mqtt.const import DOMAIN
     from custom_components.robovac_mqtt.sensor import async_setup_entry
 
@@ -462,6 +527,7 @@ async def test_sensor_entity_gating_excludes_station_sensors():
 @pytest.mark.asyncio
 async def test_select_entity_gating_excludes_scene_when_unsupported():
     from unittest.mock import MagicMock
+
     from custom_components.robovac_mqtt.const import DOMAIN
     from custom_components.robovac_mqtt.select import async_setup_entry
 
@@ -483,12 +549,11 @@ async def test_select_entity_gating_excludes_scene_when_unsupported():
 @pytest.mark.asyncio
 async def test_switch_entity_gating_excludes_dock_switches():
     from unittest.mock import MagicMock
+
     from custom_components.robovac_mqtt.const import DOMAIN
     from custom_components.robovac_mqtt.switch import async_setup_entry
 
-    coord = _make_setup_coordinator(
-        supported_dps={"PLAY_PAUSE", "WORK_STATUS"}
-    )
+    coord = _make_setup_coordinator(supported_dps={"PLAY_PAUSE", "WORK_STATUS"})
     hass = MagicMock()
     config_entry = MagicMock()
     config_entry.entry_id = "test_entry"
@@ -505,6 +570,7 @@ async def test_switch_entity_gating_excludes_dock_switches():
 @pytest.mark.asyncio
 async def test_sensor_setup_includes_auto_sensors():
     from unittest.mock import MagicMock
+
     from custom_components.robovac_mqtt.auto_entities import AutoSensor
     from custom_components.robovac_mqtt.const import DOMAIN
     from custom_components.robovac_mqtt.sensor import async_setup_entry
@@ -530,6 +596,7 @@ async def test_sensor_setup_includes_auto_sensors():
 @pytest.mark.asyncio
 async def test_select_setup_includes_auto_selects():
     from unittest.mock import MagicMock
+
     from custom_components.robovac_mqtt.auto_entities import AutoSelect
     from custom_components.robovac_mqtt.const import DOMAIN
     from custom_components.robovac_mqtt.select import async_setup_entry
@@ -555,6 +622,7 @@ async def test_select_setup_includes_auto_selects():
 @pytest.mark.asyncio
 async def test_switch_setup_includes_auto_switches():
     from unittest.mock import MagicMock
+
     from custom_components.robovac_mqtt.auto_entities import AutoSwitch
     from custom_components.robovac_mqtt.const import DOMAIN
     from custom_components.robovac_mqtt.switch import async_setup_entry
@@ -586,10 +654,12 @@ async def test_switch_setup_includes_auto_switches():
 @pytest.mark.asyncio
 async def test_auto_numbers_added_to_number_setup():
     from unittest.mock import MagicMock
+
     from custom_components.robovac_mqtt.auto_entities import AutoNumber
     from custom_components.robovac_mqtt.const import DEFAULT_DPS_MAP, DOMAIN
     from custom_components.robovac_mqtt.models import VacuumState
     from custom_components.robovac_mqtt.number import async_setup_entry
+
     coord = MagicMock()
     coord.device_id = "test_dev"
     coord.device_info = {}
@@ -613,9 +683,11 @@ async def test_auto_numbers_added_to_number_setup():
 @pytest.mark.asyncio
 async def test_dock_buttons_gated_when_station_status_missing():
     from unittest.mock import MagicMock
+
     from custom_components.robovac_mqtt.button import async_setup_entry
     from custom_components.robovac_mqtt.const import DOMAIN
     from custom_components.robovac_mqtt.models import VacuumState
+
     coord = MagicMock()
     coord.device_id = "test_dev"
     coord.device_info = {}
@@ -636,6 +708,7 @@ async def test_dock_buttons_gated_when_station_status_missing():
 @pytest.mark.asyncio
 async def test_accessory_reset_buttons_gated_when_accessories_missing():
     from unittest.mock import MagicMock
+
     from custom_components.robovac_mqtt.button import async_setup_entry
     from custom_components.robovac_mqtt.const import DOMAIN
     from custom_components.robovac_mqtt.models import VacuumState
@@ -663,6 +736,7 @@ async def test_accessory_reset_buttons_gated_when_accessories_missing():
 @pytest.mark.asyncio
 async def test_binary_sensor_setup_includes_auto_binary_sensors():
     from unittest.mock import MagicMock
+
     from custom_components.robovac_mqtt.auto_entities import AutoBinarySensor
     from custom_components.robovac_mqtt.binary_sensor import async_setup_entry
     from custom_components.robovac_mqtt.const import DOMAIN
@@ -690,6 +764,7 @@ async def test_binary_sensor_setup_includes_auto_binary_sensors():
 @pytest.mark.asyncio
 async def test_binary_sensor_charging_always_created():
     from unittest.mock import MagicMock
+
     from custom_components.robovac_mqtt.binary_sensor import async_setup_entry
     from custom_components.robovac_mqtt.const import DOMAIN
     from custom_components.robovac_mqtt.models import VacuumState
@@ -713,6 +788,7 @@ async def test_binary_sensor_charging_always_created():
 @pytest.mark.asyncio
 async def test_time_gating_excludes_dnd_without_undisturbed():
     from unittest.mock import MagicMock
+
     from custom_components.robovac_mqtt.const import DOMAIN
     from custom_components.robovac_mqtt.models import VacuumState
     from custom_components.robovac_mqtt.time import async_setup_entry
@@ -734,95 +810,138 @@ async def test_time_gating_excludes_dnd_without_undisturbed():
 
 def test_volume_number_entity_removed():
     try:
-        from custom_components.robovac_mqtt.number import VolumeNumberEntity  # noqa: F401
-        raise AssertionError("VolumeNumberEntity still exists — should have been removed")
+        from custom_components.robovac_mqtt.number import (  # noqa: F401
+            VolumeNumberEntity,
+        )
+
+        raise AssertionError(
+            "VolumeNumberEntity still exists — should have been removed"
+        )
     except ImportError:
         pass
 
 
 # ── Enhancement: property parsing + unblocked DPS ──────────────
 
+
 def test_151_not_in_known_unprocessed():
     from custom_components.robovac_mqtt.const import KNOWN_UNPROCESSED_DPS
+
     assert "151" not in KNOWN_UNPROCESSED_DPS
+
 
 def test_155_not_in_known_unprocessed():
     from custom_components.robovac_mqtt.const import KNOWN_UNPROCESSED_DPS
+
     assert "155" not in KNOWN_UNPROCESSED_DPS
+
 
 def test_156_not_in_known_unprocessed():
     from custom_components.robovac_mqtt.const import KNOWN_UNPROCESSED_DPS
+
     assert "156" not in KNOWN_UNPROCESSED_DPS
+
 
 def test_power_in_handled_dps_ids():
     from custom_components.robovac_mqtt.const import HANDLED_DPS_IDS
+
     assert "151" in HANDLED_DPS_IDS
+
 
 def test_auto_select_parses_property_range():
     from custom_components.robovac_mqtt.auto_entities import get_auto_selects
-    coord = _make_coordinator([{
-        "dp_id": 998,
-        "code": "test_range_enum",
-        "data_type": "Enum",
-        "mode": "rw",
-        "property": '{"range":["Brake","Forward","Back","Left","Right"]}',
-    }])
+
+    coord = _make_coordinator(
+        [
+            {
+                "dp_id": 998,
+                "code": "test_range_enum",
+                "data_type": "Enum",
+                "mode": "rw",
+                "property": '{"range":["Brake","Forward","Back","Left","Right"]}',
+            }
+        ]
+    )
     entities = get_auto_selects(coord)
     assert len(entities) == 1
     assert set(entities[0].options) == {"Brake", "Forward", "Back", "Left", "Right"}
 
+
 def test_auto_select_property_range_without_override():
     """Enum with property.range but NO options_map override should still create entity."""
     from custom_components.robovac_mqtt.auto_entities import get_auto_selects
-    coord = _make_coordinator([{
-        "dp_id": 999,
-        "code": "unknown_enum",
-        "data_type": "Enum",
-        "mode": "rw",
-        "property": '{"range":["Low","Medium","High"]}',
-    }])
+
+    coord = _make_coordinator(
+        [
+            {
+                "dp_id": 999,
+                "code": "unknown_enum",
+                "data_type": "Enum",
+                "mode": "rw",
+                "property": '{"range":["Low","Medium","High"]}',
+            }
+        ]
+    )
     entities = get_auto_selects(coord)
     assert len(entities) == 1
     assert entities[0].options == ["Low", "Medium", "High"]
 
+
 def test_auto_select_no_property_no_override_skipped():
     """Enum with empty property and no override → skip."""
     from custom_components.robovac_mqtt.auto_entities import get_auto_selects
-    coord = _make_coordinator([{
-        "dp_id": 999,
-        "code": "mystery_enum",
-        "data_type": "Enum",
-        "mode": "rw",
-        "property": "{}",
-    }])
+
+    coord = _make_coordinator(
+        [
+            {
+                "dp_id": 999,
+                "code": "mystery_enum",
+                "data_type": "Enum",
+                "mode": "rw",
+                "property": "{}",
+            }
+        ]
+    )
     entities = get_auto_selects(coord)
     assert len(entities) == 0
 
+
 def test_auto_number_parses_property_min_max_step():
     from custom_components.robovac_mqtt.auto_entities import get_auto_numbers
-    coord = _make_coordinator([{
-        "dp_id": 999,
-        "code": "some_value",
-        "data_type": "Value",
-        "mode": "rw",
-        "property": '{"max":200,"min":10,"scale":0,"step":5}',
-    }])
+
+    coord = _make_coordinator(
+        [
+            {
+                "dp_id": 999,
+                "code": "some_value",
+                "data_type": "Value",
+                "mode": "rw",
+                "property": '{"max":200,"min":10,"scale":0,"step":5}',
+            }
+        ]
+    )
     entities = get_auto_numbers(coord)
     assert len(entities) == 1
     assert entities[0]._attr_native_min_value == 10.0
     assert entities[0]._attr_native_max_value == 200.0
     assert entities[0]._attr_native_step == 5.0
 
+
 def test_auto_number_override_beats_property():
     """Override min/max/step takes priority over property."""
     from custom_components.robovac_mqtt.auto_entities import get_auto_numbers
-    coord = _make_coordinator([{
-        "dp_id": 161,
-        "code": "volume",
-        "data_type": "Value",
-        "mode": "rw",
-        "property": '{"max":200,"min":10,"scale":0,"step":5}',
-    }])
+
+    coord = _make_coordinator(
+        [
+            {
+                "dp_id": 161,
+                "code": "volume",
+                "data_type": "Value",
+                "mode": "rw",
+                "property": '{"max":200,"min":10,"scale":0,"step":5}',
+            }
+        ]
+    )
     entities = get_auto_numbers(coord)
     assert len(entities) == 1
     # AUTO_ENTITY_OVERRIDES for volume says min=0, max=100, step=1 → override wins
@@ -830,26 +949,38 @@ def test_auto_number_override_beats_property():
     assert entities[0]._attr_native_max_value == 100.0
     assert entities[0]._attr_native_step == 1.0
 
+
 def test_auto_switch_151_power_created():
     from custom_components.robovac_mqtt.auto_entities import get_auto_switches
-    coord = _make_coordinator([{
-        "dp_id": 151,
-        "code": "power",
-        "data_type": "Bool",
-        "mode": "rw",
-        "property": "{}",
-    }])
+
+    coord = _make_coordinator(
+        [
+            {
+                "dp_id": 151,
+                "code": "power",
+                "data_type": "Bool",
+                "mode": "rw",
+                "property": "{}",
+            }
+        ]
+    )
     entities = get_auto_switches(coord)
     assert len(entities) == 0
 
+
 def test_auto_switch_156_pause_not_created():
     from custom_components.robovac_mqtt.auto_entities import get_auto_switches
-    coord = _make_coordinator([{
-        "dp_id": 156,
-        "code": "pause_job",
-        "data_type": "Bool",
-        "mode": "rw",
-        "property": "{}",
-    }])
+
+    coord = _make_coordinator(
+        [
+            {
+                "dp_id": 156,
+                "code": "pause_job",
+                "data_type": "Bool",
+                "mode": "rw",
+                "property": "{}",
+            }
+        ]
+    )
     entities = get_auto_switches(coord)
     assert len(entities) == 0

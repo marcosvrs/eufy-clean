@@ -25,12 +25,12 @@ from custom_components.robovac_mqtt.const import (
     EUFY_CLEAN_CORNER_CLEANING_MODES,
 )
 from custom_components.robovac_mqtt.coordinator import EufyCleanCoordinator
+from custom_components.robovac_mqtt.descriptions.sensor import RoboVacSensorDescription
 from custom_components.robovac_mqtt.models import VacuumState
 from custom_components.robovac_mqtt.select import (
     CarpetStrategySelectEntity,
     CornerCleaningSelectEntity,
 )
-from custom_components.robovac_mqtt.descriptions.sensor import RoboVacSensorDescription
 from custom_components.robovac_mqtt.sensor import RoboVacSensor
 from custom_components.robovac_mqtt.switch import SmartModeSwitchEntity
 
@@ -320,8 +320,14 @@ def test_build_set_volume_command():
 
 
 def test_build_command_dispatches_new_commands():
-    assert DPS_MAP["CLEANING_PARAMETERS"] in build_command("set_carpet_strategy", carpet_strategy="Avoid")
-    assert DPS_MAP["CLEANING_PARAMETERS"] in build_command("set_corner_cleaning", corner_cleaning="Deep")
-    assert DPS_MAP["CLEANING_PARAMETERS"] in build_command("set_smart_mode", active=True)
+    assert DPS_MAP["CLEANING_PARAMETERS"] in build_command(
+        "set_carpet_strategy", carpet_strategy="Avoid"
+    )
+    assert DPS_MAP["CLEANING_PARAMETERS"] in build_command(
+        "set_corner_cleaning", corner_cleaning="Deep"
+    )
+    assert DPS_MAP["CLEANING_PARAMETERS"] in build_command(
+        "set_smart_mode", active=True
+    )
     assert DPS_MAP["BOOST_IQ"] in build_command("set_boost_iq", active=True)
     assert DPS_MAP["VOLUME"] in build_command("set_volume", volume=50)

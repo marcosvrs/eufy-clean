@@ -1,7 +1,9 @@
 from custom_components.robovac_mqtt.api.parser import update_state
 from custom_components.robovac_mqtt.const import DEFAULT_DPS_MAP
 from custom_components.robovac_mqtt.models import VacuumState
-from custom_components.robovac_mqtt.proto.cloud.clean_statistics_pb2 import CleanStatistics
+from custom_components.robovac_mqtt.proto.cloud.clean_statistics_pb2 import (
+    CleanStatistics,
+)
 from custom_components.robovac_mqtt.utils import encode_message
 
 

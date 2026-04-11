@@ -6,11 +6,12 @@ obtained from ``hass.states.get(entity_id)``.
 
 from __future__ import annotations
 
-import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
 
-from homeassistant.const import CONF_USERNAME, CONF_PASSWORD
+import pytest
+from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers import entity_registry as er
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.robovac_mqtt.const import (
@@ -28,14 +29,12 @@ from custom_components.robovac_mqtt.proto.cloud.consumable_pb2 import (
 )
 from custom_components.robovac_mqtt.proto.cloud.error_code_pb2 import ErrorCode
 from custom_components.robovac_mqtt.proto.cloud.work_status_pb2 import WorkStatus
-
 from tests.integration.conftest import (
     MOCK_DEVICE_INFO,
     MOCK_MQTT_CREDENTIALS,
     simulate_mqtt_message,
 )
 from tests.integration.helpers import make_dps_payload, make_work_status
-
 
 # ---------------------------------------------------------------------------
 # Inline setup helper (same pattern as T12)
@@ -76,6 +75,15 @@ async def setup_vacuum(
             "coordinators": coordinators,
             "coordinator": coordinators[0],
         }
+
+
+async def enable_entity(hass: HomeAssistant, entity_id: str) -> None:
+    """Enable an entity that is disabled by integration by default."""
+    entity_registry = er.async_get(hass)
+    entry = entity_registry.async_get(entity_id)
+    assert entry is not None, f"Entity not found in registry: {entity_id}"
+    entity_registry.async_update_entity(entity_id, disabled_by=None)
+    await hass.async_block_till_done()
 
 
 # ---------------------------------------------------------------------------
@@ -121,7 +129,7 @@ async def test_error_sensor_known_code(hass, mock_eufy_login, mock_mqtt_client):
 
 @pytest.mark.asyncio
 async def test_error_sensor_no_error(hass, mock_eufy_login, mock_mqtt_client):
-    """DPS 177 with empty warn → error message is empty."""
+    """DPS 177 with empty warn clears the sensor to an unknown state."""
     ctx = await setup_vacuum(hass, mock_eufy_login, mock_mqtt_client)
     coordinator = ctx["coordinator"]
 
@@ -137,7 +145,7 @@ async def test_error_sensor_no_error(hass, mock_eufy_login, mock_mqtt_client):
 
     state = hass.states.get("sensor.test_vacuum_error_message")
     assert state is not None
-    assert state.state == ""
+    assert state.state == "unknown"
 
 
 # ---------------------------------------------------------------------------
@@ -184,6 +192,7 @@ async def test_task_status_returning(hass, mock_eufy_login, mock_mqtt_client):
 async def test_cleaning_area_sensor(hass, mock_eufy_login, mock_mqtt_client):
     """DPS 167 CleanStatistics → cleaning_area sensor updated."""
     ctx = await setup_vacuum(hass, mock_eufy_login, mock_mqtt_client)
+    await enable_entity(hass, "sensor.test_vacuum_cleaning_area")
     coordinator = ctx["coordinator"]
 
     stats = CleanStatistics(
@@ -202,6 +211,7 @@ async def test_cleaning_area_sensor(hass, mock_eufy_login, mock_mqtt_client):
 async def test_cleaning_time_sensor(hass, mock_eufy_login, mock_mqtt_client):
     """DPS 167 CleanStatistics → cleaning_time sensor updated."""
     ctx = await setup_vacuum(hass, mock_eufy_login, mock_mqtt_client)
+    await enable_entity(hass, "sensor.test_vacuum_cleaning_time")
     coordinator = ctx["coordinator"]
 
     stats = CleanStatistics(
@@ -225,6 +235,7 @@ async def test_cleaning_time_sensor(hass, mock_eufy_login, mock_mqtt_client):
 async def test_consumable_filter_remaining(hass, mock_eufy_login, mock_mqtt_client):
     """DPS 168 ConsumableResponse → filter_remaining sensor shows remaining hours."""
     ctx = await setup_vacuum(hass, mock_eufy_login, mock_mqtt_client)
+    await enable_entity(hass, "sensor.test_vacuum_filter_remaining")
     coordinator = ctx["coordinator"]
 
     consumable = ConsumableResponse(
@@ -243,11 +254,10 @@ async def test_consumable_filter_remaining(hass, mock_eufy_login, mock_mqtt_clie
 
 
 @pytest.mark.asyncio
-async def test_consumable_side_brush_remaining(
-    hass, mock_eufy_login, mock_mqtt_client
-):
+async def test_consumable_side_brush_remaining(hass, mock_eufy_login, mock_mqtt_client):
     """DPS 168 ConsumableResponse → side brush remaining sensor shows correct hours."""
     ctx = await setup_vacuum(hass, mock_eufy_login, mock_mqtt_client)
+    await enable_entity(hass, "sensor.test_vacuum_side_brush_remaining")
     coordinator = ctx["coordinator"]
 
     consumable = ConsumableResponse(
@@ -276,6 +286,7 @@ async def test_cleaning_stats_unavailable_before_dps(
 ):
     """Before any DPS 167, cleaning_area sensor should be unavailable."""
     ctx = await setup_vacuum(hass, mock_eufy_login, mock_mqtt_client)
+    await enable_entity(hass, "sensor.test_vacuum_cleaning_area")
 
     state = hass.states.get("sensor.test_vacuum_cleaning_area")
     assert state is not None
@@ -288,6 +299,7 @@ async def test_cleaning_stats_available_after_dps(
 ):
     """After DPS 167, cleaning_area sensor becomes available."""
     ctx = await setup_vacuum(hass, mock_eufy_login, mock_mqtt_client)
+    await enable_entity(hass, "sensor.test_vacuum_cleaning_area")
     coordinator = ctx["coordinator"]
 
     state = hass.states.get("sensor.test_vacuum_cleaning_area")
@@ -312,6 +324,7 @@ async def test_consumable_unavailable_before_dps(
 ):
     """Before any DPS 168, consumable sensors should be unavailable."""
     ctx = await setup_vacuum(hass, mock_eufy_login, mock_mqtt_client)
+    await enable_entity(hass, "sensor.test_vacuum_filter_remaining")
 
     state = hass.states.get("sensor.test_vacuum_filter_remaining")
     assert state is not None

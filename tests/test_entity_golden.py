@@ -17,7 +17,6 @@ from custom_components.robovac_mqtt.models import VacuumState
 from custom_components.robovac_mqtt.sensor import async_setup_entry as sensor_setup
 from custom_components.robovac_mqtt.switch import async_setup_entry as switch_setup
 
-
 EXPECTED_SENSOR_SUFFIXES = {
     "error_message",
     "task_status",
@@ -152,10 +151,7 @@ def _snapshot_entries(
     category: EntityCategory | None,
 ) -> dict[str, tuple[bool, bool, str | None]]:
     category_value = category.value if category else None
-    return {
-        suffix: (enabled, visible, category_value)
-        for suffix in suffixes
-    }
+    return {suffix: (enabled, visible, category_value) for suffix in suffixes}
 
 
 EXPECTED_SENSOR_METADATA = {
@@ -350,7 +346,7 @@ def _sensor_suffix(entity: Any, device_id: str) -> str:
 
 
 def _button_suffix(entity: Any, device_id: str) -> str:
-    return entity.unique_id[len(device_id):]
+    return entity.unique_id[len(device_id) :]
 
 
 def _metadata(entity: Any) -> tuple[bool, bool, str | None]:
@@ -371,26 +367,33 @@ def _assert_snapshot(
     metadata_map: dict[str, tuple[bool, bool, str | None]],
     device_id: str,
 ) -> None:
-    actual = {suffix_extractor(entity, device_id): _metadata(entity) for entity in entities}
+    actual = {
+        suffix_extractor(entity, device_id): _metadata(entity) for entity in entities
+    }
     actual_suffixes = set(actual)
     assert len(entities) == expected_count, (
         f"Expected {expected_count} entities, got {len(entities)}: "
         f"{sorted(actual_suffixes.symmetric_difference(expected_suffixes))}"
     )
     assert actual_suffixes == expected_suffixes, (
-        "Diff: "
-        f"{sorted(actual_suffixes.symmetric_difference(expected_suffixes))}"
+        "Diff: " f"{sorted(actual_suffixes.symmetric_difference(expected_suffixes))}"
     )
     assert actual == metadata_map
 
 
 @pytest.mark.asyncio
-async def test_golden_sensor_unique_ids(mock_coordinator: MagicMock, mock_hass_data: tuple[MagicMock, MagicMock]) -> None:
+async def test_golden_sensor_unique_ids(
+    mock_coordinator: MagicMock, mock_hass_data: tuple[MagicMock, MagicMock]
+) -> None:
     hass, entry = mock_hass_data
     captured: list[Any] = []
 
-    with patch("custom_components.robovac_mqtt.sensor.get_auto_sensors", return_value=[]):
-        await sensor_setup(hass, entry, lambda entities, *args, **kwargs: captured.extend(entities))
+    with patch(
+        "custom_components.robovac_mqtt.sensor.get_auto_sensors", return_value=[]
+    ):
+        await sensor_setup(
+            hass, entry, lambda entities, *args, **kwargs: captured.extend(entities)
+        )
 
     _assert_snapshot(
         captured,
@@ -403,12 +406,19 @@ async def test_golden_sensor_unique_ids(mock_coordinator: MagicMock, mock_hass_d
 
 
 @pytest.mark.asyncio
-async def test_golden_binary_sensor_unique_ids(mock_coordinator: MagicMock, mock_hass_data: tuple[MagicMock, MagicMock]) -> None:
+async def test_golden_binary_sensor_unique_ids(
+    mock_coordinator: MagicMock, mock_hass_data: tuple[MagicMock, MagicMock]
+) -> None:
     hass, entry = mock_hass_data
     captured: list[Any] = []
 
-    with patch("custom_components.robovac_mqtt.binary_sensor.get_auto_binary_sensors", return_value=[]):
-        await binary_sensor_setup(hass, entry, lambda entities, *args, **kwargs: captured.extend(entities))
+    with patch(
+        "custom_components.robovac_mqtt.binary_sensor.get_auto_binary_sensors",
+        return_value=[],
+    ):
+        await binary_sensor_setup(
+            hass, entry, lambda entities, *args, **kwargs: captured.extend(entities)
+        )
 
     _assert_snapshot(
         captured,
@@ -421,12 +431,18 @@ async def test_golden_binary_sensor_unique_ids(mock_coordinator: MagicMock, mock
 
 
 @pytest.mark.asyncio
-async def test_golden_switch_unique_ids(mock_coordinator: MagicMock, mock_hass_data: tuple[MagicMock, MagicMock]) -> None:
+async def test_golden_switch_unique_ids(
+    mock_coordinator: MagicMock, mock_hass_data: tuple[MagicMock, MagicMock]
+) -> None:
     hass, entry = mock_hass_data
     captured: list[Any] = []
 
-    with patch("custom_components.robovac_mqtt.switch.get_auto_switches", return_value=[]):
-        await switch_setup(hass, entry, lambda entities, *args, **kwargs: captured.extend(entities))
+    with patch(
+        "custom_components.robovac_mqtt.switch.get_auto_switches", return_value=[]
+    ):
+        await switch_setup(
+            hass, entry, lambda entities, *args, **kwargs: captured.extend(entities)
+        )
 
     _assert_snapshot(
         captured,
@@ -439,11 +455,15 @@ async def test_golden_switch_unique_ids(mock_coordinator: MagicMock, mock_hass_d
 
 
 @pytest.mark.asyncio
-async def test_golden_button_unique_ids(mock_coordinator: MagicMock, mock_hass_data: tuple[MagicMock, MagicMock]) -> None:
+async def test_golden_button_unique_ids(
+    mock_coordinator: MagicMock, mock_hass_data: tuple[MagicMock, MagicMock]
+) -> None:
     hass, entry = mock_hass_data
     captured: list[Any] = []
 
-    await button_setup(hass, entry, lambda entities, *args, **kwargs: captured.extend(entities))
+    await button_setup(
+        hass, entry, lambda entities, *args, **kwargs: captured.extend(entities)
+    )
 
     _assert_snapshot(
         captured,
@@ -456,12 +476,18 @@ async def test_golden_button_unique_ids(mock_coordinator: MagicMock, mock_hass_d
 
 
 @pytest.mark.asyncio
-async def test_golden_sensor_enabled_defaults(mock_coordinator: MagicMock, mock_hass_data: tuple[MagicMock, MagicMock]) -> None:
+async def test_golden_sensor_enabled_defaults(
+    mock_coordinator: MagicMock, mock_hass_data: tuple[MagicMock, MagicMock]
+) -> None:
     hass, entry = mock_hass_data
     captured: list[Any] = []
 
-    with patch("custom_components.robovac_mqtt.sensor.get_auto_sensors", return_value=[]):
-        await sensor_setup(hass, entry, lambda entities, *args, **kwargs: captured.extend(entities))
+    with patch(
+        "custom_components.robovac_mqtt.sensor.get_auto_sensors", return_value=[]
+    ):
+        await sensor_setup(
+            hass, entry, lambda entities, *args, **kwargs: captured.extend(entities)
+        )
 
     by_suffix = {
         _sensor_suffix(entity, mock_coordinator.device_id): entity
@@ -475,12 +501,18 @@ async def test_golden_sensor_enabled_defaults(mock_coordinator: MagicMock, mock_
 
 
 @pytest.mark.asyncio
-async def test_golden_sensor_snapshot_detects_suffix_change(mock_coordinator: MagicMock, mock_hass_data: tuple[MagicMock, MagicMock]) -> None:
+async def test_golden_sensor_snapshot_detects_suffix_change(
+    mock_coordinator: MagicMock, mock_hass_data: tuple[MagicMock, MagicMock]
+) -> None:
     hass, entry = mock_hass_data
     captured: list[Any] = []
 
-    with patch("custom_components.robovac_mqtt.sensor.get_auto_sensors", return_value=[]):
-        await sensor_setup(hass, entry, lambda entities, *args, **kwargs: captured.extend(entities))
+    with patch(
+        "custom_components.robovac_mqtt.sensor.get_auto_sensors", return_value=[]
+    ):
+        await sensor_setup(
+            hass, entry, lambda entities, *args, **kwargs: captured.extend(entities)
+        )
 
     tampered = dict(EXPECTED_SENSOR_METADATA)
     tampered["error_message_renamed"] = tampered.pop("error_message")
@@ -489,7 +521,8 @@ async def test_golden_sensor_snapshot_detects_suffix_change(mock_coordinator: Ma
         _assert_snapshot(
             captured,
             expected_count=60,
-            expected_suffixes=(EXPECTED_SENSOR_SUFFIXES - {"error_message"}) | {"error_message_renamed"},
+            expected_suffixes=(EXPECTED_SENSOR_SUFFIXES - {"error_message"})
+            | {"error_message_renamed"},
             suffix_extractor=_sensor_suffix,
             metadata_map=tampered,
             device_id=mock_coordinator.device_id,

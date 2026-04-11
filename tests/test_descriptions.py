@@ -1,11 +1,15 @@
-from custom_components.robovac_mqtt.descriptions.sensor import SENSOR_DESCRIPTIONS
-from custom_components.robovac_mqtt.descriptions.binary_sensor import BINARY_SENSOR_DESCRIPTIONS
-from custom_components.robovac_mqtt.descriptions.switch import UNISETTING_SWITCH_DESCRIPTIONS
+from custom_components.robovac_mqtt.descriptions.binary_sensor import (
+    BINARY_SENSOR_DESCRIPTIONS,
+)
 from custom_components.robovac_mqtt.descriptions.button import (
     DOCK_BUTTON_DESCRIPTIONS,
     GENERIC_BUTTON_DESCRIPTIONS,
-    RESET_BUTTON_DESCRIPTIONS,
     MEDIA_BUTTON_DESCRIPTIONS,
+    RESET_BUTTON_DESCRIPTIONS,
+)
+from custom_components.robovac_mqtt.descriptions.sensor import SENSOR_DESCRIPTIONS
+from custom_components.robovac_mqtt.descriptions.switch import (
+    UNISETTING_SWITCH_DESCRIPTIONS,
 )
 
 

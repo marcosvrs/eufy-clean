@@ -10,16 +10,16 @@ Usage:
     sudo python3 scripts/02_monitor.py VACUUM_IP [--duration 120]
 """
 
-import sys
-import time
 import argparse
 import signal
+import sys
+import time
 from collections import defaultdict
 from datetime import datetime
 from pathlib import Path
 
 try:
-    from scapy.all import sniff, IP, TCP, UDP, wrpcap
+    from scapy.all import IP, TCP, UDP, sniff, wrpcap
 except ImportError:
     print("ERROR: scapy not installed. Run: pip install scapy")
     sys.exit(1)
@@ -28,10 +28,16 @@ except ImportError:
 MAP_DATA_THRESHOLD = 500  # bytes — packets above this are flagged
 TUYA_COMMAND_PORT = 6668
 
-streams = defaultdict(lambda: {
-    "count": 0, "bytes": 0, "sizes": [], "first_seen": None, "last_seen": None,
-    "sample_payloads": [],
-})
+streams = defaultdict(
+    lambda: {
+        "count": 0,
+        "bytes": 0,
+        "sizes": [],
+        "first_seen": None,
+        "last_seen": None,
+        "sample_payloads": [],
+    }
+)
 all_packets = []
 large_packet_count = 0
 
@@ -95,7 +101,9 @@ def print_summary():
     print(f"  Total packets: {len(all_packets)}")
     print(f"  Large packets (>{MAP_DATA_THRESHOLD}b): {large_packet_count}")
     print()
-    print(f"  {'Stream':>12}  {'Packets':>8}  {'Total':>10}  {'Avg':>8}  {'Max':>6}  Note")
+    print(
+        f"  {'Stream':>12}  {'Packets':>8}  {'Total':>10}  {'Avg':>8}  {'Max':>6}  Note"
+    )
     print(f"  {'-'*12}  {'-'*8}  {'-'*10}  {'-'*8}  {'-'*6}  ----")
 
     for key, info in sorted(streams.items(), key=lambda x: x[1]["bytes"], reverse=True):
@@ -115,7 +123,8 @@ def print_summary():
         )
 
     map_streams = [
-        (k, v) for k, v in streams.items()
+        (k, v)
+        for k, v in streams.items()
         if max(v["sizes"], default=0) > MAP_DATA_THRESHOLD
         and int(k.split(":")[1]) != TUYA_COMMAND_PORT
     ]
@@ -146,17 +155,17 @@ def print_summary():
 
 
 def identify_signature(data: bytes) -> str:
-    if data[:2] == b'\x1f\x8b':
+    if data[:2] == b"\x1f\x8b":
         return "GZIP compressed"
-    if data[:2] in (b'\x78\x9c', b'\x78\x01', b'\x78\xda'):
+    if data[:2] in (b"\x78\x9c", b"\x78\x01", b"\x78\xda"):
         return "ZLIB compressed"
-    if data[:4] == b'\x89PNG':
+    if data[:4] == b"\x89PNG":
         return "PNG image"
-    if data[:2] == b'\xff\xd8':
+    if data[:2] == b"\xff\xd8":
         return "JPEG image"
-    if data[:4] == b'RIFF':
+    if data[:4] == b"RIFF":
         return "RIFF container"
-    if data[:2] == b'\x00\x00' and len(data) > 20:
+    if data[:2] == b"\x00\x00" and len(data) > 20:
         return "Possible Tuya P2P frame (null header)"
     return ""
 
@@ -177,8 +186,10 @@ def main():
     parser = argparse.ArgumentParser(description="Monitor Eufy vacuum traffic")
     parser.add_argument("vacuum_ip", help="IP address of your Eufy vacuum")
     parser.add_argument(
-        "--duration", type=int, default=0,
-        help="Capture duration in seconds (0 = until Ctrl+C)"
+        "--duration",
+        type=int,
+        default=0,
+        help="Capture duration in seconds (0 = until Ctrl+C)",
     )
     args = parser.parse_args()
     VACUUM_IP = args.vacuum_ip
@@ -187,7 +198,9 @@ def main():
     print(f"  Eufy Vacuum Traffic Monitor")
     print(f"{'='*70}")
     print(f"  Target:    {VACUUM_IP}")
-    print(f"  Duration:  {'until Ctrl+C' if args.duration == 0 else f'{args.duration}s'}")
+    print(
+        f"  Duration:  {'until Ctrl+C' if args.duration == 0 else f'{args.duration}s'}"
+    )
     print(f"  Threshold: packets > {MAP_DATA_THRESHOLD} bytes flagged")
     print(f"{'='*70}")
     print()

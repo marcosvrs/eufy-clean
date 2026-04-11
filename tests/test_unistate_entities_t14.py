@@ -3,7 +3,9 @@ from unittest.mock import MagicMock
 import pytest
 
 from custom_components.robovac_mqtt.binary_sensor import RoboVacBinarySensor
-from custom_components.robovac_mqtt.descriptions.binary_sensor import RoboVacBinarySensorDescription
+from custom_components.robovac_mqtt.descriptions.binary_sensor import (
+    RoboVacBinarySensorDescription,
+)
 from custom_components.robovac_mqtt.descriptions.sensor import RoboVacSensorDescription
 from custom_components.robovac_mqtt.models import VacuumState
 from custom_components.robovac_mqtt.sensor import RoboVacSensor
@@ -48,16 +50,22 @@ class TestUnistateSensors:
         _coord_with_fields(mock_coordinator, {"mop_state"})
         sensor = RoboVacSensor(
             mock_coordinator,
-            _sensor_desc("mop_state", "Mop State",
-                         availability_fn=lambda s: "mop_state" in s.received_fields),
+            _sensor_desc(
+                "mop_state",
+                "Mop State",
+                availability_fn=lambda s: "mop_state" in s.received_fields,
+            ),
         )
         assert sensor.available is True
 
     def test_mop_state_unavailable(self, mock_coordinator):
         sensor = RoboVacSensor(
             mock_coordinator,
-            _sensor_desc("mop_state", "Mop State",
-                         availability_fn=lambda s: "mop_state" in s.received_fields),
+            _sensor_desc(
+                "mop_state",
+                "Mop State",
+                availability_fn=lambda s: "mop_state" in s.received_fields,
+            ),
         )
         assert sensor.available is False
 
@@ -65,8 +73,11 @@ class TestUnistateSensors:
         _coord_with_fields(mock_coordinator, {"mop_state"}, mop_state=True)
         sensor = RoboVacSensor(
             mock_coordinator,
-            _sensor_desc("mop_state", "Mop State",
-                         availability_fn=lambda s: "mop_state" in s.received_fields),
+            _sensor_desc(
+                "mop_state",
+                "Mop State",
+                availability_fn=lambda s: "mop_state" in s.received_fields,
+            ),
         )
         assert sensor.native_value is True
 
@@ -74,8 +85,11 @@ class TestUnistateSensors:
         _coord_with_fields(mock_coordinator, {"clean_strategy_version"})
         sensor = RoboVacSensor(
             mock_coordinator,
-            _sensor_desc("clean_strategy_version", "Clean Strategy Version",
-                         availability_fn=lambda s: "clean_strategy_version" in s.received_fields),
+            _sensor_desc(
+                "clean_strategy_version",
+                "Clean Strategy Version",
+                availability_fn=lambda s: "clean_strategy_version" in s.received_fields,
+            ),
         )
         assert sensor.available is True
 
@@ -85,8 +99,11 @@ class TestUnistateSensors:
         )
         sensor = RoboVacSensor(
             mock_coordinator,
-            _sensor_desc("clean_strategy_version", "Clean Strategy Version",
-                         availability_fn=lambda s: "clean_strategy_version" in s.received_fields),
+            _sensor_desc(
+                "clean_strategy_version",
+                "Clean Strategy Version",
+                availability_fn=lambda s: "clean_strategy_version" in s.received_fields,
+            ),
         )
         assert sensor.native_value == 42
 
@@ -105,18 +122,24 @@ class TestUnistateBinarySensors:
         _coord_with_fields(mock_coordinator, {"mop_holder_state_l"})
         bs = RoboVacBinarySensor(
             mock_coordinator,
-            _bs_desc("mop_holder_l", "Mop Holder Left",
-                     lambda s: s.mop_holder_state_l,
-                     availability_fn=lambda s: "mop_holder_state_l" in s.received_fields),
+            _bs_desc(
+                "mop_holder_l",
+                "Mop Holder Left",
+                lambda s: s.mop_holder_state_l,
+                availability_fn=lambda s: "mop_holder_state_l" in s.received_fields,
+            ),
         )
         assert bs.available is True
 
     def test_mop_holder_left_unavailable(self, mock_coordinator):
         bs = RoboVacBinarySensor(
             mock_coordinator,
-            _bs_desc("mop_holder_l", "Mop Holder Left",
-                     lambda s: s.mop_holder_state_l,
-                     availability_fn=lambda s: "mop_holder_state_l" in s.received_fields),
+            _bs_desc(
+                "mop_holder_l",
+                "Mop Holder Left",
+                lambda s: s.mop_holder_state_l,
+                availability_fn=lambda s: "mop_holder_state_l" in s.received_fields,
+            ),
         )
         assert bs.available is False
 
@@ -124,9 +147,12 @@ class TestUnistateBinarySensors:
         _coord_with_fields(mock_coordinator, {"mop_holder_state_l"})
         bs = RoboVacBinarySensor(
             mock_coordinator,
-            _bs_desc("mop_holder_l", "Mop Holder Left",
-                     lambda s: s.mop_holder_state_l,
-                     availability_fn=lambda s: "mop_holder_state_l" in s.received_fields),
+            _bs_desc(
+                "mop_holder_l",
+                "Mop Holder Left",
+                lambda s: s.mop_holder_state_l,
+                availability_fn=lambda s: "mop_holder_state_l" in s.received_fields,
+            ),
         )
         assert bs.is_on is False
 
@@ -134,9 +160,12 @@ class TestUnistateBinarySensors:
         _coord_with_fields(mock_coordinator, {"mop_holder_state_r"})
         bs = RoboVacBinarySensor(
             mock_coordinator,
-            _bs_desc("mop_holder_r", "Mop Holder Right",
-                     lambda s: s.mop_holder_state_r,
-                     availability_fn=lambda s: "mop_holder_state_r" in s.received_fields),
+            _bs_desc(
+                "mop_holder_r",
+                "Mop Holder Right",
+                lambda s: s.mop_holder_state_r,
+                availability_fn=lambda s: "mop_holder_state_r" in s.received_fields,
+            ),
         )
         assert bs.available is True
 
@@ -144,9 +173,12 @@ class TestUnistateBinarySensors:
         _coord_with_fields(mock_coordinator, {"map_valid"})
         bs = RoboVacBinarySensor(
             mock_coordinator,
-            _bs_desc("map_valid", "Map Valid",
-                     lambda s: s.map_valid,
-                     availability_fn=lambda s: "map_valid" in s.received_fields),
+            _bs_desc(
+                "map_valid",
+                "Map Valid",
+                lambda s: s.map_valid,
+                availability_fn=lambda s: "map_valid" in s.received_fields,
+            ),
         )
         assert bs.available is True
 
@@ -154,9 +186,12 @@ class TestUnistateBinarySensors:
         _coord_with_fields(mock_coordinator, {"map_valid"}, map_valid=True)
         bs = RoboVacBinarySensor(
             mock_coordinator,
-            _bs_desc("map_valid", "Map Valid",
-                     lambda s: s.map_valid,
-                     availability_fn=lambda s: "map_valid" in s.received_fields),
+            _bs_desc(
+                "map_valid",
+                "Map Valid",
+                lambda s: s.map_valid,
+                availability_fn=lambda s: "map_valid" in s.received_fields,
+            ),
         )
         assert bs.is_on is True
 
@@ -171,9 +206,12 @@ class TestUnistateBinarySensors:
             sensors.append(
                 RoboVacBinarySensor(
                     mock_coordinator,
-                    _bs_desc(id_suffix, name,
-                             lambda s, f=bs_field: getattr(s, f, False),
-                             availability_fn=lambda s, f=bs_field: f in s.received_fields),
+                    _bs_desc(
+                        id_suffix,
+                        name,
+                        lambda s, f=bs_field: getattr(s, f, False),
+                        availability_fn=lambda s, f=bs_field: f in s.received_fields,
+                    ),
                 )
             )
         for sensor in sensors:

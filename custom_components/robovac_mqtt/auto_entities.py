@@ -62,10 +62,7 @@ class _AutoEntityBase(CoordinatorEntity[EufyCleanCoordinator]):
     @property
     def available(self) -> bool:
         """Return whether the entity is available."""
-        return (
-            super().available
-            and self._dp_id in self.coordinator.data.dynamic_values
-        )
+        return super().available and self._dp_id in self.coordinator.data.dynamic_values
 
 
 # ---------------------------------------------------------------------------
@@ -208,9 +205,7 @@ class AutoSelect(_AutoEntityBase, SelectEntity):
     ) -> None:
         super().__init__(coordinator, dp_id, cloud_code, override)
         self._options_map: dict[int, str] = override.get("options_map", {})
-        self._reverse_map: dict[str, int] = {
-            v: k for k, v in self._options_map.items()
-        }
+        self._reverse_map: dict[str, int] = {v: k for k, v in self._options_map.items()}
         self._label_set: set[str] = set(self._options_map.values())
         self._attr_options = list(self._options_map.values())
 
@@ -295,7 +290,9 @@ def get_auto_numbers(
             code = entry.get("code", f"dps_{dp_id_str}")
             override = AUTO_ENTITY_OVERRIDES.get(code, {})
             catalog_property = _parse_property_json(entry)
-            entities.append(AutoNumber(coordinator, dp_id_str, code, override, catalog_property))
+            entities.append(
+                AutoNumber(coordinator, dp_id_str, code, override, catalog_property)
+            )
     return entities
 
 

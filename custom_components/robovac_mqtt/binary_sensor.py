@@ -57,7 +57,8 @@ class RoboVacBinarySensor(CoordinatorEntity[EufyCleanCoordinator], BinarySensorE
         self._attr_name = description.name
         self._attr_device_info = coordinator.device_info
         self._attr_entity_registry_enabled_default = (
-            description.availability_fn is None and getattr(description, "enabled_default", True)
+            description.availability_fn is None
+            and getattr(description, "enabled_default", True)
         )
 
     @property

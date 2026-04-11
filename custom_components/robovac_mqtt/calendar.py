@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 import datetime as dt
-from datetime import datetime as dt_datetime
 import logging
 import time
+from datetime import datetime as dt_datetime
 from typing import Any
 
 from homeassistant.components.calendar import (
@@ -148,7 +148,8 @@ def _estimate_duration(
     whole-house cleans with short manual room cleans.  Excludes aborted sessions.
     """
     candidates = [
-        s for s in history
+        s
+        for s in history
         if s.get("completed")
         and s.get("duration_seconds", 0) > 0
         and (trigger_source is None or s.get("trigger_source") == trigger_source)
@@ -157,7 +158,8 @@ def _estimate_duration(
     if not candidates:
         # Fall back to all completed sessions if no exact match
         candidates = [
-            s for s in history
+            s
+            for s in history
             if s.get("completed") and s.get("duration_seconds", 0) > 0
         ]
     if not candidates:
@@ -224,7 +226,8 @@ def _expand_schedule_future(
     if not (0 <= hour <= 23 and 0 <= minute <= 59):
         _LOGGER.warning(
             "Skipping schedule with invalid time: hour=%s, minute=%s",
-            hour, minute,
+            hour,
+            minute,
         )
         return []
     summary_base = schedule.get("action_label", "Scheduled Clean")
@@ -239,15 +242,22 @@ def _expand_schedule_future(
         while current <= end_date:
             proto_bit = (current.weekday() + 1) % 7
             if week_bits & (1 << proto_bit):
-                event_start = dt.datetime.combine(current, dt.time(hour, minute), tzinfo=tz)
+                event_start = dt.datetime.combine(
+                    current, dt.time(hour, minute), tzinfo=tz
+                )
                 event_end = event_start + est_duration
                 if event_end > start and event_start < end:
-                    events.append(CalendarEvent(
-                        start=event_start, end=event_end,
-                        summary=f"\U0001f4c5 {summary_base} (est. ~{est_min} min)",
-                        description=_weekday_label(week_bits),
-                        uid=uid, rrule=rrule, recurrence_id=current.isoformat(),
-                    ))
+                    events.append(
+                        CalendarEvent(
+                            start=event_start,
+                            end=event_end,
+                            summary=f"\U0001f4c5 {summary_base} (est. ~{est_min} min)",
+                            description=_weekday_label(week_bits),
+                            uid=uid,
+                            rrule=rrule,
+                            recurrence_id=current.isoformat(),
+                        )
+                    )
             current += dt.timedelta(days=1)
     else:
         event_start = dt.datetime.combine(current, dt.time(hour, minute), tzinfo=tz)
@@ -255,11 +265,15 @@ def _expand_schedule_future(
             event_start += dt.timedelta(days=1)
         event_end = event_start + est_duration
         if event_end > start and event_start < end:
-            events.append(CalendarEvent(
-                start=event_start, end=event_end,
-                summary=f"\U0001f4c5 {summary_base} (est. ~{est_min} min)",
-                description="One-time", uid=uid,
-            ))
+            events.append(
+                CalendarEvent(
+                    start=event_start,
+                    end=event_end,
+                    summary=f"\U0001f4c5 {summary_base} (est. ~{est_min} min)",
+                    description="One-time",
+                    uid=uid,
+                )
+            )
     return events
 
 
@@ -299,8 +313,7 @@ class EufyCleanCalendar(CoordinatorEntity[EufyCleanCoordinator], CalendarEntity)
     @property
     def available(self) -> bool:
         return (
-            super().available
-            and "schedules" in self.coordinator.data.received_fields
+            super().available and "schedules" in self.coordinator.data.received_fields
         )
 
     @property
@@ -320,7 +333,8 @@ class EufyCleanCalendar(CoordinatorEntity[EufyCleanCoordinator], CalendarEntity)
                 ev_start = now
             elapsed_min = max(0, int((now - ev_start).total_seconds() / 60))
             return CalendarEvent(
-                start=ev_start, end=max(ev_start, now),
+                start=ev_start,
+                end=max(ev_start, now),
                 summary=f"\U0001f504 Cleaning in progress ({elapsed_min} min)...",
                 description=f"Trigger: {current.trigger_source.title()}",
             )
@@ -421,12 +435,15 @@ class EufyCleanCalendar(CoordinatorEntity[EufyCleanCoordinator], CalendarEntity)
             ev_end = max(ev_start, now)
             if ev_end > start and ev_start < end:
                 elapsed_min = max(0, int((now - ev_start).total_seconds() / 60))
-                events.append(CalendarEvent(
-                    start=ev_start, end=ev_end,
-                    summary=f"\U0001f504 Cleaning in progress ({elapsed_min} min)...",
-                    description=f"Trigger: {current.trigger_source.title()}\nDock visits: {current.dock_visits}",
-                    uid="current",
-                ))
+                events.append(
+                    CalendarEvent(
+                        start=ev_start,
+                        end=ev_end,
+                        summary=f"\U0001f504 Cleaning in progress ({elapsed_min} min)...",
+                        description=f"Trigger: {current.trigger_source.title()}\nDock visits: {current.dock_visits}",
+                        uid="current",
+                    )
+                )
 
         # 3. FUTURE: scheduled events with estimated duration
         for schedule in self.coordinator.data.schedules:
@@ -437,7 +454,9 @@ class EufyCleanCalendar(CoordinatorEntity[EufyCleanCoordinator], CalendarEntity)
                 trigger_source="schedule",
             )
             est_duration = dt.timedelta(minutes=est_minutes)
-            for sched_ev in _expand_schedule_future(schedule, now, end, tz, est_duration):
+            for sched_ev in _expand_schedule_future(
+                schedule, now, end, tz, est_duration
+            ):
                 events.append(sched_ev)
 
         events.sort(key=lambda e: e.start)
@@ -450,8 +469,11 @@ class EufyCleanCalendar(CoordinatorEntity[EufyCleanCoordinator], CalendarEntity)
         return events
 
     def _session_to_event(
-        self, session: dict, tz: dt.tzinfo,
-        range_start: dt.datetime, range_end: dt.datetime,
+        self,
+        session: dict,
+        tz: dt.tzinfo,
+        range_start: dt.datetime,
+        range_end: dt.datetime,
     ) -> CalendarEvent | None:
         """Convert a cleaning session dict to a CalendarEvent if in range."""
         start_str = session.get("start_time", "")
@@ -464,19 +486,22 @@ class EufyCleanCalendar(CoordinatorEntity[EufyCleanCoordinator], CalendarEntity)
         except (ValueError, TypeError):
             _LOGGER.warning(
                 "Skipping cleaning session with invalid timestamps: start=%s, end=%s",
-                start_str, end_str,
+                start_str,
+                end_str,
             )
             return None
         if ev_end < ev_start:
             _LOGGER.warning(
                 "Skipping cleaning session with reversed timestamps: start=%s, end=%s",
-                start_str, end_str,
+                start_str,
+                end_str,
             )
             return None
         if ev_end <= range_start or ev_start >= range_end:
             return None
         return CalendarEvent(
-            start=ev_start, end=ev_end,
+            start=ev_start,
+            end=ev_end,
             summary=_session_summary(session),
             description=_session_description(session),
             uid=f"session_{start_str}",
@@ -494,7 +519,8 @@ def _expand_schedule(
     if not (0 <= hour <= 23 and 0 <= minute <= 59):
         _LOGGER.warning(
             "Skipping schedule with invalid time: hour=%s, minute=%s",
-            hour, minute,
+            hour,
+            minute,
         )
         return []
     summary = schedule.get("action_label", "Scheduled Clean")
@@ -529,9 +555,7 @@ def _expand_schedule(
                     )
             current += dt.timedelta(days=1)
     else:
-        event_start = dt.datetime.combine(
-            current, dt.time(hour, minute), tzinfo=tz
-        )
+        event_start = dt.datetime.combine(current, dt.time(hour, minute), tzinfo=tz)
         if event_start < start:
             event_start += dt.timedelta(days=1)
         event_end = max(event_start, event_start + _EVENT_DURATION)

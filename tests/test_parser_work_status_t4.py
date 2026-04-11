@@ -114,7 +114,10 @@ def test_smart_follow_parsed():
     ws = make_work_status(
         state=5,
         smart_follow=WorkStatus.SmartFollow(
-            state=1, mode=0, elapsed_time=120, area=15,
+            state=1,
+            mode=0,
+            elapsed_time=120,
+            area=15,
         ),
     )
     dps = make_dps_payload("153", ws)
@@ -129,10 +132,19 @@ def test_smart_follow_parsed():
 def test_all_new_fields_in_vacuum_state():
     vs = VacuumState()
     new_fields = [
-        "upgrading", "mapping_state", "mapping_mode", "relocating",
-        "roller_brush_cleaning", "breakpoint_available", "station_work_status",
-        "cruise_state", "cruise_mode", "smart_follow_state", "smart_follow_mode",
-        "smart_follow_elapsed", "smart_follow_area",
+        "upgrading",
+        "mapping_state",
+        "mapping_mode",
+        "relocating",
+        "roller_brush_cleaning",
+        "breakpoint_available",
+        "station_work_status",
+        "cruise_state",
+        "cruise_mode",
+        "smart_follow_state",
+        "smart_follow_mode",
+        "smart_follow_elapsed",
+        "smart_follow_area",
     ]
     for f in new_fields:
         assert hasattr(vs, f), f"VacuumState missing field: {f}"

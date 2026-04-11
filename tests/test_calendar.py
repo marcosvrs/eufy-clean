@@ -72,20 +72,23 @@ class TestRruleToWeekBits:
 
 
 class TestRoundTripWeekBitsFirst:
-    @pytest.mark.parametrize("bits", [
-        0b0000001,
-        0b0000010,
-        0b0000100,
-        0b0001000,
-        0b0010000,
-        0b0100000,
-        0b1000000,
-        0b0111110,
-        0b1000001,
-        0x7F,
-        0b0010100,
-        0b0101010,
-    ])
+    @pytest.mark.parametrize(
+        "bits",
+        [
+            0b0000001,
+            0b0000010,
+            0b0000100,
+            0b0001000,
+            0b0010000,
+            0b0100000,
+            0b1000000,
+            0b0111110,
+            0b1000001,
+            0x7F,
+            0b0010100,
+            0b0101010,
+        ],
+    )
     def test_week_bits_survives_round_trip(self, bits):
         rrule = _week_bits_to_rrule(bits)
         assert rrule
@@ -94,15 +97,18 @@ class TestRoundTripWeekBitsFirst:
 
 
 class TestRoundTripRruleFirst:
-    @pytest.mark.parametrize("rrule", [
-        "FREQ=WEEKLY;BYDAY=SU",
-        "FREQ=WEEKLY;BYDAY=MO",
-        "FREQ=WEEKLY;BYDAY=SA",
-        "FREQ=WEEKLY;BYDAY=MO,TU,WE,TH,FR",
-        "FREQ=WEEKLY;BYDAY=SU,SA",
-        "FREQ=WEEKLY;BYDAY=SU,MO,TU,WE,TH,FR,SA",
-        "FREQ=WEEKLY;BYDAY=TU,TH",
-    ])
+    @pytest.mark.parametrize(
+        "rrule",
+        [
+            "FREQ=WEEKLY;BYDAY=SU",
+            "FREQ=WEEKLY;BYDAY=MO",
+            "FREQ=WEEKLY;BYDAY=SA",
+            "FREQ=WEEKLY;BYDAY=MO,TU,WE,TH,FR",
+            "FREQ=WEEKLY;BYDAY=SU,SA",
+            "FREQ=WEEKLY;BYDAY=SU,MO,TU,WE,TH,FR,SA",
+            "FREQ=WEEKLY;BYDAY=TU,TH",
+        ],
+    )
     def test_rrule_survives_round_trip(self, rrule):
         bits = _rrule_to_week_bits(rrule)
         assert bits is not None

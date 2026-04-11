@@ -16,9 +16,8 @@ from ..const import (
     MOP_LEVEL_MAP,
 )
 from ..proto.cloud.clean_param_pb2 import CleanParam, CleanParamRequest, Fan
-from ..proto.cloud.error_code_pb2 import ErrorCode, ErrorSetting
-from ..proto.cloud.consumable_pb2 import ConsumableRequest
 from ..proto.cloud.common_pb2 import Point, Quadrangle
+from ..proto.cloud.consumable_pb2 import ConsumableRequest
 from ..proto.cloud.control_pb2 import (
     GlobalCruise,
     Goto,
@@ -29,6 +28,7 @@ from ..proto.cloud.control_pb2 import (
     SpotClean,
     ZonesCruise,
 )
+from ..proto.cloud.error_code_pb2 import ErrorCode, ErrorSetting
 from ..proto.cloud.map_edit_pb2 import MapEditRequest
 from ..proto.cloud.media_manager_pb2 import MediaManagerRequest, MediaSetting
 from ..proto.cloud.station_pb2 import StationRequest
@@ -841,9 +841,7 @@ def build_command(
     if cmd in ("locate", "find_robot"):
         return build_find_robot_command(kwargs.get("active", True), dps_map)
     if cmd == "start_global_cruise":
-        return build_start_global_cruise_command(
-            kwargs.get("map_id", 0), dps_map
-        )
+        return build_start_global_cruise_command(kwargs.get("map_id", 0), dps_map)
     if cmd == "start_point_cruise":
         return build_start_point_cruise_command(
             kwargs.get("x", 0),
@@ -972,9 +970,13 @@ def build_command(
     if cmd == "media_capture":
         return build_media_capture_command(int(kwargs.get("seq", 1)), dps_map)
     if cmd == "media_record":
-        return build_media_record_command(bool(kwargs.get("start", True)), int(kwargs.get("seq", 1)), dps_map)
+        return build_media_record_command(
+            bool(kwargs.get("start", True)), int(kwargs.get("seq", 1)), dps_map
+        )
     if cmd == "media_set_resolution":
-        return build_media_set_resolution_command(kwargs.get("resolution", "720p"), dps_map)
+        return build_media_set_resolution_command(
+            kwargs.get("resolution", "720p"), dps_map
+        )
 
     if cmd == "generic":
         return build_generic_command(

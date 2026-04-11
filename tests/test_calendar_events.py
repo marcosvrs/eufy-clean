@@ -90,7 +90,10 @@ def test_expand_events_returns_empty_for_empty_history_and_schedules(
 
     calendar = _calendar()
 
-    assert calendar._expand_events(now - dt.timedelta(days=1), now + dt.timedelta(days=1)) == []
+    assert (
+        calendar._expand_events(now - dt.timedelta(days=1), now + dt.timedelta(days=1))
+        == []
+    )
 
 
 def test_expand_events_returns_all_supplied_history_entries_even_above_retention_cap(
@@ -127,18 +130,24 @@ def test_session_to_event_skips_missing_start_or_end(
     range_start = now - dt.timedelta(days=1)
     range_end = now + dt.timedelta(days=1)
 
-    assert calendar._session_to_event(
-        _session(None, "2026-04-10T10:30:00+00:00"),
-        UTC,
-        range_start,
-        range_end,
-    ) is None
-    assert calendar._session_to_event(
-        _session("2026-04-10T10:00:00+00:00", None),
-        UTC,
-        range_start,
-        range_end,
-    ) is None
+    assert (
+        calendar._session_to_event(
+            _session(None, "2026-04-10T10:30:00+00:00"),
+            UTC,
+            range_start,
+            range_end,
+        )
+        is None
+    )
+    assert (
+        calendar._session_to_event(
+            _session("2026-04-10T10:00:00+00:00", None),
+            UTC,
+            range_start,
+            range_end,
+        )
+        is None
+    )
 
 
 def test_session_to_event_skips_malformed_timestamps_with_warning(
@@ -538,11 +547,14 @@ def test_estimate_duration_can_match_scene_name() -> None:
         _history_entry(60, trigger_source="schedule", scene_name="Deep Clean"),
     ]
 
-    assert _estimate_duration(
-        history,
-        trigger_source="schedule",
-        scene_name="Deep Clean",
-    ) == 60
+    assert (
+        _estimate_duration(
+            history,
+            trigger_source="schedule",
+            scene_name="Deep Clean",
+        )
+        == 60
+    )
 
 
 def test_session_summary_preserves_scene_name_special_characters() -> None:
@@ -624,7 +636,14 @@ def test_session_description_omits_empty_error_and_includes_long_error() -> None
 
 
 @pytest.mark.parametrize(
-    ("label", "week_bits", "query_start", "query_end", "expected_count", "expected_days"),
+    (
+        "label",
+        "week_bits",
+        "query_start",
+        "query_end",
+        "expected_count",
+        "expected_days",
+    ),
     [
         (
             "weekdays_mon_to_fri",
@@ -693,13 +712,21 @@ def test_expand_schedule_future_week_bits_variations(
         "action_label": "Test Clean",
     }
     events = _expand_schedule_future(
-        schedule, query_start, query_end, UTC, dt.timedelta(minutes=54),
+        schedule,
+        query_start,
+        query_end,
+        UTC,
+        dt.timedelta(minutes=54),
     )
 
-    assert len(events) == expected_count, f"{label}: expected {expected_count}, got {len(events)}"
+    assert (
+        len(events) == expected_count
+    ), f"{label}: expected {expected_count}, got {len(events)}"
 
     actual_days = {ev.start.strftime("%a") for ev in events}
-    assert actual_days == expected_days, f"{label}: expected {expected_days}, got {actual_days}"
+    assert (
+        actual_days == expected_days
+    ), f"{label}: expected {expected_days}, got {actual_days}"
 
     for ev in events:
         assert ev.start.hour == 5
@@ -720,7 +747,11 @@ def test_expand_schedule_future_one_time_schedule() -> None:
     end = dt.datetime(2026, 4, 11, 0, 0, tzinfo=UTC)
 
     events = _expand_schedule_future(
-        schedule, start, end, UTC, dt.timedelta(minutes=45),
+        schedule,
+        start,
+        end,
+        UTC,
+        dt.timedelta(minutes=45),
     )
 
     assert len(events) == 1
@@ -743,7 +774,11 @@ def test_expand_schedule_future_one_time_past_today_skipped() -> None:
     end = dt.datetime(2026, 4, 11, 0, 0, tzinfo=UTC)
 
     events = _expand_schedule_future(
-        schedule, start, end, UTC, dt.timedelta(minutes=30),
+        schedule,
+        start,
+        end,
+        UTC,
+        dt.timedelta(minutes=30),
     )
 
     assert len(events) == 0 or (len(events) == 1 and events[0].start.day == 11)
@@ -762,7 +797,11 @@ def test_expand_schedule_future_two_week_span() -> None:
     end = dt.datetime(2026, 4, 20, 0, 0, tzinfo=UTC)
 
     events = _expand_schedule_future(
-        schedule, start, end, UTC, dt.timedelta(minutes=40),
+        schedule,
+        start,
+        end,
+        UTC,
+        dt.timedelta(minutes=40),
     )
 
     assert len(events) == 6

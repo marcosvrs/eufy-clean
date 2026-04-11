@@ -313,7 +313,9 @@ class SmartModeSwitchEntity(CoordinatorEntity[EufyCleanCoordinator], SwitchEntit
 
     async def _set_state(self, state: bool) -> None:
         """Send smart mode command and optimistically update state."""
-        command = build_command("set_smart_mode", dps_map=self.coordinator.dps_map, active=state)
+        command = build_command(
+            "set_smart_mode", dps_map=self.coordinator.dps_map, active=state
+        )
         await self.coordinator.async_send_command(command)
         self.coordinator.async_set_updated_data(
             replace(self.coordinator.data, smart_mode=state)
@@ -344,7 +346,10 @@ class UnisettingSwitch(CoordinatorEntity[EufyCleanCoordinator], SwitchEntity):
 
     @property
     def available(self) -> bool:
-        return super().available and self._field_name in self.coordinator.data.received_fields
+        return (
+            super().available
+            and self._field_name in self.coordinator.data.received_fields
+        )
 
     async def async_turn_on(self, **kwargs: Any) -> None:
         await self._set(True)

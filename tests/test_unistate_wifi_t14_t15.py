@@ -22,7 +22,9 @@ def _make_dps(resp: UnisettingResponse) -> dict:
 
 
 def test_live_map_state_bits_parsed():
-    resp = UnisettingResponse(unistate=Unistate(live_map=Unistate.LiveMap(state_bits=5)))
+    resp = UnisettingResponse(
+        unistate=Unistate(live_map=Unistate.LiveMap(state_bits=5))
+    )
     new_state, _ = update_state(VacuumState(), _make_dps(resp))
     assert new_state.live_map_state_bits == 5
     assert "live_map_state_bits" in new_state.received_fields
@@ -80,9 +82,15 @@ def test_model_has_live_map_and_custom_clean_mode():
 
 def test_wifi_connection_result_parsed():
     resp = UnisettingResponse(
-        wifi_data=WifiData(ap=[WifiData.Ap(
-            connection=WifiData.Ap.Connection(result=WifiData.Ap.Connection.OK, timestamp=1700000000)
-        )])
+        wifi_data=WifiData(
+            ap=[
+                WifiData.Ap(
+                    connection=WifiData.Ap.Connection(
+                        result=WifiData.Ap.Connection.OK, timestamp=1700000000
+                    )
+                )
+            ]
+        )
     )
     new_state, _ = update_state(VacuumState(), _make_dps(resp))
     assert new_state.wifi_connection_result == 0
@@ -91,9 +99,15 @@ def test_wifi_connection_result_parsed():
 
 def test_wifi_connection_password_error():
     resp = UnisettingResponse(
-        wifi_data=WifiData(ap=[WifiData.Ap(
-            connection=WifiData.Ap.Connection(result=WifiData.Ap.Connection.PASSWD_ERR, timestamp=1700000001)
-        )])
+        wifi_data=WifiData(
+            ap=[
+                WifiData.Ap(
+                    connection=WifiData.Ap.Connection(
+                        result=WifiData.Ap.Connection.PASSWD_ERR, timestamp=1700000001
+                    )
+                )
+            ]
+        )
     )
     new_state, _ = update_state(VacuumState(), _make_dps(resp))
     assert new_state.wifi_connection_result == 1
@@ -102,11 +116,17 @@ def test_wifi_connection_password_error():
 
 def test_wifi_connection_tracked():
     resp = UnisettingResponse(
-        wifi_data=WifiData(ap=[WifiData.Ap(
-            ssid="TestNet",
-            frequency=WifiData.Ap.FREQ_5G,
-            connection=WifiData.Ap.Connection(result=WifiData.Ap.Connection.OK, timestamp=100),
-        )])
+        wifi_data=WifiData(
+            ap=[
+                WifiData.Ap(
+                    ssid="TestNet",
+                    frequency=WifiData.Ap.FREQ_5G,
+                    connection=WifiData.Ap.Connection(
+                        result=WifiData.Ap.Connection.OK, timestamp=100
+                    ),
+                )
+            ]
+        )
     )
     new_state, _ = update_state(VacuumState(), _make_dps(resp))
     assert "wifi_ap_ssid" in new_state.received_fields
@@ -147,7 +167,9 @@ def _mock_coordinator(received: list[str] | None = None) -> MagicMock:
 
 def test_live_map_binary_sensor_availability():
     from custom_components.robovac_mqtt.binary_sensor import RoboVacBinarySensor
-    from custom_components.robovac_mqtt.descriptions.binary_sensor import RoboVacBinarySensorDescription
+    from custom_components.robovac_mqtt.descriptions.binary_sensor import (
+        RoboVacBinarySensorDescription,
+    )
 
     coord = _mock_coordinator(received=["live_map_state_bits"])
     coord.data = VacuumState(
@@ -157,7 +179,8 @@ def test_live_map_binary_sensor_availability():
     bs = RoboVacBinarySensor(
         coord,
         RoboVacBinarySensorDescription(
-            key="live_map", name="Live Map",
+            key="live_map",
+            name="Live Map",
             value_fn=lambda s: bool(s.live_map_state_bits),
             availability_fn=lambda s: "live_map_state_bits" in s.received_fields,
         ),
@@ -167,7 +190,9 @@ def test_live_map_binary_sensor_availability():
 
 def test_live_map_binary_sensor_off_when_zero():
     from custom_components.robovac_mqtt.binary_sensor import RoboVacBinarySensor
-    from custom_components.robovac_mqtt.descriptions.binary_sensor import RoboVacBinarySensorDescription
+    from custom_components.robovac_mqtt.descriptions.binary_sensor import (
+        RoboVacBinarySensorDescription,
+    )
 
     coord = _mock_coordinator(received=["live_map_state_bits"])
     coord.data = VacuumState(
@@ -177,7 +202,8 @@ def test_live_map_binary_sensor_off_when_zero():
     bs = RoboVacBinarySensor(
         coord,
         RoboVacBinarySensorDescription(
-            key="live_map", name="Live Map",
+            key="live_map",
+            name="Live Map",
             value_fn=lambda s: bool(s.live_map_state_bits),
             availability_fn=lambda s: "live_map_state_bits" in s.received_fields,
         ),

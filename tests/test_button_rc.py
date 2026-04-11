@@ -1,8 +1,8 @@
 import asyncio
 from unittest.mock import MagicMock
 
-from custom_components.robovac_mqtt.button import RCDirectionButton, RCModeButton
 from custom_components.robovac_mqtt.api.commands import build_command
+from custom_components.robovac_mqtt.button import RCDirectionButton, RCModeButton
 from custom_components.robovac_mqtt.const import (
     AUTO_ENTITY_OVERRIDES,
     HANDLED_DPS_IDS,

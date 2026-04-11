@@ -57,9 +57,7 @@ MOCK_MQTT_CREDENTIALS = {
 FIXTURES_DIR = Path(__file__).resolve().parents[1] / "fixtures"
 
 
-def make_mqtt_payload(
-    dps: dict[str, Any], device_sn: str = "T2261_ANON_001"
-) -> bytes:
+def make_mqtt_payload(dps: dict[str, Any], device_sn: str = "T2261_ANON_001") -> bytes:
     return json.dumps(
         {
             "head": {"cmd": 65537, "client_id": "anon"},

@@ -182,14 +182,16 @@ class VacuumState:
     media_last_capture_id: str = ""
 
     # Analysis diagnostics (from DPS 179, AnalysisResponse proto)
-    robotapp_state: str = ""       # Internal robot app state string
-    motion_state: str = ""         # Internal motion state string
-    battery_real_level: int = 0    # True battery percentage (0-100)
+    robotapp_state: str = ""  # Internal robot app state string
+    motion_state: str = ""  # Internal motion state string
+    battery_real_level: int = 0  # True battery percentage (0-100)
     battery_show_level: int = 0
     battery_update_time: int = 0
-    battery_voltage: int = 0       # Battery voltage in mV
-    battery_current: int = 0       # Battery current in mA (signed)
-    battery_temperature: float = 0.0  # Battery temperature in °C (from millidegree units)
+    battery_voltage: int = 0  # Battery voltage in mV
+    battery_current: int = 0  # Battery current in mA (signed)
+    battery_temperature: float = (
+        0.0  # Battery temperature in °C (from millidegree units)
+    )
     battery_discharge_curve: list[float] = field(default_factory=list)
 
     last_clean_area: int = 0
@@ -208,19 +210,19 @@ class VacuumState:
     ctrl_event_timestamp: int = 0
 
     # WorkStatus extended fields (from DPS 153)
-    upgrading: bool = False                # Firmware update in progress
-    mapping_state: int = 0                 # Mapping run state (0=idle, 1=doing, 2=paused)
-    mapping_mode: int = 0                  # Mapping mode (0=mapping only, 1=map+clean)
-    relocating: bool = False               # Robot finding its position
-    roller_brush_cleaning: bool = False    # Dock cleaning roller brush
-    breakpoint_available: bool = False     # Resume-from-breakpoint available
-    station_work_status: int = 0           # Dock's active operation (from WorkStatus)
-    cruise_state: int = 0                  # Cruise mode run state
-    cruise_mode: int = 0                   # Cruise mode type
-    smart_follow_state: int = 0            # Smart follow state
-    smart_follow_mode: int = 0             # Smart follow mode
-    smart_follow_elapsed: int = 0          # Smart follow elapsed time
-    smart_follow_area: int = 0             # Smart follow area
+    upgrading: bool = False  # Firmware update in progress
+    mapping_state: int = 0  # Mapping run state (0=idle, 1=doing, 2=paused)
+    mapping_mode: int = 0  # Mapping mode (0=mapping only, 1=map+clean)
+    relocating: bool = False  # Robot finding its position
+    roller_brush_cleaning: bool = False  # Dock cleaning roller brush
+    breakpoint_available: bool = False  # Resume-from-breakpoint available
+    station_work_status: int = 0  # Dock's active operation (from WorkStatus)
+    cruise_state: int = 0  # Cruise mode run state
+    cruise_mode: int = 0  # Cruise mode type
+    smart_follow_state: int = 0  # Smart follow state
+    smart_follow_mode: int = 0  # Smart follow mode
+    smart_follow_elapsed: int = 0  # Smart follow elapsed time
+    smart_follow_area: int = 0  # Smart follow area
 
     # Raw data for fallback/diagnostics
     raw_dps: dict[str, Any] = field(default_factory=dict)
@@ -234,6 +236,7 @@ class VacuumState:
 @dataclass
 class CleaningSession:
     """Record of a completed or in-progress cleaning session."""
+
     start_time: str = ""
     end_time: str | None = None
     duration_seconds: int = 0

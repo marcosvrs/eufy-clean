@@ -25,7 +25,16 @@ def test_battery_discharge_curve_parsed():
     state = VacuumState()
     dps_key = DEFAULT_DPS_MAP.get("ANALYSIS", "179")
     new_state, changes = update_state(state, {dps_key: b64})
-    assert new_state.battery_discharge_curve == [98.2, 97.5, 96.2, 95.1, 94.1, 93.3, 92.6, 92.0]
+    assert new_state.battery_discharge_curve == [
+        98.2,
+        97.5,
+        96.2,
+        95.1,
+        94.1,
+        93.3,
+        92.6,
+        92.0,
+    ]
 
 
 def test_battery_discharge_curve_empty_without_field():

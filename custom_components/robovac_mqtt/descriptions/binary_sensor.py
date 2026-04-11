@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-# pyright: reportMissingImports=false
-
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
@@ -13,6 +11,9 @@ from homeassistant.components.binary_sensor import (
 from homeassistant.const import EntityCategory
 
 from ..models import VacuumState
+
+# pyright: reportMissingImports=false
+
 
 if TYPE_CHECKING:
     from ..coordinator import EufyCleanCoordinator

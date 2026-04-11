@@ -13,9 +13,9 @@ Usage:
     python3 run.py probe --ip IP --device-id ID --local-key KEY
 """
 
+import os
 import subprocess
 import sys
-import os
 
 SCRIPTS = {
     "discover": "scripts/01_discover.py",
@@ -68,8 +68,7 @@ def main():
 
     remaining_args = sys.argv[2:]
     result = subprocess.run(
-        [sys.executable, script_path] + remaining_args,
-        cwd=project_dir
+        [sys.executable, script_path] + remaining_args, cwd=project_dir
     )
     sys.exit(result.returncode)
 

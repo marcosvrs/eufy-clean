@@ -37,6 +37,7 @@ from ..const import (
     TriggerSource,
 )
 from ..models import AccessoryState, VacuumState
+from ..proto.cloud.analysis_pb2 import AnalysisResponse
 from ..proto.cloud.app_device_info_pb2 import DeviceInfo
 from ..proto.cloud.clean_param_pb2 import CleanParamRequest, CleanParamResponse
 from ..proto.cloud.clean_statistics_pb2 import CleanStatistics
@@ -52,7 +53,6 @@ from ..proto.cloud.timing_pb2 import TimerResponse
 from ..proto.cloud.undisturbed_pb2 import UndisturbedResponse
 from ..proto.cloud.unisetting_pb2 import UnisettingResponse
 from ..proto.cloud.universal_data_pb2 import UniversalDataResponse
-from ..proto.cloud.analysis_pb2 import AnalysisResponse
 from ..proto.cloud.work_status_pb2 import WorkStatus
 from ..utils import decode, deduplicate_names
 
@@ -101,8 +101,10 @@ def _decode_raw_varints(data: bytes) -> dict[int, int | bytes]:
 # This catches: (a) known-schema fields the parser doesn't extract,
 #               (b) wire-level tags not in our .proto definitions.
 _seen_field_shapes: dict[str, set[str]] = {}  # "dps_key" -> set of field paths
-_seen_wire_tags: dict[str, set[int]] = {}     # "dps_key" -> set of known+unknown tags
-_seen_scalar_values: dict[str, set[str]] = {}  # "dps_key" -> set of "type:value" strings
+_seen_wire_tags: dict[str, set[int]] = {}  # "dps_key" -> set of known+unknown tags
+_seen_scalar_values: dict[str, set[str]] = (
+    {}
+)  # "dps_key" -> set of "type:value" strings
 _seen_telemetry_tags: dict[str, set[int]] = {}
 _seen_recursive_tags: dict[str, set[str]] = {}  # "dps_key:path" -> set of unknown tags
 _novelty_dirty = False  # Set True when any cache grows; coordinator checks and saves
@@ -120,11 +122,19 @@ def get_novelty_caches() -> dict[str, Any]:
 
 def load_novelty_caches(data: dict[str, Any]) -> None:
     global _novelty_dirty
-    _seen_field_shapes.update({k: set(v) for k, v in data.get("field_shapes", {}).items()})
+    _seen_field_shapes.update(
+        {k: set(v) for k, v in data.get("field_shapes", {}).items()}
+    )
     _seen_wire_tags.update({k: set(v) for k, v in data.get("wire_tags", {}).items()})
-    _seen_scalar_values.update({k: set(v) for k, v in data.get("scalar_values", {}).items()})
-    _seen_telemetry_tags.update({k: set(v) for k, v in data.get("telemetry_tags", {}).items()})
-    _seen_recursive_tags.update({k: set(v) for k, v in data.get("recursive_tags", {}).items()})
+    _seen_scalar_values.update(
+        {k: set(v) for k, v in data.get("scalar_values", {}).items()}
+    )
+    _seen_telemetry_tags.update(
+        {k: set(v) for k, v in data.get("telemetry_tags", {}).items()}
+    )
+    _seen_recursive_tags.update(
+        {k: set(v) for k, v in data.get("recursive_tags", {}).items()}
+    )
     _novelty_dirty = False
 
 
@@ -144,7 +154,9 @@ def _log_scalar_novelty(dps_key: str, value: Any) -> None:
         global _novelty_dirty
         _LOGGER.debug(
             "SCALAR_NOVELTY | dps=%s | value=%s | type=%s",
-            dps_key, value, type(value).__name__,
+            dps_key,
+            value,
+            type(value).__name__,
         )
         _seen_scalar_values[dps_key] = prev | {sig}
         _novelty_dirty = True
@@ -167,6 +179,7 @@ def _flatten_proto_paths(d: dict, prefix: str = "") -> set[str]:
 def _listfields_paths(msg: Any, prefix: str = "") -> set[str]:
     """Walk proto via ListFields() to catch explicitly-set default values."""
     from google.protobuf.descriptor import FieldDescriptor
+
     paths: set[str] = set()
     for fd, val in msg.ListFields():
         path = f"{prefix}.{fd.name}" if prefix else fd.name
@@ -180,7 +193,9 @@ def _listfields_paths(msg: Any, prefix: str = "") -> set[str]:
     return paths
 
 
-def _extract_wire_tags(raw_bytes: bytes) -> tuple[set[int], dict[int, bytes], dict[int, tuple[int, Any]]]:
+def _extract_wire_tags(
+    raw_bytes: bytes,
+) -> tuple[set[int], dict[int, bytes], dict[int, tuple[int, Any]]]:
     """Extract field numbers, length-delimited raw bytes, and per-field wire details."""
     tags: set[int] = set()
     ld_fields: dict[int, bytes] = {}  # field_num -> raw bytes (for recursion)
@@ -235,10 +250,14 @@ def _format_unknown_field(wt: int, val: Any) -> str:
 
 
 def _scan_unknown_tags_recursive(
-    dps_key: str, proto_msg: Any, raw_bytes: bytes, path: str = "",
+    dps_key: str,
+    proto_msg: Any,
+    raw_bytes: bytes,
+    path: str = "",
 ) -> None:
     """Scan for unknown wire tags at this level and recurse into known sub-messages."""
     from google.protobuf.descriptor import FieldDescriptor
+
     wire_tags, ld_fields, field_details = _extract_wire_tags(raw_bytes)
     known_nums = set(proto_msg.DESCRIPTOR.fields_by_number.keys())
     unknown = wire_tags - known_nums
@@ -254,7 +273,9 @@ def _scan_unknown_tags_recursive(
             details.append(f"field={t} {_format_unknown_field(wt, val)}")
         _LOGGER.warning(
             "PROTO_UNKNOWN_TAGS | dps=%s | location=%s | fields: %s",
-            dps_key, label, "; ".join(details),
+            dps_key,
+            label,
+            "; ".join(details),
         )
         _seen_recursive_tags[cache_key] = prev | new_unknown
         global _novelty_dirty
@@ -262,7 +283,11 @@ def _scan_unknown_tags_recursive(
 
     for fn, raw_sub in ld_fields.items():
         fd = proto_msg.DESCRIPTOR.fields_by_number.get(fn)
-        if fd and fd.type == FieldDescriptor.TYPE_MESSAGE and fd.label != FieldDescriptor.LABEL_REPEATED:
+        if (
+            fd
+            and fd.type == FieldDescriptor.TYPE_MESSAGE
+            and fd.label != FieldDescriptor.LABEL_REPEATED
+        ):
             sub_msg = getattr(proto_msg, fd.name, None)
             if sub_msg is not None:
                 sub_path = f"{path}.{fd.name}" if path else fd.name
@@ -270,7 +295,10 @@ def _scan_unknown_tags_recursive(
 
 
 def _log_proto_novelty(
-    dps_key: str, proto_msg: Any, raw_b64: str, has_length: bool = True,
+    dps_key: str,
+    proto_msg: Any,
+    raw_b64: str,
+    has_length: bool = True,
 ) -> None:
     try:
         # Presence-aware field path detection via ListFields()
@@ -285,7 +313,9 @@ def _log_proto_novelty(
         if new_paths:
             _LOGGER.debug(
                 "PROTO_NOVELTY | dps=%s | type=%s | new_field_paths=%s",
-                dps_key, type(proto_msg).__name__, sorted(new_paths),
+                dps_key,
+                type(proto_msg).__name__,
+                sorted(new_paths),
             )
             global _novelty_dirty
             _novelty_dirty = True
@@ -298,7 +328,9 @@ def _log_proto_novelty(
             raw = raw[pos:]
         _scan_unknown_tags_recursive(dps_key, proto_msg, raw)
     except Exception:
-        _LOGGER.debug("Proto novelty detection failed for dps=%s", dps_key, exc_info=True)
+        _LOGGER.debug(
+            "Proto novelty detection failed for dps=%s", dps_key, exc_info=True
+        )
 
 
 def _parse_robot_telemetry(value: str) -> dict[str, Any] | None:
@@ -337,7 +369,9 @@ def _parse_robot_telemetry(value: str) -> dict[str, Any] | None:
 
 
 def _log_raw_telemetry_novelty(
-    outer: dict[int, Any], sub: dict[int, Any], inner: dict[int, Any],
+    outer: dict[int, Any],
+    sub: dict[int, Any],
+    inner: dict[int, Any],
 ) -> None:
     for level_name, fields in [("outer", outer), ("sub", sub), ("inner", inner)]:
         cache_key = f"179_telemetry_{level_name}"
@@ -347,7 +381,9 @@ def _log_raw_telemetry_novelty(
         if new_tags:
             _LOGGER.debug(
                 "TELEMETRY_NOVELTY | level=%s | new_tags=%s | all_tags=%s",
-                level_name, sorted(new_tags), sorted(tags),
+                level_name,
+                sorted(new_tags),
+                sorted(tags),
             )
             _seen_telemetry_tags[cache_key] = prev | tags
             global _novelty_dirty
@@ -403,7 +439,9 @@ def update_state(
 
 
 def _process_station_status(
-    state: VacuumState, dps: dict[str, Any], changes: dict[str, Any],
+    state: VacuumState,
+    dps: dict[str, Any],
+    changes: dict[str, Any],
     dps_map: dict[str, str],
 ) -> None:
     """Process Station Status DPS."""
@@ -443,7 +481,9 @@ def _process_station_status(
 
 
 def _process_work_status(
-    state: VacuumState, dps: dict[str, Any], changes: dict[str, Any],
+    state: VacuumState,
+    dps: dict[str, Any],
+    changes: dict[str, Any],
     dps_map: dict[str, str],
 ) -> None:
     """Process Work Status DPS."""
@@ -522,10 +562,9 @@ def _process_work_status(
         # Station sub-fields (washing_drying_system, water_injection_system)
         # report sub-phases within that cycle and must not overwrite the
         # primary dock status when go_wash is active.
-        is_go_wash_active = (
-            work_status.HasField("go_wash")
-            and work_status.go_wash.mode in (1, 2)
-        )
+        is_go_wash_active = work_status.HasField(
+            "go_wash"
+        ) and work_status.go_wash.mode in (1, 2)
 
         if is_go_wash_active:
             if work_status.go_wash.mode == 2:
@@ -556,7 +595,9 @@ def _process_work_status(
                     changes["dock_status"] = "Recycling waste water"
 
             if st.HasField("water_tank_state"):
-                changes["water_tank_clear_adding"] = st.water_tank_state.clear_water_adding
+                changes["water_tank_clear_adding"] = (
+                    st.water_tank_state.clear_water_adding
+                )
                 changes["water_tank_waste_recycling"] = (
                     st.water_tank_state.waste_water_recycling
                 )
@@ -634,7 +675,7 @@ def _process_work_status(
                 changes["active_zone_count"] = 0
 
         if work_status.HasField("upgrading"):
-            changes["upgrading"] = (work_status.upgrading.state != 0)
+            changes["upgrading"] = work_status.upgrading.state != 0
             _track_field(state, changes, "upgrading")
 
         if work_status.HasField("mapping"):
@@ -643,20 +684,24 @@ def _process_work_status(
             _track_field(state, changes, "mapping_state")
 
         if work_status.HasField("relocating"):
-            changes["relocating"] = (work_status.relocating.state != 0)
+            changes["relocating"] = work_status.relocating.state != 0
             _track_field(state, changes, "relocating")
 
         if work_status.HasField("roller_brush_cleaning"):
-            changes["roller_brush_cleaning"] = (work_status.roller_brush_cleaning.state != 0)
+            changes["roller_brush_cleaning"] = (
+                work_status.roller_brush_cleaning.state != 0
+            )
             _track_field(state, changes, "roller_brush_cleaning")
 
         if work_status.HasField("breakpoint"):
-            changes["breakpoint_available"] = (work_status.breakpoint.state != 0)
+            changes["breakpoint_available"] = work_status.breakpoint.state != 0
             _track_field(state, changes, "breakpoint_available")
 
         if work_status.HasField("station"):
             if work_status.station.HasField("dust_collection_system"):
-                changes["station_work_status"] = int(work_status.station.dust_collection_system.state)
+                changes["station_work_status"] = int(
+                    work_status.station.dust_collection_system.state
+                )
             else:
                 changes["station_work_status"] = 0
             _track_field(state, changes, "station_work_status")
@@ -678,7 +723,9 @@ def _process_work_status(
 
 
 def _process_play_pause(
-    state: VacuumState, dps: dict[str, Any], changes: dict[str, Any],
+    state: VacuumState,
+    dps: dict[str, Any],
+    changes: dict[str, Any],
     dps_map: dict[str, str],
 ) -> None:
     """Process Play/Pause DPS (152) - extract active cleaning targets."""
@@ -753,7 +800,9 @@ def _catalog_summary(key: str, dps_catalog: dict[str, dict[str, Any]] | None) ->
 
 
 def _process_other_dps(
-    state: VacuumState, dps: dict[str, Any], changes: dict[str, Any],
+    state: VacuumState,
+    dps: dict[str, Any],
+    changes: dict[str, Any],
     dps_map: dict[str, str],
     catalog_types: dict[str, str] | None = None,
     dps_catalog: dict[str, dict[str, Any]] | None = None,
@@ -832,7 +881,11 @@ def _process_other_dps(
                         changes["consumable_last_time"] = _cr.runtime.last_time
                         _track_field(state, changes, "consumable_last_time")
                 except Exception:
-                    _LOGGER.warning("Failed to parse consumable runtime from DPS %s", key, exc_info=True)
+                    _LOGGER.warning(
+                        "Failed to parse consumable runtime from DPS %s",
+                        key,
+                        exc_info=True,
+                    )
 
             elif key == dps_map["CLEANING_STATISTICS"]:
                 stats = decode(CleanStatistics, value)
@@ -849,7 +902,9 @@ def _process_other_dps(
                     _track_field(state, changes, "total_stats")
 
                 if stats.HasField("user_total"):
-                    changes["user_total_cleaning_time"] = stats.user_total.clean_duration
+                    changes["user_total_cleaning_time"] = (
+                        stats.user_total.clean_duration
+                    )
                     changes["user_total_cleaning_area"] = stats.user_total.clean_area
                     changes["user_total_cleaning_count"] = stats.user_total.clean_count
                     _track_field(state, changes, "user_total_stats")
@@ -925,17 +980,27 @@ def _process_other_dps(
 
                 # Switch fields (proto wrapper: Switch.value -> bool)
                 for field_name in (
-                    "ai_see", "pet_mode_sw", "poop_avoidance_sw",
-                    "live_photo_sw", "deep_mop_corner_sw", "smart_follow_sw",
-                    "cruise_continue_sw", "multi_map_sw",
-                    "suggest_restricted_zone_sw", "water_level_sw",
+                    "ai_see",
+                    "pet_mode_sw",
+                    "poop_avoidance_sw",
+                    "live_photo_sw",
+                    "deep_mop_corner_sw",
+                    "smart_follow_sw",
+                    "cruise_continue_sw",
+                    "multi_map_sw",
+                    "suggest_restricted_zone_sw",
+                    "water_level_sw",
                 ):
                     try:
                         if settings.HasField(field_name):
                             changes[field_name] = getattr(settings, field_name).value
                             _track_field(state, changes, field_name)
                     except Exception:
-                        _LOGGER.debug("Error parsing unisetting field %s", field_name, exc_info=True)
+                        _LOGGER.debug(
+                            "Error parsing unisetting field %s",
+                            field_name,
+                            exc_info=True,
+                        )
 
                 # Numerical field
                 try:
@@ -965,7 +1030,9 @@ def _process_other_dps(
                             changes["live_map_state_bits"] = uni.live_map.state_bits
                             _track_field(state, changes, "live_map_state_bits")
                         if uni.clean_strategy_version:
-                            changes["clean_strategy_version"] = uni.clean_strategy_version
+                            changes["clean_strategy_version"] = (
+                                uni.clean_strategy_version
+                            )
                             _track_field(state, changes, "clean_strategy_version")
                         if uni.HasField("custom_clean_mode"):
                             changes["custom_clean_mode"] = uni.custom_clean_mode.value
@@ -984,8 +1051,12 @@ def _process_other_dps(
                             changes["wifi_frequency"] = int(ap.frequency)
                             _track_field(state, changes, "wifi_frequency")
                         if ap.HasField("connection"):
-                            changes["wifi_connection_result"] = int(ap.connection.result)
-                            changes["wifi_connection_timestamp"] = ap.connection.timestamp
+                            changes["wifi_connection_result"] = int(
+                                ap.connection.result
+                            )
+                            changes["wifi_connection_timestamp"] = (
+                                ap.connection.timestamp
+                            )
                             _track_field(state, changes, "wifi_connection_result")
                             _track_field(state, changes, "wifi_connection_timestamp")
                 except Exception:
@@ -1024,7 +1095,9 @@ def _process_other_dps(
                 if isinstance(value, bool):
                     changes["boost_iq"] = value
                     _log_scalar_novelty("159", value)
-                    new_dynamic = dict(changes.get("dynamic_values", state.dynamic_values))
+                    new_dynamic = dict(
+                        changes.get("dynamic_values", state.dynamic_values)
+                    )
                     new_dynamic[key] = value
                     changes["dynamic_values"] = new_dynamic
                     _track_field(state, changes, "boost_iq")
@@ -1034,7 +1107,9 @@ def _process_other_dps(
                     vol = int(value)
                     changes["volume"] = vol
                     _log_scalar_novelty("161", value)
-                    new_dynamic = dict(changes.get("dynamic_values", state.dynamic_values))
+                    new_dynamic = dict(
+                        changes.get("dynamic_values", state.dynamic_values)
+                    )
                     new_dynamic[key] = vol
                     changes["dynamic_values"] = new_dynamic
                     _track_field(state, changes, "volume")
@@ -1042,12 +1117,20 @@ def _process_other_dps(
             elif key not in HANDLED_DPS_IDS and key not in KNOWN_UNPROCESSED_DPS:
                 if catalog_types and key in catalog_types:
                     dtype = catalog_types[key]
-                    new_dynamic = dict(changes.get("dynamic_values", state.dynamic_values))
+                    new_dynamic = dict(
+                        changes.get("dynamic_values", state.dynamic_values)
+                    )
                     if dtype == "Bool":
-                        new_dynamic[key] = str(value).lower() == "true" if isinstance(value, str) else bool(value)
+                        new_dynamic[key] = (
+                            str(value).lower() == "true"
+                            if isinstance(value, str)
+                            else bool(value)
+                        )
                     elif dtype == "Value":
                         try:
-                            new_dynamic[key] = int(value) if isinstance(value, str) else value
+                            new_dynamic[key] = (
+                                int(value) if isinstance(value, str) else value
+                            )
                         except (ValueError, TypeError):
                             pass
                     elif dtype == "Enum":
@@ -1483,7 +1566,6 @@ def _process_cleaning_parameters(
         fan_val = clean_param.fan.suction
         changes["fan_speed"] = FAN_SUCTION_NAMES.get(fan_val, "Standard")
         _track_field(state, changes, "fan_speed")
-        
 
     # Extract Mop Water Level
     if clean_param.HasField("mop_mode"):
@@ -1500,7 +1582,6 @@ def _process_cleaning_parameters(
         corner_val = clean_param.mop_mode.corner_clean
         changes["corner_cleaning"] = CORNER_CLEANING_NAMES.get(corner_val, "Normal")
         _track_field(state, changes, "corner_cleaning")
-        
 
     # Extract Cleaning Intensity
     if clean_param.HasField("clean_extent"):
@@ -1509,14 +1590,12 @@ def _process_cleaning_parameters(
             extent_val, "Normal"
         )
         _track_field(state, changes, "cleaning_intensity")
-        
 
     # Extract Carpet Strategy
     if clean_param.HasField("clean_carpet"):
         carpet_val = clean_param.clean_carpet.strategy
         changes["carpet_strategy"] = CARPET_STRATEGY_NAMES.get(carpet_val, "Auto Raise")
         _track_field(state, changes, "carpet_strategy")
-        
 
     # Extract Smart Mode Switch
     if clean_param.HasField("smart_mode_sw"):
@@ -1601,12 +1680,13 @@ def _parse_analysis_response(
             changes["ctrl_event_timestamp"] = ce.timestamp
             _track_field(state, changes, "ctrl_event")
 
-        if stats.HasField("battery_curve") and stats.battery_curve.HasField("discharge"):
+        if stats.HasField("battery_curve") and stats.battery_curve.HasField(
+            "discharge"
+        ):
             readings = [v / 10.0 for v in stats.battery_curve.discharge.values]
             if readings:
                 changes["battery_discharge_curve"] = readings
                 _track_field(state, changes, "battery_discharge_curve")
-
 
 
 def _process_timer_response(

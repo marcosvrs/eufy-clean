@@ -178,7 +178,10 @@ class UnisettingNumber(CoordinatorEntity[EufyCleanCoordinator], NumberEntity):
 
     @property
     def available(self) -> bool:
-        return super().available and self._field_name in self.coordinator.data.received_fields
+        return (
+            super().available
+            and self._field_name in self.coordinator.data.received_fields
+        )
 
     async def async_set_native_value(self, value: float) -> None:
         cmd = build_command(

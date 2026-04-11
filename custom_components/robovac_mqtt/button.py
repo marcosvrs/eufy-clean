@@ -97,9 +97,15 @@ class RoboVacButton(CoordinatorEntity[EufyCleanCoordinator], ButtonEntity):
     async def async_press(self) -> None:
         """Press the button."""
         if isinstance(self._description, RoboVacResetButtonDescription):
-            cmd = build_command("reset_accessory", dps_map=self.coordinator.dps_map, reset_type=self._description.consumable_type)
+            cmd = build_command(
+                "reset_accessory",
+                dps_map=self.coordinator.dps_map,
+                reset_type=self._description.consumable_type,
+            )
         else:
-            cmd = build_command(self._description.command, dps_map=self.coordinator.dps_map)
+            cmd = build_command(
+                self._description.command, dps_map=self.coordinator.dps_map
+            )
         await self.coordinator.async_send_command(cmd)
 
 
@@ -117,7 +123,11 @@ class RestartButton(CoordinatorEntity[EufyCleanCoordinator], ButtonEntity):
 
     async def async_press(self) -> None:
         await self.coordinator.async_send_command(
-            build_command("generic", dp_id=self.coordinator.dps_map.get("POWER", "151"), value=False)
+            build_command(
+                "generic",
+                dp_id=self.coordinator.dps_map.get("POWER", "151"),
+                value=False,
+            )
         )
 
 
@@ -135,7 +145,11 @@ class ResumeFromBreakpointButton(CoordinatorEntity[EufyCleanCoordinator], Button
 
     async def async_press(self) -> None:
         await self.coordinator.async_send_command(
-            build_command("generic", dp_id=self.coordinator.dps_map.get("PAUSE_JOB", "156"), value=True)
+            build_command(
+                "generic",
+                dp_id=self.coordinator.dps_map.get("PAUSE_JOB", "156"),
+                value=True,
+            )
         )
 
 
@@ -192,4 +206,6 @@ class RCModeButton(CoordinatorEntity[EufyCleanCoordinator], ButtonEntity):
         self._attr_entity_registry_visible_default = False
 
     async def async_press(self) -> None:
-        await self.coordinator.async_send_command(build_command(self._cmd, dps_map=self.coordinator.dps_map))
+        await self.coordinator.async_send_command(
+            build_command(self._cmd, dps_map=self.coordinator.dps_map)
+        )

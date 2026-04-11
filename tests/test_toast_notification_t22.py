@@ -1,5 +1,5 @@
+from custom_components.robovac_mqtt.const import HANDLED_DPS_IDS, KNOWN_UNPROCESSED_DPS
 from custom_components.robovac_mqtt.models import VacuumState
-from custom_components.robovac_mqtt.const import KNOWN_UNPROCESSED_DPS, HANDLED_DPS_IDS
 
 
 def test_178_not_in_unprocessed():

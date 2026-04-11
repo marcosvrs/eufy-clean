@@ -93,7 +93,9 @@ def test_log_proto_novelty_exception_logs_debug(caplog):
     import logging
     from unittest.mock import patch
 
-    with caplog.at_level(logging.DEBUG, logger="custom_components.robovac_mqtt.api.parser"):
+    with caplog.at_level(
+        logging.DEBUG, logger="custom_components.robovac_mqtt.api.parser"
+    ):
         with patch(
             "custom_components.robovac_mqtt.api.parser._listfields_paths",
             side_effect=Exception("boom"),
@@ -111,8 +113,13 @@ def test_update_state_consumable_runtime_exception_logs_warning(caplog):
     base_state = VacuumState()
     dps_key = DEFAULT_DPS_MAP.get("ACCESSORIES_STATUS", "168")
 
-    with caplog.at_level(logging.WARNING, logger="custom_components.robovac_mqtt.api.parser"):
-        with patch("custom_components.robovac_mqtt.api.parser.decode", side_effect=Exception("decode error")):
+    with caplog.at_level(
+        logging.WARNING, logger="custom_components.robovac_mqtt.api.parser"
+    ):
+        with patch(
+            "custom_components.robovac_mqtt.api.parser.decode",
+            side_effect=Exception("decode error"),
+        ):
             update_state(base_state, {dps_key: "AAAA"})
 
     assert "Failed to parse consumable runtime" in caplog.text

@@ -133,9 +133,7 @@ async def test_get_devices_includes_dps_catalog():
     login.eufyApi.get_cloud_device_list = AsyncMock(
         return_value=[_cloud_device("DEV001")]
     )
-    login.eufyApi.get_device_list = AsyncMock(
-        return_value=[_raw_device("DEV001")]
-    )
+    login.eufyApi.get_device_list = AsyncMock(return_value=[_raw_device("DEV001")])
     login.eufyApi.get_product_data_points = AsyncMock(return_value=catalog_data)
 
     await login.getDevices()
@@ -179,9 +177,7 @@ async def test_get_devices_catalog_failure_fallback():
     login.eufyApi.get_cloud_device_list = AsyncMock(
         return_value=[_cloud_device("DEV001")]
     )
-    login.eufyApi.get_device_list = AsyncMock(
-        return_value=[_raw_device("DEV001")]
-    )
+    login.eufyApi.get_device_list = AsyncMock(return_value=[_raw_device("DEV001")])
     login.eufyApi.get_product_data_points = AsyncMock(
         side_effect=Exception("API error")
     )
@@ -217,7 +213,9 @@ async def test_getDevices_catalog_exception_logs_debug(caplog):
         side_effect=RuntimeError("network down")
     )
 
-    with caplog.at_level(logging.DEBUG, logger="custom_components.robovac_mqtt.api.cloud"):
+    with caplog.at_level(
+        logging.DEBUG, logger="custom_components.robovac_mqtt.api.cloud"
+    ):
         await login.getDevices()
 
     assert "Unexpected error fetching catalog" in caplog.text

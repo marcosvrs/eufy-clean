@@ -26,9 +26,9 @@ async def test_full_auto_clean_cycle(hass, setup_integration):
 
         for field, expected in msg["expected_state_after"].items():
             actual = getattr(coordinator.data, field, None)
-            assert actual == expected, (
-                f"Message {i}: {field}={actual!r}, expected {expected!r}"
-            )
+            assert (
+                actual == expected
+            ), f"Message {i}: {field}={actual!r}, expected {expected!r}"
 
     assert coordinator.data.activity == "docked"
     state = hass.states.get(ENTITY_ID)
@@ -52,9 +52,9 @@ async def test_dock_wash_dry_cycle(hass, setup_integration):
 
         for field, expected in msg["expected_state_after"].items():
             actual = getattr(coordinator.data, field, None)
-            assert actual == expected, (
-                f"Message {i}: {field}={actual!r}, expected {expected!r}"
-            )
+            assert (
+                actual == expected
+            ), f"Message {i}: {field}={actual!r}, expected {expected!r}"
 
     assert coordinator.data.dock_status == "Idle"
     assert coordinator.data.activity == "docked"

@@ -16,8 +16,8 @@ The key can be extracted from:
 - Tuya IoT developer account: if you can link the device
 """
 
-import sys
 import json
+import sys
 
 try:
     import tinytuya

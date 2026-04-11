@@ -61,7 +61,7 @@ class TestErrorCode:
         dps = make_dps_payload(DPS_MAP["ERROR_CODE"], ec)
         new_state, changes = update_state(state, dps)
         assert_state_field(new_state, "error_code", 99999)
-        assert_state_field(new_state, "error_message", "Unknown Error")
+        assert_state_field(new_state, "error_message", "Unknown (99999)")
 
     def test_error_code_multiple_warn_uses_first(self):
         state = make_vacuum_state()
@@ -637,21 +637,20 @@ class TestErrorCodeFixtures:
         assert_state_field(new_state, "error_message", "")
 
     def test_error_code_7002(self):
-        """Real error=[7002] (wheel stuck). BUG: parser only checks warn[], not error[]."""
+        """Real error=[7002] is surfaced from the error list."""
         fixture = load_fixture("mqtt/error_code/error_7002.json")
         state = make_vacuum_state()
         new_state, _ = update_state(state, fixture["dps"])
-        # Parser bug: only checks warn[] field, ignores error[] field.
-        # Real data has error=[7002] but warn=[], so parser sees no error.
-        assert_state_field(new_state, "error_code", 0)
+        assert_state_field(new_state, "error_code", 7002)
+        assert_state_field(new_state, "error_message", EUFY_CLEAN_ERROR_CODES[7002])
 
     def test_error_code_7000(self):
-        """Real error=[7000] (obstacle/cliff). BUG: parser only checks warn[], not error[]."""
+        """Real error=[7000] is surfaced from the error list."""
         fixture = load_fixture("mqtt/error_code/error_7000.json")
         state = make_vacuum_state()
         new_state, _ = update_state(state, fixture["dps"])
-        # Parser bug: only checks warn[] field, ignores error[] field.
-        assert_state_field(new_state, "error_code", 0)
+        assert_state_field(new_state, "error_code", 7000)
+        assert_state_field(new_state, "error_message", EUFY_CLEAN_ERROR_CODES[7000])
 
 
 class TestUnknownDPSFixtures:
@@ -970,9 +969,7 @@ class TestAdditionalCapturedValues:
         """Yield (fixture_path, primary_dps, additional_dps) for every entry."""
         import glob
 
-        for fpath in sorted(
-            glob.glob("tests/fixtures/mqtt/**/*.json", recursive=True)
-        ):
+        for fpath in sorted(glob.glob("tests/fixtures/mqtt/**/*.json", recursive=True)):
             with open(fpath) as fh:
                 d = json.load(fh)
             acvs = d.get("additional_captured_values", [])
@@ -989,9 +986,9 @@ class TestAdditionalCapturedValues:
             state = make_vacuum_state()
             new_state, _ = update_state(state, extra_dps)
             for dps_key in extra_dps:
-                assert dps_key in new_state.raw_dps, (
-                    f"{fpath}: DPS {dps_key} missing from raw_dps"
-                )
+                assert (
+                    dps_key in new_state.raw_dps
+                ), f"{fpath}: DPS {dps_key} missing from raw_dps"
 
     def test_additional_values_match_primary_semantics(self):
         pairs = list(self._collect_additional_pairs())
@@ -999,12 +996,12 @@ class TestAdditionalCapturedValues:
             state = make_vacuum_state()
             primary_state, _ = update_state(state, primary_dps)
             extra_state, _ = update_state(state, extra_dps)
-            assert primary_state.activity == extra_state.activity, (
-                f"{fpath}: activity mismatch {primary_state.activity!r} vs {extra_state.activity!r}"
-            )
-            assert primary_state.dock_status == extra_state.dock_status, (
-                f"{fpath}: dock_status mismatch {primary_state.dock_status!r} vs {extra_state.dock_status!r}"
-            )
-            assert primary_state.error_code == extra_state.error_code, (
-                f"{fpath}: error_code mismatch {primary_state.error_code!r} vs {extra_state.error_code!r}"
-            )
+            assert (
+                primary_state.activity == extra_state.activity
+            ), f"{fpath}: activity mismatch {primary_state.activity!r} vs {extra_state.activity!r}"
+            assert (
+                primary_state.dock_status == extra_state.dock_status
+            ), f"{fpath}: dock_status mismatch {primary_state.dock_status!r} vs {extra_state.dock_status!r}"
+            assert (
+                primary_state.error_code == extra_state.error_code
+            ), f"{fpath}: error_code mismatch {primary_state.error_code!r} vs {extra_state.error_code!r}"

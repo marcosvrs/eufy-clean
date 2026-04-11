@@ -3,7 +3,11 @@
 from custom_components.robovac_mqtt.api.parser import update_state
 from custom_components.robovac_mqtt.const import DEFAULT_DPS_MAP
 from custom_components.robovac_mqtt.models import VacuumState
-from custom_components.robovac_mqtt.proto.cloud.common_pb2 import Active, Numerical, Switch
+from custom_components.robovac_mqtt.proto.cloud.common_pb2 import (
+    Active,
+    Numerical,
+    Switch,
+)
 from custom_components.robovac_mqtt.proto.cloud.unisetting_pb2 import (
     UnisettingResponse,
     Unistate,
@@ -46,9 +50,16 @@ def test_switch_false_value():
 def test_all_switch_fields_in_vacuum_state():
     s = VacuumState()
     for field in [
-        "ai_see", "pet_mode_sw", "poop_avoidance_sw", "live_photo_sw",
-        "deep_mop_corner_sw", "smart_follow_sw", "cruise_continue_sw",
-        "multi_map_sw", "suggest_restricted_zone_sw", "water_level_sw",
+        "ai_see",
+        "pet_mode_sw",
+        "poop_avoidance_sw",
+        "live_photo_sw",
+        "deep_mop_corner_sw",
+        "smart_follow_sw",
+        "cruise_continue_sw",
+        "multi_map_sw",
+        "suggest_restricted_zone_sw",
+        "water_level_sw",
     ]:
         assert hasattr(s, field), f"VacuumState missing {field}"
         assert getattr(s, field) is False
@@ -118,9 +129,7 @@ def test_unistate_clean_strategy_version():
 
 
 def test_wifi_data_ssid():
-    resp = UnisettingResponse(
-        wifi_data=WifiData(ap=[WifiData.Ap(ssid="MyNetwork")])
-    )
+    resp = UnisettingResponse(wifi_data=WifiData(ap=[WifiData.Ap(ssid="MyNetwork")]))
     new_state, _ = update_state(VacuumState(), _make_dps(resp))
     assert new_state.wifi_ap_ssid == "MyNetwork"
 

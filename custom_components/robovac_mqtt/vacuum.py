@@ -24,6 +24,8 @@ from .api.commands import build_command
 from .const import DOMAIN, EUFY_CLEAN_NOVEL_CLEAN_SPEED
 from .coordinator import EufyCleanCoordinator
 
+PARALLEL_UPDATES = 1
+
 if TYPE_CHECKING:
     from homeassistant.components.vacuum import Segment
 else:

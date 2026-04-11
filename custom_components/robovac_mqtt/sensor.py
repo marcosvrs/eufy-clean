@@ -15,6 +15,8 @@ from .coordinator import EufyCleanCoordinator
 from .descriptions.sensor import SENSOR_DESCRIPTIONS, RoboVacSensorDescription
 from .models import VacuumState
 
+PARALLEL_UPDATES = 1
+
 _LOGGER = logging.getLogger(__name__)
 
 

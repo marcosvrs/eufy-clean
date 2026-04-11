@@ -21,6 +21,8 @@ from .api.commands import build_command
 from .const import DOMAIN
 from .coordinator import EufyCleanCoordinator
 
+PARALLEL_UPDATES = 1
+
 _LOGGER = logging.getLogger(__name__)
 
 _EVENT_DURATION = dt.timedelta(minutes=30)

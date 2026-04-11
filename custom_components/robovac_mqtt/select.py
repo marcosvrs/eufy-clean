@@ -27,6 +27,8 @@ from .const import (
 )
 from .coordinator import EufyCleanCoordinator
 
+PARALLEL_UPDATES = 1
+
 _LOGGER = logging.getLogger(__name__)
 
 

@@ -16,6 +16,8 @@ from .descriptions.binary_sensor import (
     RoboVacBinarySensorDescription,
 )
 
+PARALLEL_UPDATES = 1
+
 _LOGGER = logging.getLogger(__name__)
 
 

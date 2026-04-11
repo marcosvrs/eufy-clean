@@ -1,0 +1,45 @@
+name: Auto request Copilot review
+
+on:
+  pull_request_target:
+    types: [opened, reopened, ready_for_review, synchronize, unlabeled, labeled]
+
+concurrency:
+  group: copilot-review-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  request-copilot-review:
+    if: >
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      !github.event.pull_request.draft &&
+      github.event.action != 'labeled' &&
+      !contains(github.event.pull_request.labels.*.name, 'in progress') &&
+      (
+        github.event.action != 'unlabeled' ||
+        github.event.label.name == 'in progress'
+      )
+
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    steps:
+      - name: Request Copilot code review
+        env:
+          GH_TOKEN: ${{ secrets.COPILOT_REVIEW_PAT }}
+        run: |
+          set -euo pipefail
+
+          PR_NUMBER='${{ github.event.number }}'
+          REPO='${{ github.repository }}'
+          COPILOT_LOGIN="copilot-pull-request-reviewer[bot]"
+
+          existing_reviewers="$(gh api "repos/$REPO/pulls/$PR_NUMBER" --jq '.requested_reviewers[].login' || true)"
+          if printf '%s\n' "$existing_reviewers" | grep -Fxq "$COPILOT_LOGIN"; then
+            echo "Copilot already requested for this PR, skipping."
+            exit 0
+          fi
+
+          gh api "repos/$REPO/pulls/$PR_NUMBER/requested_reviewers" \
+            -X POST \
+            -F "reviewers[]=$COPILOT_LOGIN"

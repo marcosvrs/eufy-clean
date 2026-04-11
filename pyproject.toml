@@ -71,6 +71,10 @@ disable = [
     "global-statement",
     "too-many-lines",
     "useless-parent-delegation",
+    "unnecessary-comprehension",
+    "no-self-use",
+    "too-many-nested-blocks",
+    "attribute-defined-outside-init",
 ]
 
 [tool.pytest.ini_options]

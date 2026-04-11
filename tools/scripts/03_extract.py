@@ -17,7 +17,7 @@ import sys
 from pathlib import Path
 
 try:
-    from scapy.all import rdpcap, IP, TCP, UDP
+    from scapy.all import IP, TCP, UDP, rdpcap
 except ImportError:
     print("ERROR: scapy not installed. Run: pip install scapy")
     sys.exit(1)
@@ -28,11 +28,11 @@ def extract_streams(pcap_path: str, vacuum_ip: str, map_ports: list[int]) -> dic
     packets = rdpcap(pcap_path)
     print(f"    Total packets: {len(packets)}")
 
-    streams = {}
+    streams: dict[int, dict] = {}
     for port in map_ports:
         streams[port] = {
-            "outgoing": [],   # vacuum → phone
-            "incoming": [],   # phone → vacuum
+            "outgoing": [],  # vacuum → phone
+            "incoming": [],  # phone → vacuum
         }
 
     for i, pkt in enumerate(packets):
@@ -62,11 +62,13 @@ def extract_streams(pcap_path: str, vacuum_ip: str, map_ports: list[int]) -> dic
             continue
 
         direction = "outgoing" if is_from_vacuum else "incoming"
-        streams[port][direction].append({
-            "pkt_index": i,
-            "size": len(payload),
-            "data": payload,
-        })
+        streams[port][direction].append(
+            {
+                "pkt_index": i,
+                "size": len(payload),
+                "data": payload,
+            }
+        )
 
     return streams
 
@@ -93,8 +95,10 @@ def save_payloads(streams: dict, output_dir: Path):
                 for p in payloads:
                     f.write(p["data"])
 
-            print(f"  [+] Port {port} {direction}: {len(payloads)} frames, "
-                  f"{total_bytes} bytes → {port_dir}/")
+            print(
+                f"  [+] Port {port} {direction}: {len(payloads)} frames, "
+                f"{total_bytes} bytes → {port_dir}/"
+            )
 
             if payloads:
                 first = payloads[0]["data"]
@@ -133,15 +137,17 @@ def analyze_frame_patterns(streams: dict):
                 for hdr in sorted(unique_headers):
                     print(f"      {hdr.hex()}")
             else:
-                print(f"    Headers vary widely ({len(unique_headers)} unique in first 20)")
+                print(
+                    f"    Headers vary widely ({len(unique_headers)} unique in first 20)"
+                )
 
             for p in payloads[:1]:
                 d = p["data"]
-                if d[:2] == b'\x1f\x8b':
+                if d[:2] == b"\x1f\x8b":
                     print(f"    ✅ GZIP signature detected!")
-                elif d[:2] in (b'\x78\x9c', b'\x78\x01', b'\x78\xda'):
+                elif d[:2] in (b"\x78\x9c", b"\x78\x01", b"\x78\xda"):
                     print(f"    ✅ ZLIB signature detected!")
-                elif d[:4] == b'\x89PNG':
+                elif d[:4] == b"\x89PNG":
                     print(f"    ✅ PNG signature detected!")
 
 
@@ -150,10 +156,13 @@ def main():
     parser.add_argument("pcap", help="Path to pcap file")
     parser.add_argument("--vacuum-ip", required=True, help="Vacuum IP address")
     parser.add_argument(
-        "--map-ports", required=True,
-        help="Comma-separated list of candidate map ports (from 02_monitor.py output)"
+        "--map-ports",
+        required=True,
+        help="Comma-separated list of candidate map ports (from 02_monitor.py output)",
     )
-    parser.add_argument("--output", default="output/map_payloads", help="Output directory")
+    parser.add_argument(
+        "--output", default="output/map_payloads", help="Output directory"
+    )
     args = parser.parse_args()
 
     ports = [int(p.strip()) for p in args.map_ports.split(",")]

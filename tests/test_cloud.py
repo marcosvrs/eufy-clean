@@ -1,8 +1,9 @@
 """Unit tests for the cloud login module."""
 
+from typing import cast
 from unittest.mock import AsyncMock, MagicMock, patch
 
-import pytest
+import pytest  # pyright: ignore[reportMissingImports]
 
 from custom_components.robovac_mqtt.api.cloud import EufyLogin
 
@@ -34,16 +35,17 @@ async def test_check_login_uses_mqtt_credentials():
     """When mqtt_credentials is None, checkLogin() calls login().
     When mqtt_credentials is already set, checkLogin() does NOT call login()."""
     login = _make_login(mqtt_credentials=None)
+    login_login = cast(AsyncMock, login.eufyApi.login)
 
     await login.checkLogin()
-    login.eufyApi.login.assert_called_once()
+    login_login.assert_called_once()
 
     # Reset and set credentials
-    login.eufyApi.login.reset_mock()
+    login_login.reset_mock()
     login.mqtt_credentials = {"endpoint": "mqtt.example.com"}
 
     await login.checkLogin()
-    login.eufyApi.login.assert_not_called()
+    login_login.assert_not_called()
 
 
 def test_check_api_type_novel():
@@ -107,3 +109,114 @@ def test_find_model_empty_product_code():
     assert result["deviceModel"] == "T2210"
     assert result["deviceName"] == "Kitchen Vacuum"
     assert result["invalid"] is False
+
+
+def _cloud_device(device_id, product_code="T2351xxx", name="X10 Pro"):
+    return {
+        "id": device_id,
+        "product": {"product_code": product_code, "name": name},
+        "alias_name": f"Vacuum {device_id}",
+        "device_model": product_code[:5],
+    }
+
+
+def _raw_device(device_sn, dps=None):
+    return {"device_sn": device_sn, "dps": dps or {}, "main_sw_version": "1.0.0"}
+
+
+@pytest.mark.asyncio
+async def test_get_devices_includes_dps_catalog():
+    login = _make_login(
+        eufy_api_devices=[_cloud_device("DEV001")],
+    )
+    catalog_data = [{"dp_id": "153", "code": "work_status"}]
+    login.eufyApi.get_cloud_device_list = AsyncMock(
+        return_value=[_cloud_device("DEV001")]
+    )
+    login.eufyApi.get_device_list = AsyncMock(return_value=[_raw_device("DEV001")])
+    login.eufyApi.get_product_data_points = AsyncMock(return_value=catalog_data)
+
+    await login.getDevices()
+
+    assert len(login.mqtt_devices) == 1
+    assert login.mqtt_devices[0]["dps_catalog"] == catalog_data
+
+
+@pytest.mark.asyncio
+async def test_get_devices_caches_catalog_per_product_code():
+    login = _make_login(
+        eufy_api_devices=[
+            _cloud_device("DEV001", product_code="T2351xxx"),
+            _cloud_device("DEV002", product_code="T2351xxx"),
+        ],
+    )
+    login.eufyApi.get_cloud_device_list = AsyncMock(
+        return_value=[
+            _cloud_device("DEV001", product_code="T2351xxx"),
+            _cloud_device("DEV002", product_code="T2351xxx"),
+        ]
+    )
+    login.eufyApi.get_device_list = AsyncMock(
+        return_value=[_raw_device("DEV001"), _raw_device("DEV002")]
+    )
+    login.eufyApi.get_product_data_points = AsyncMock(return_value=[{"dp_id": "153"}])
+
+    await login.getDevices()
+
+    login.eufyApi.get_product_data_points.assert_called_once_with("T2351")
+    assert len(login.mqtt_devices) == 2
+    assert login.mqtt_devices[0]["dps_catalog"] == [{"dp_id": "153"}]
+    assert login.mqtt_devices[1]["dps_catalog"] == [{"dp_id": "153"}]
+
+
+@pytest.mark.asyncio
+async def test_get_devices_catalog_failure_fallback():
+    login = _make_login(
+        eufy_api_devices=[_cloud_device("DEV001")],
+    )
+    login.eufyApi.get_cloud_device_list = AsyncMock(
+        return_value=[_cloud_device("DEV001")]
+    )
+    login.eufyApi.get_device_list = AsyncMock(return_value=[_raw_device("DEV001")])
+    login.eufyApi.get_product_data_points = AsyncMock(
+        side_effect=Exception("API error")
+    )
+
+    await login.getDevices()
+
+    assert len(login.mqtt_devices) == 1
+    assert login.mqtt_devices[0]["dps_catalog"] == []
+
+
+@pytest.mark.asyncio
+async def test_getDevices_catalog_exception_logs_debug(caplog):
+    """getDevices() logs debug when catalog fetch raises an unexpected exception."""
+    import logging
+
+    login = _make_login()
+    device = {
+        "device_sn": "T2261ABC",
+        "dps": {"153": "base64val"},
+        "main_sw_version": "1.0",
+    }
+    login.eufyApi.get_cloud_device_list = AsyncMock(
+        return_value=[
+            {
+                "id": "T2261ABC",
+                "product": {"product_code": "T2261", "name": "Robot"},
+                "alias_name": "Robot",
+            }
+        ]
+    )
+    login.eufyApi.get_device_list = AsyncMock(return_value=[device])
+    login.eufyApi.get_product_data_points = AsyncMock(
+        side_effect=RuntimeError("network down")
+    )
+
+    with caplog.at_level(
+        logging.DEBUG, logger="custom_components.robovac_mqtt.api.cloud"
+    ):
+        await login.getDevices()
+
+    assert "Unexpected error fetching catalog" in caplog.text
+    assert "T2261" in caplog.text

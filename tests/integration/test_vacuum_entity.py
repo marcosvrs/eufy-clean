@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import pytest
 
-from custom_components.robovac_mqtt.const import DOMAIN, DPS_MAP
+from custom_components.robovac_mqtt.const import DPS_MAP
 from tests.integration.conftest import simulate_mqtt_message
 from tests.integration.helpers import (
     make_clean_param_response,
@@ -243,9 +243,7 @@ async def test_vacuum_locate_command(hass, setup_integration, mock_mqtt_client):
 
 
 @pytest.mark.asyncio
-async def test_vacuum_state_transition_cleaning_to_returning(
-    hass, setup_integration
-):
+async def test_vacuum_state_transition_cleaning_to_returning(hass, setup_integration):
     """Entity state transitions from cleaning to returning when WorkStatus changes."""
     coordinator = _get_coordinator(setup_integration)
 

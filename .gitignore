@@ -13,6 +13,13 @@ venv/
 *.py[cod]
 *.pyo
 
+# ── Python type checking / linting ────────────────────────────────────
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.pyre/
+.ruff_cache/
+
 # ── Secrets / credentials ─────────────────────────────────────────────
 *.pem
 *.key
@@ -20,16 +27,20 @@ venv/
 .env.*
 config/
 
+# ── Home Assistant runtime ────────────────────────────────────────────
+.homeassistant/
+*.db
+*.db-journal
+.storage/
+home-assistant.log
+
 # ── Raw capture data (real device traffic — never commit) ─────────────
-# Anonymized fixtures go in tests/fixtures/ instead
 /tmp/eufy_capture_*/
 /tmp/eufy_anon_*/
 
 # ── Orchestrator internal state ───────────────────────────────────────
-# Plans, notepads, and evidence ARE committed (project knowledge)
-# Only the runtime boulder state is excluded
-.sisyphus/boulder.json
-.sisyphus/drafts/
+.sisyphus/
+task-*.txt
 
 # ── Test / coverage artifacts ─────────────────────────────────────────
 .pytest_cache/
@@ -48,5 +59,12 @@ htmlcov/
 # ── Tool-specific ─────────────────────────────────────────────────────
 .kiro/
 .claude/
+.opencode/
+opencode.json
+.playwright-mcp/
 node_modules/
 RELEASE_NOTES.md
+
+# ── Docker ────────────────────────────────────────────────────────────
+.docker/
+docker-compose.override.yml

@@ -1,9 +1,0 @@
-============================= test session starts ==============================
-tests/integration/test_cleaning_cycle.py::test_full_auto_clean_cycle PASSED [ 93%]
-tests/integration/test_cleaning_cycle.py::test_dock_wash_dry_cycle PASSED [ 95%]
-tests/integration/test_cleaning_cycle.py::test_interrupted_clean_cycle PASSED [ 96%]
-tests/integration/test_cleaning_cycle.py::test_start_command_triggers_cleaning PASSED [ 98%]
-tests/integration/test_cleaning_cycle.py::test_return_to_base_during_cleaning PASSED [100%]
-============================= 5 passed ==============================
-
-FULL SUITE: 63 passed in 12.53s

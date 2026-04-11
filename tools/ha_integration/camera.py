@@ -12,8 +12,8 @@ Install: copy ha_integration/ to config/custom_components/eufy_vacuum_map/
 import io
 import logging
 import struct
-import time
 import threading
+import time
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -58,9 +58,11 @@ def decode_map_frame(raw_data: bytes) -> bytes | None:
     data = raw_data
     if DECOMPRESS_METHOD == "zlib":
         import zlib
+
         data = zlib.decompress(raw_data)
     elif DECOMPRESS_METHOD == "gzip":
         import gzip
+
         data = gzip.decompress(raw_data)
 
     if len(data) < MAP_HEADER_SIZE + 100:
@@ -75,7 +77,7 @@ def decode_map_frame(raw_data: bytes) -> bytes | None:
     if not (50 < width < 4000 and 50 < height < 4000):
         return None
 
-    pixels = data[MAP_PIXEL_START:MAP_PIXEL_START + width * height]
+    pixels = data[MAP_PIXEL_START : MAP_PIXEL_START + width * height]
     if len(pixels) < width * height:
         return None
 
@@ -97,8 +99,14 @@ class EufyVacuumMapCamera:
     via async_setup_entry in your integration.
     """
 
-    def __init__(self, vacuum_ip: str, device_id: str, local_key: str,
-                 protocol_version: str = "3.4", map_port: int | None = None):
+    def __init__(
+        self,
+        vacuum_ip: str,
+        device_id: str,
+        local_key: str,
+        protocol_version: str = "3.4",
+        map_port: int | None = None,
+    ):
         self._ip = vacuum_ip
         self._device_id = device_id
         self._local_key = local_key
@@ -112,7 +120,9 @@ class EufyVacuumMapCamera:
 
     def start_polling(self, interval: int = SCAN_INTERVAL):
         self._running = True
-        self._thread = threading.Thread(target=self._poll_loop, args=(interval,), daemon=True)
+        self._thread = threading.Thread(
+            target=self._poll_loop, args=(interval,), daemon=True
+        )
         self._thread.start()
 
     def stop_polling(self):
@@ -183,6 +193,7 @@ def standalone_test():
 
     print("Fetching map data...")
     import tinytuya
+
     device = tinytuya.Device(args.device_id, args.ip, args.local_key)
     device.set_version(float(args.version))
 
@@ -203,4 +214,5 @@ def standalone_test():
 
 if __name__ == "__main__":
     from pathlib import Path
+
     standalone_test()

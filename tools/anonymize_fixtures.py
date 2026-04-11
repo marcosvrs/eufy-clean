@@ -7,7 +7,6 @@ import os
 import re
 import sys
 
-
 PII_RULES = {
     "email": lambda v, ctx: "test@example.com" if isinstance(v, str) else v,
     "username": lambda v, ctx: "test@example.com" if isinstance(v, str) else v,
@@ -15,7 +14,9 @@ PII_RULES = {
     "deviceId": lambda v, ctx: _anon_device_sn(v, ctx) if isinstance(v, str) else v,
     "device_id": lambda v, ctx: _anon_device_sn(v, ctx) if isinstance(v, str) else v,
     "user_center_id": lambda v, ctx: _anon_user(v, ctx) if isinstance(v, str) else v,
-    "user_center_user_id": lambda v, ctx: "ANON_USER_HASH_001" if isinstance(v, str) else v,
+    "user_center_user_id": lambda v, ctx: (
+        "ANON_USER_HASH_001" if isinstance(v, str) else v
+    ),
     "admin_user_id": lambda v, ctx: "ANON_USER_HASH_001" if isinstance(v, str) else v,
     "member_user_id": lambda v, ctx: "ANON_USER_HASH_001" if isinstance(v, str) else v,
     "user_id": lambda v, ctx: _anon_user(v, ctx) if isinstance(v, str) else v,
@@ -26,8 +27,12 @@ PII_RULES = {
     "token": lambda v, ctx: "ANON_TOKEN_XXX" if isinstance(v, str) else v,
     "certificate_pem": lambda v, ctx: "ANON_CERT" if isinstance(v, str) else v,
     "private_key": lambda v, ctx: "ANON_KEY" if isinstance(v, str) else v,
-    "client_id": lambda v, ctx: "android-anon-openudid-anon_user-0" if isinstance(v, str) else v,
-    "sess_id": lambda v, ctx: "android-anon-openudid-anon_user-0" if isinstance(v, str) else v,
+    "client_id": lambda v, ctx: (
+        "android-anon-openudid-anon_user-0" if isinstance(v, str) else v
+    ),
+    "sess_id": lambda v, ctx: (
+        "android-anon-openudid-anon_user-0" if isinstance(v, str) else v
+    ),
     "device_mac": lambda v, ctx: _anon_mac(v, ctx) if isinstance(v, str) else v,
     "mac": lambda v, ctx: _anon_mac(v, ctx) if isinstance(v, str) else v,
     "wifi_mac": lambda v, ctx: _anon_mac_compact(v, ctx) if isinstance(v, str) else v,
@@ -39,7 +44,9 @@ PII_RULES = {
     "local_ip": lambda v, ctx: "" if isinstance(v, str) else v,
     "home_id": lambda v, ctx: "ANON_HOME_ID_001" if isinstance(v, str) else v,
     "room_id": lambda v, ctx: "ANON_ROOM_ID_001" if isinstance(v, str) else v,
-    "thing_name": lambda v, ctx: f"ANON_USER_HASH_001-eufy_home" if isinstance(v, str) else v,
+    "thing_name": lambda v, ctx: (
+        f"ANON_USER_HASH_001-eufy_home" if isinstance(v, str) else v
+    ),
 }
 
 TIMESTAMP_KEYS = {"timestamp", "t"}
@@ -99,7 +106,11 @@ def _anon_mac_compact(value: str, ctx: AnonymizeContext) -> str:
 def _find_min_timestamp(data, current_min: int | None) -> int | None:
     if isinstance(data, dict):
         for key, value in data.items():
-            if key in TIMESTAMP_KEYS and isinstance(value, int) and value > 1_000_000_000:
+            if (
+                key in TIMESTAMP_KEYS
+                and isinstance(value, int)
+                and value > 1_000_000_000
+            ):
                 if current_min is None or value < current_min:
                     current_min = value
             current_min = _find_min_timestamp(value, current_min)
@@ -118,7 +129,11 @@ def _anonymize_value(data, ctx: AnonymizeContext):
                 if new_value != value:
                     ctx.pii_count += 1
                 result[key] = new_value
-            elif key in TIMESTAMP_KEYS and isinstance(value, int) and value > 1_000_000_000:
+            elif (
+                key in TIMESTAMP_KEYS
+                and isinstance(value, int)
+                and value > 1_000_000_000
+            ):
                 result[key] = value - (ctx.min_timestamp or 0)
                 ctx.pii_count += 1
             else:
@@ -162,10 +177,14 @@ def main():
     parser = argparse.ArgumentParser(
         description="Anonymize PII in captured Eufy fixture files"
     )
-    parser.add_argument("--input-dir", required=True,
-                        help="Directory containing captured JSON fixtures")
-    parser.add_argument("--output-dir", default="tests/fixtures",
-                        help="Output directory for anonymized fixtures (default: tests/fixtures)")
+    parser.add_argument(
+        "--input-dir", required=True, help="Directory containing captured JSON fixtures"
+    )
+    parser.add_argument(
+        "--output-dir",
+        default="tests/fixtures",
+        help="Output directory for anonymized fixtures (default: tests/fixtures)",
+    )
     args = parser.parse_args()
 
     if not os.path.isdir(args.input_dir):
@@ -173,7 +192,9 @@ def main():
         sys.exit(1)
 
     file_count, pii_count = anonymize_directory(args.input_dir, args.output_dir)
-    print(f"Replaced {pii_count} PII fields across {file_count} files → {args.output_dir}")
+    print(
+        f"Replaced {pii_count} PII fields across {file_count} files → {args.output_dir}"
+    )
 
 
 if __name__ == "__main__":

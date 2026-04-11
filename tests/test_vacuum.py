@@ -10,3 +10,31 @@
 # Removed: test_app_segment_clean_invalid_ids — covered by tests/integration/test_entity_vacuum.py
 # Removed: test_async_clean_segments_empty_list — covered by tests/integration/test_entity_vacuum.py
 # All tests in this file were REDUNDANT per tests/integration/AUDIT.md (Task 12/15 integration coverage).
+
+import logging
+from unittest.mock import MagicMock
+
+import pytest
+
+from custom_components.robovac_mqtt.coordinator import EufyCleanCoordinator
+from custom_components.robovac_mqtt.vacuum import RoboVacMQTTEntity
+
+
+def test_vacuum_unrecorded_attributes():
+    assert "rooms" in RoboVacMQTTEntity._unrecorded_attributes
+    assert "segments" in RoboVacMQTTEntity._unrecorded_attributes
+
+
+@pytest.mark.asyncio
+async def test_app_segment_clean_invalid_room_id_logs_warning(caplog):
+    coordinator = MagicMock(spec=EufyCleanCoordinator)
+    coordinator.device_id = "test_device"
+    coordinator.device_name = "Test Device"
+    coordinator.device_info = MagicMock()
+
+    entity = RoboVacMQTTEntity(coordinator)
+
+    with caplog.at_level(logging.WARNING):
+        await entity.async_send_command("app_segment_clean", ["not_a_number"])
+
+    assert "Skipping room with invalid id: not_a_number" in caplog.text

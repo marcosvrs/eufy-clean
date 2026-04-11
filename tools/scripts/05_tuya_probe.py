@@ -115,10 +115,13 @@ def save_dps_payload(dp_id: str, value):
     if isinstance(value, str):
         try:
             import base64
+
             decoded = base64.b64decode(value)
             bin_path = output_dir / f"dps_{dp_id}_{ts}.bin"
             bin_path.write_bytes(decoded)
-            print(f"           → Saved base64-decoded to {bin_path} ({len(decoded)} bytes)")
+            print(
+                f"           → Saved base64-decoded to {bin_path} ({len(decoded)} bytes)"
+            )
             print(f"             Header: {decoded[:32].hex()}")
         except Exception:
             pass
@@ -170,7 +173,9 @@ def listen_for_updates(device: tinytuya.Device, duration: int):
             for dp_id, value in dps.items():
                 is_map = str(dp_id) in MAP_RELATED_DPS
                 marker = "⚡" if is_map else "  "
-                display = str(value)[:80] + "..." if len(str(value)) > 80 else str(value)
+                display = (
+                    str(value)[:80] + "..." if len(str(value)) > 80 else str(value)
+                )
                 print(f"  {marker} [{ts}] DPS {dp_id}: {display}")
 
                 if is_map and value:
@@ -180,21 +185,25 @@ def listen_for_updates(device: tinytuya.Device, duration: int):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Probe Eufy vacuum via Tuya local protocol")
+    parser = argparse.ArgumentParser(
+        description="Probe Eufy vacuum via Tuya local protocol"
+    )
     parser.add_argument("--ip", required=True, help="Vacuum IP address")
     parser.add_argument("--device-id", required=True, help="Tuya device ID")
     parser.add_argument("--local-key", required=True, help="Tuya local key")
     parser.add_argument(
-        "--version", default="3.4",
-        help="Tuya protocol version (try 3.3, 3.4, or 3.5)"
+        "--version", default="3.4", help="Tuya protocol version (try 3.3, 3.4, or 3.5)"
     )
     parser.add_argument(
-        "--listen", type=int, default=60,
-        help="Duration to listen for async updates (seconds)"
+        "--listen",
+        type=int,
+        default=60,
+        help="Duration to listen for async updates (seconds)",
     )
     parser.add_argument(
-        "--trigger-map", action="store_true",
-        help="Send map request commands to the vacuum"
+        "--trigger-map",
+        action="store_true",
+        help="Send map request commands to the vacuum",
     )
     args = parser.parse_args()
 
@@ -210,7 +219,9 @@ def main():
 
     dps = dump_all_dps(device)
     if not dps:
-        print("\n[!] Could not read DPS. Check credentials and try a different --version.")
+        print(
+            "\n[!] Could not read DPS. Check credentials and try a different --version."
+        )
         sys.exit(1)
 
     if args.trigger_map:

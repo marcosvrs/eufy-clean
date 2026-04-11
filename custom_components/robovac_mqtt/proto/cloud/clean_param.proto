@@ -41,6 +41,8 @@ message CleanCarpet {
         IGNORE = 2;       // 忽略(无视)地毯
     }
     Strategy strategy = 1; // 遇地毯策略
+    // Wire analysis: field=2 bytes[0] (empty when idle)
+    bytes unknown_2 = 2;
 }
 
 message CleanType {

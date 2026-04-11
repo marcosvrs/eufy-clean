@@ -28,7 +28,7 @@ def make_vacuum_state(**overrides: Any) -> VacuumState:
     Default values:
         activity="docked", battery_level=100, error_code=0, charging=True
     """
-    defaults = {
+    defaults: dict[str, Any] = {
         "activity": "docked",
         "battery_level": 100,
         "error_code": 0,
@@ -50,9 +50,7 @@ def make_dps_payload(dps_key: str, proto_msg: Any) -> dict[str, str]:
     return {dps_key: encode_message(proto_msg)}
 
 
-def make_mqtt_bytes(
-    dps: dict[str, Any], device_sn: str = "T2261_ANON_001"
-) -> bytes:
+def make_mqtt_bytes(dps: dict[str, Any], device_sn: str = "T2261_ANON_001") -> bytes:
     """Wrap DPS dict into full MQTT JSON message bytes for coordinator input.
 
     Produces the same JSON structure the MQTT broker sends::
@@ -128,6 +126,6 @@ def assert_state_field(state: VacuumState, field: str, expected: Any) -> None:
         AssertionError: When the actual value doesn't match *expected*.
     """
     actual = getattr(state, field)
-    assert actual == expected, (
-        f"VacuumState.{field}: expected {expected!r}, got {actual!r}"
-    )
+    assert (
+        actual == expected
+    ), f"VacuumState.{field}: expected {expected!r}, got {actual!r}"

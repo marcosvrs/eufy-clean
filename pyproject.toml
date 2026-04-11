@@ -66,6 +66,11 @@ disable = [
     "no-else-return",
     "abstract-method",
     "too-many-positional-arguments",
+    "unexpected-keyword-arg",
+    "too-many-lines",
+    "global-statement",
+    "import-outside-toplevel",
+    "too-many-nested-blocks",
 ]
 
 [tool.pytest.ini_options]

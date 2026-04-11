@@ -11,12 +11,12 @@ Usage:
 Requires: nmap installed (sudo apt install nmap)
 """
 
-import subprocess
-import re
-import sys
-import json
-import socket
 import argparse
+import json
+import re
+import socket
+import subprocess
+import sys
 from pathlib import Path
 
 
@@ -25,7 +25,9 @@ def get_local_subnet() -> str:
     try:
         result = subprocess.run(
             ["ip", "route", "show", "default"],
-            capture_output=True, text=True, timeout=5
+            capture_output=True,
+            text=True,
+            timeout=5,
         )
         # Example: "default via 192.168.1.1 dev eth0 ..."
         match = re.search(r"via\s+(\d+\.\d+\.\d+)\.\d+", result.stdout)
@@ -36,8 +38,7 @@ def get_local_subnet() -> str:
 
     try:
         result = subprocess.run(
-            ["ip", "-4", "addr", "show"],
-            capture_output=True, text=True, timeout=5
+            ["ip", "-4", "addr", "show"], capture_output=True, text=True, timeout=5
         )
         # Find non-loopback address
         for match in re.finditer(r"inet\s+(\d+\.\d+\.\d+)\.\d+/(\d+)", result.stdout):
@@ -67,7 +68,9 @@ def scan_for_tuya_devices(subnet: str) -> list[dict]:
 
     result = subprocess.run(
         ["nmap", "-sS", "-p", "6668", "--open", "-oG", "-", subnet],
-        capture_output=True, text=True, timeout=120
+        capture_output=True,
+        text=True,
+        timeout=120,
     )
 
     devices = []
@@ -95,7 +98,9 @@ def full_port_scan(ip: str) -> dict:
     print(f"[*] Running full TCP port scan on {ip}...")
     tcp_result = subprocess.run(
         ["nmap", "-sS", "-p-", "--min-rate", "5000", "-oG", "-", ip],
-        capture_output=True, text=True, timeout=300
+        capture_output=True,
+        text=True,
+        timeout=300,
     )
 
     tcp_ports = []
@@ -107,7 +112,9 @@ def full_port_scan(ip: str) -> dict:
     print(f"[*] Running UDP port scan on {ip} (top 1000 ports)...")
     udp_result = subprocess.run(
         ["nmap", "-sU", "--top-ports", "1000", "--min-rate", "3000", "-oG", "-", ip],
-        capture_output=True, text=True, timeout=300
+        capture_output=True,
+        text=True,
+        timeout=300,
     )
 
     udp_ports = []
@@ -124,15 +131,18 @@ def tinytuya_scan(subnet: str) -> list[dict]:
     print(f"[*] Running tinytuya broadcast scan...")
     try:
         import tinytuya
+
         devices = tinytuya.deviceScan(verbose=False, maxretry=3, byID=False)
         results = []
         for ip, info in devices.items():
-            results.append({
-                "ip": ip,
-                "gwId": info.get("gwId", ""),
-                "productKey": info.get("productKey", ""),
-                "version": info.get("version", ""),
-            })
+            results.append(
+                {
+                    "ip": ip,
+                    "gwId": info.get("gwId", ""),
+                    "productKey": info.get("productKey", ""),
+                    "version": info.get("version", ""),
+                }
+            )
         return results
     except ImportError:
         print("    tinytuya not installed — skipping broadcast scan")
@@ -147,12 +157,12 @@ def main():
         description="Discover Eufy/Tuya vacuum on your local network"
     )
     parser.add_argument(
-        "--subnet", type=str, default=None,
-        help="Subnet to scan (default: auto-detect)"
+        "--subnet", type=str, default=None, help="Subnet to scan (default: auto-detect)"
     )
     parser.add_argument(
-        "--skip-full-scan", action="store_true",
-        help="Skip full port scan on discovered devices"
+        "--skip-full-scan",
+        action="store_true",
+        help="Skip full port scan on discovered devices",
     )
     args = parser.parse_args()
 
@@ -177,12 +187,14 @@ def main():
     known_ips = {d["ip"] for d in devices}
     for td in tuya_devices:
         if td["ip"] not in known_ips:
-            devices.append({
-                "ip": td["ip"],
-                "hostname": "",
-                "tuya_id": td.get("gwId", ""),
-                "tuya_version": td.get("version", ""),
-            })
+            devices.append(
+                {
+                    "ip": td["ip"],
+                    "hostname": "",
+                    "tuya_id": td.get("gwId", ""),
+                    "tuya_version": td.get("version", ""),
+                }
+            )
             known_ips.add(td["ip"])
 
     if not devices:

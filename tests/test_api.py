@@ -195,7 +195,7 @@ def test_update_state_device_info_dps169():
     """Test parsing DPS 169 (DeviceInfo) for MAC, WiFi SSID, and WiFi IP."""
     state = VacuumState()
     dps = {
-        DPS_MAP["MAP_MANAGE"]: "vgEKF2V1ZnkgQ2xlYW4gWDEwIFBybyBPbW5pGhFhYTpi"
+        DPS_MAP["APP_DEV_INFO"]: "vgEKF2V1ZnkgQ2xlYW4gWDEwIFBybyBPbW5pGhFhYTpi"
         "YjpjYzpkZDplZTpmZiIGMy40Ljg1KAMyCUFOT05fV0lGSToNMTkyLjE2OC4xLjEwMEIS"
         "QU5PTl9VU0VSX0hBU0hfMDAxWgoKBjEuMi4yNxAIYi0IARIECAIQAxoECAIQDyIECAEQ"
         "ATIECAEQAzoECAEQAUIECAEQA1IFCAEQsyRqCVQyMzUxX290YQ=="

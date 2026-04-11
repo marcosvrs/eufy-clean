@@ -23,6 +23,26 @@ MOCK_DEVICE_INFO = {
     "deviceName": "Test Vacuum",
     "softVersion": "1.0.0",
     "dps": {},
+    "dps_catalog": [
+        {"dp_id": 152, "code": "mode_ctrl", "data_type": "Raw", "mode": "rw"},
+        {"dp_id": 153, "code": "work_status", "data_type": "Raw", "mode": "ro"},
+        {"dp_id": 154, "code": "clean_params", "data_type": "Raw", "mode": "rw"},
+        {"dp_id": 157, "code": "dnd", "data_type": "Raw", "mode": "rw"},
+        {"dp_id": 158, "code": "suction_level", "data_type": "Enum", "mode": "rw"},
+        {"dp_id": 159, "code": "boost_iq", "data_type": "Bool", "mode": "rw"},
+        {"dp_id": 160, "code": "calling_robot", "data_type": "Bool", "mode": "rw"},
+        {"dp_id": 161, "code": "volume", "data_type": "Value", "mode": "rw"},
+        {"dp_id": 163, "code": "bat_level", "data_type": "Value", "mode": "ro"},
+        {"dp_id": 167, "code": "clean_statistics", "data_type": "Raw", "mode": "ro"},
+        {"dp_id": 168, "code": "consumables", "data_type": "Raw", "mode": "rw"},
+        {"dp_id": 169, "code": "app_dev_info", "data_type": "Raw", "mode": "rw"},
+        {"dp_id": 170, "code": "map_edit", "data_type": "Raw", "mode": "rw"},
+        {"dp_id": 172, "code": "multi_maps_mng", "data_type": "Raw", "mode": "rw"},
+        {"dp_id": 173, "code": "station", "data_type": "Raw", "mode": "rw"},
+        {"dp_id": 176, "code": "unisetting", "data_type": "Raw", "mode": "rw"},
+        {"dp_id": 177, "code": "error_warning", "data_type": "Raw", "mode": "rw"},
+        {"dp_id": 180, "code": "scenes", "data_type": "Raw", "mode": "rw"},
+    ],
 }
 
 MOCK_MQTT_CREDENTIALS = {
@@ -37,9 +57,7 @@ MOCK_MQTT_CREDENTIALS = {
 FIXTURES_DIR = Path(__file__).resolve().parents[1] / "fixtures"
 
 
-def make_mqtt_payload(
-    dps: dict[str, Any], device_sn: str = "T2261_ANON_001"
-) -> bytes:
+def make_mqtt_payload(dps: dict[str, Any], device_sn: str = "T2261_ANON_001") -> bytes:
     return json.dumps(
         {
             "head": {"cmd": 65537, "client_id": "anon"},

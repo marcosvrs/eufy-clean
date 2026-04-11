@@ -51,8 +51,13 @@ def _full_clean_param(
 
 def test_response_format_all_fields_populated():
     cp = _full_clean_param(
-        clean_type_val=2, fan_suction=2, mop_level=1,
-        corner_clean=0, clean_extent_val=0, carpet_strategy=0, smart_mode=True,
+        clean_type_val=2,
+        fan_suction=2,
+        mop_level=1,
+        corner_clean=0,
+        clean_extent_val=0,
+        carpet_strategy=0,
+        smart_mode=True,
     )
     resp = CleanParamResponse(clean_param=cp)
     state, changes = update_state(VacuumState(), _clean_dps(resp))
@@ -68,8 +73,13 @@ def test_response_format_all_fields_populated():
 
 def test_request_format_fallback():
     cp = _full_clean_param(
-        clean_type_val=1, fan_suction=0, mop_level=2,
-        corner_clean=1, clean_extent_val=1, carpet_strategy=1, smart_mode=False,
+        clean_type_val=1,
+        fan_suction=0,
+        mop_level=2,
+        corner_clean=1,
+        clean_extent_val=1,
+        carpet_strategy=1,
+        smart_mode=False,
     )
     req = CleanParamRequest(clean_param=cp)
     state, changes = update_state(VacuumState(), _clean_dps(req))
@@ -87,9 +97,9 @@ def test_fan_speed_maps_to_names():
         cp = CleanParam(fan=Fan(suction=suction_val))
         resp = CleanParamResponse(clean_param=cp)
         state, _ = update_state(VacuumState(), _clean_dps(resp))
-        assert state.fan_speed == expected_name, (
-            f"Fan suction {suction_val} → expected {expected_name!r}, got {state.fan_speed!r}"
-        )
+        assert (
+            state.fan_speed == expected_name
+        ), f"Fan suction {suction_val} → expected {expected_name!r}, got {state.fan_speed!r}"
 
 
 def test_water_level_maps_to_names():
@@ -97,9 +107,9 @@ def test_water_level_maps_to_names():
         cp = CleanParam(mop_mode=MopMode(level=level_val.value))
         resp = CleanParamResponse(clean_param=cp)
         state, _ = update_state(VacuumState(), _clean_dps(resp))
-        assert state.mop_water_level == expected_name, (
-            f"Mop level {level_val} → expected {expected_name!r}, got {state.mop_water_level!r}"
-        )
+        assert (
+            state.mop_water_level == expected_name
+        ), f"Mop level {level_val} → expected {expected_name!r}, got {state.mop_water_level!r}"
 
 
 def test_cleaning_mode_maps_to_names():
@@ -107,9 +117,9 @@ def test_cleaning_mode_maps_to_names():
         cp = CleanParam(clean_type=CleanType(value=mode_val.value))
         resp = CleanParamResponse(clean_param=cp)
         state, _ = update_state(VacuumState(), _clean_dps(resp))
-        assert state.cleaning_mode == expected_name, (
-            f"CleanType {mode_val} → expected {expected_name!r}, got {state.cleaning_mode!r}"
-        )
+        assert (
+            state.cleaning_mode == expected_name
+        ), f"CleanType {mode_val} → expected {expected_name!r}, got {state.cleaning_mode!r}"
 
 
 def test_cleaning_intensity_maps_to_names():
@@ -117,9 +127,9 @@ def test_cleaning_intensity_maps_to_names():
         cp = CleanParam(clean_extent=CleanExtent(value=extent_val))
         resp = CleanParamResponse(clean_param=cp)
         state, _ = update_state(VacuumState(), _clean_dps(resp))
-        assert state.cleaning_intensity == expected_name, (
-            f"CleanExtent {extent_val} → expected {expected_name!r}, got {state.cleaning_intensity!r}"
-        )
+        assert (
+            state.cleaning_intensity == expected_name
+        ), f"CleanExtent {extent_val} → expected {expected_name!r}, got {state.cleaning_intensity!r}"
 
 
 def test_running_clean_param_variant():

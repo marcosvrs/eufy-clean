@@ -60,6 +60,10 @@ message ProtoInfo {
      * version 1 定时功能使用 option 定义见 TimingOptionBit
      */
     Module timing = 6;
+    // Wire analysis: fields 7,8,10 = Module (new device capabilities)
+    Module capability_7 = 7;
+    Module capability_8 = 8;
+    Module capability_10 = 10;
 }
 
 // App 支持的功能

@@ -58,6 +58,8 @@ message Unistate {
     LiveMap live_map = 6;  // 实时地图有哪些组件信息
 
     uint32 clean_strategy_version = 7;  // 清洁策略版本（云端/本地）
+    // Wire analysis: field=8 bytes[0] (empty when idle)
+    bytes unistate_8 = 8;
 }
 
 message WifiData {
@@ -103,4 +105,10 @@ message UnisettingResponse {
     Switch smart_follow_sw = 13;    // 实验室功能——智能跟随开关
     Switch poop_avoidance_sw = 14;  // 便便避让开关
     Switch pet_mode_sw = 15;        // 宠物模式开关
+    // Wire analysis: fields 16,18,21,22,23 (new firmware settings)
+    Switch setting_16 = 16;
+    bytes setting_18 = 18;
+    bytes setting_21 = 21;
+    Switch setting_22 = 22;
+    bytes setting_23 = 23;
 }

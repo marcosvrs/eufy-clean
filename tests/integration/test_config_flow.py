@@ -15,9 +15,7 @@ from custom_components.robovac_mqtt.const import DOMAIN, VACS
 
 @pytest.fixture
 def mock_eufy_http_login():
-    with patch(
-        "custom_components.robovac_mqtt.config_flow.EufyHTTPClient"
-    ) as mock_cls:
+    with patch("custom_components.robovac_mqtt.config_flow.EufyHTTPClient") as mock_cls:
         mock_instance = AsyncMock()
         mock_instance.login = AsyncMock(return_value={"session": "valid-session-token"})
         mock_cls.return_value = mock_instance
@@ -60,9 +58,7 @@ async def test_config_flow_happy_path(
 
 async def test_config_flow_login_failure(hass: HomeAssistant) -> None:
     """Login raises exception — form shown again with 'unknown' error."""
-    with patch(
-        "custom_components.robovac_mqtt.config_flow.EufyHTTPClient"
-    ) as mock_cls:
+    with patch("custom_components.robovac_mqtt.config_flow.EufyHTTPClient") as mock_cls:
         mock_instance = AsyncMock()
         mock_instance.login = AsyncMock(side_effect=ConnectionError("Network error"))
         mock_cls.return_value = mock_instance
@@ -84,9 +80,7 @@ async def test_config_flow_login_failure(hass: HomeAssistant) -> None:
 
 async def test_config_flow_invalid_auth(hass: HomeAssistant) -> None:
     """Login returns no session — form shown with 'invalid_auth' error."""
-    with patch(
-        "custom_components.robovac_mqtt.config_flow.EufyHTTPClient"
-    ) as mock_cls:
+    with patch("custom_components.robovac_mqtt.config_flow.EufyHTTPClient") as mock_cls:
         mock_instance = AsyncMock()
         mock_instance.login = AsyncMock(return_value={"error": "invalid credentials"})
         mock_cls.return_value = mock_instance
@@ -181,13 +175,9 @@ async def test_config_flow_reconfigure_username_mismatch(
     hass: HomeAssistant,
 ) -> None:
     """Reconfigure with different username shows form with username_mismatch error."""
-    with patch(
-        "custom_components.robovac_mqtt.config_flow.EufyHTTPClient"
-    ) as mock_cls:
+    with patch("custom_components.robovac_mqtt.config_flow.EufyHTTPClient") as mock_cls:
         mock_instance = AsyncMock()
-        mock_instance.login = AsyncMock(
-            return_value={"session": "valid-session-token"}
-        )
+        mock_instance.login = AsyncMock(return_value={"session": "valid-session-token"})
         mock_cls.return_value = mock_instance
 
         entry = MockConfigEntry(

@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import cast
+
 from custom_components.robovac_mqtt.api.parser import update_state
 from custom_components.robovac_mqtt.models import VacuumState
 from custom_components.robovac_mqtt.proto.cloud.common_pb2 import Numerical
@@ -75,6 +77,26 @@ def test_clean_water_level_populated():
     assert "station_clean_water" in changes
 
 
+def test_dirty_level_populated():
+    station = StationResponse(
+        status=StationResponse.StationStatus(connected=True),
+        dirty_level=cast(StationResponse.WaterLevel, 3),
+    )
+    state, changes = update_state(VacuumState(), _station_dps(station))
+    assert state.station_waste_water == 3
+    assert "station_waste_water" in changes
+
+
+def test_clean_level_populated():
+    station = StationResponse(
+        status=StationResponse.StationStatus(connected=True),
+        clean_level=cast(StationResponse.WaterLevel, 2),
+    )
+    state, changes = update_state(VacuumState(), _station_dps(station))
+    assert state.station_clean_level == 2
+    assert "station_clean_level" in changes
+
+
 def test_auto_cfg_status_populated():
     station = StationResponse(
         status=StationResponse.StationStatus(connected=True),
@@ -112,7 +134,7 @@ def test_waste_water_recycling_dock_status():
 
 def test_cross_dps_work_status_and_station_washing():
     ws = WorkStatus(
-        state=5,
+        state=cast(WorkStatus.State, 5),
         go_wash=WorkStatus.GoWash(mode=WorkStatus.GoWash.WASHING),
     )
     station = StationResponse(

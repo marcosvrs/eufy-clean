@@ -232,7 +232,6 @@ class EufyCleanClient:
         """Handle incoming MQTT messages."""
         try:
             payload = msg.payload
-            _LOGGER.debug("Received MQTT message on %s: %s", msg.topic, payload)
             if self._on_message_callback:
                 if self._loop:
                     self._loop.call_soon_threadsafe(self._on_message_callback, payload)

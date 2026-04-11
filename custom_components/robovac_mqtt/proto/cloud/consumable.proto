@@ -36,6 +36,13 @@ message ConsumableRuntime {
     Duration dustbag = 7;       //尘袋
     Duration dirty_watertank = 10;       //污水预存水槽
     Duration dirty_waterfilter = 11;     //污水泵滤芯
+    // Wire analysis: fields 12,13,15,19 = Duration (new accessories)
+    Duration accessory_12 = 12;
+    Duration accessory_13 = 13;
+    Duration accessory_15 = 15;
+    bytes accessory_17 = 17;             // Wire: bytes[0] (empty on this model)
+    Duration accessory_19 = 19;
+    bytes accessory_detail = 40;         // Wire: bytes[88] (complex nested structure)
 
     uint64 last_time = 20;  // 需要带上时间，单位纳秒，从1970.1.1开始的纳秒数。
 }

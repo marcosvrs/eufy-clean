@@ -13,6 +13,7 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .api.commands import build_command
+from .auto_entities import get_auto_numbers
 from .const import DOMAIN
 from .coordinator import EufyCleanCoordinator
 
@@ -33,23 +34,39 @@ async def async_setup_entry(
     for coordinator in coordinators:
         _LOGGER.debug("Adding number entities for %s", coordinator.device_name)
 
-        # Wash Frequency Value
-        entities.append(
-            DockNumberEntity(
-                coordinator,
-                "wash_frequency_value",
-                "Wash Frequency Value (Time)",
-                15,
-                25,
-                1,  # step
-                lambda cfg: cfg.get("wash", {})
-                .get("wash_freq", {})
-                .get("time_or_area", {})
-                .get("value", 15),
-                _set_wash_freq_value,
-                icon="mdi:clock-time-four-outline",
+        if "STATION_STATUS" in coordinator.supported_dps:
+            # Wash Frequency Value
+            entities.append(
+                DockNumberEntity(
+                    coordinator,
+                    "wash_frequency_value",
+                    "Wash Frequency Value (Time)",
+                    15,
+                    25,
+                    1,  # step
+                    lambda cfg: cfg.get("wash", {})
+                    .get("wash_freq", {})
+                    .get("time_or_area", {})
+                    .get("value", 15),
+                    _set_wash_freq_value,
+                    icon="mdi:clock-time-four-outline",
+                )
             )
-        )
+
+        if "UNSETTING" in coordinator.supported_dps:
+            entities.append(
+                UnisettingNumber(
+                    coordinator,
+                    "dust_full_remind",
+                    "Dust Full Remind",
+                    0,
+                    100,
+                    1,
+                    "mdi:delete-alert",
+                )
+            )
+
+        entities.extend(get_auto_numbers(coordinator))
 
     async_add_entities(entities)
 
@@ -98,6 +115,8 @@ class DockNumberEntity(CoordinatorEntity[EufyCleanCoordinator], NumberEntity):
 
         self._attr_device_info = coordinator.device_info
         self._attr_entity_category = EntityCategory.CONFIG
+        self._attr_entity_registry_enabled_default = False
+        self._attr_entity_registry_visible_default = False
 
     @property
     def available(self) -> bool:
@@ -123,3 +142,53 @@ class DockNumberEntity(CoordinatorEntity[EufyCleanCoordinator], NumberEntity):
 
         command = build_command("set_auto_cfg", cfg=cfg)
         await self.coordinator.async_send_command(command)
+
+
+class UnisettingNumber(CoordinatorEntity[EufyCleanCoordinator], NumberEntity):
+
+    def __init__(
+        self,
+        coordinator: EufyCleanCoordinator,
+        field_name: str,
+        display_name: str,
+        min_value: float,
+        max_value: float,
+        step: float = 1.0,
+        icon: str | None = None,
+    ) -> None:
+        super().__init__(coordinator)
+        self._field_name = field_name
+        self._attr_unique_id = f"{coordinator.device_id}_{field_name}"
+        self._attr_has_entity_name = True
+        self._attr_name = display_name
+        self._attr_native_min_value = min_value
+        self._attr_native_max_value = max_value
+        self._attr_native_step = step
+        self._attr_entity_category = EntityCategory.CONFIG
+        self._attr_device_info = coordinator.device_info
+        self._attr_entity_registry_visible_default = False
+        self._attr_entity_registry_enabled_default = False
+        if icon:
+            self._attr_icon = icon
+
+    @property
+    def native_value(self) -> float | None:
+        val = getattr(self.coordinator.data, self._field_name, None)
+        return float(val) if val is not None else None
+
+    @property
+    def available(self) -> bool:
+        return (
+            super().available
+            and self._field_name in self.coordinator.data.received_fields
+        )
+
+    async def async_set_native_value(self, value: float) -> None:
+        cmd = build_command(
+            "set_unisetting",
+            dps_map=self.coordinator.dps_map,
+            field=self._field_name,
+            value=int(value),
+            current_state=self.coordinator.data,
+        )
+        await self.coordinator.async_send_command(cmd)

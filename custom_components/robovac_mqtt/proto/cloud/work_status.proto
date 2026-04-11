@@ -47,6 +47,8 @@ message WorkStatus {
             ABNORMAL = 2;  // 充电异常（充电弹片接触但无法充电）
         }
         State state = 1;
+        // Wire analysis: field=3 bytes[0] (empty when idle)
+        bytes unknown_3 = 3;
     }
     Charging charging = 3;
 
@@ -217,6 +219,9 @@ message WorkStatus {
         WaterTankState water_tank_state = 4;
     }
     Station station = 14;  // 从 x10 项目开始使用这里的基站状态，station dp 的状态保留但不做逻辑处理
+
+    // Wire analysis: field=15 bytes[0] (empty message when idle)
+    bytes unknown_15 = 15;
 
     message Scene {
         uint32 id = 1;

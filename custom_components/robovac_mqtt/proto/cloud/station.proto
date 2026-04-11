@@ -40,6 +40,8 @@ message CollectDustCfgV2 {    // 集尘配置新版协议
         uint32 time = 3;  // 清洁时间，单位分钟
     }
     Mode mode = 2;
+    // Wire analysis: field=3 Switch(value=true)
+    Switch auto_start = 3;
 }
 
 message DryCfg {    // 烘干配置

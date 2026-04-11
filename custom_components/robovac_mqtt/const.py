@@ -1,9 +1,12 @@
 from __future__ import annotations
 
+import logging
 from enum import Enum
-from typing import Final
+from typing import Any, Final
 
 from .proto.cloud.clean_param_pb2 import CleanExtent, CleanType, MopMode
+
+_LOGGER = logging.getLogger(__name__)
 
 DOMAIN: Final = "robovac_mqtt"
 VACS: Final = "vacs"
@@ -22,6 +25,9 @@ EUFY_API_DEVICE_LIST: Final = (
 EUFY_API_DEVICE_V2: Final = f"{EUFY_API_BASE_URL}/v1/device/v2"
 EUFY_API_MQTT_INFO: Final = (
     f"{EUFY_AIOT_API_BASE_URL}/app/devicemanage/get_user_mqtt_info"
+)
+EUFY_API_PRODUCT_DATA_POINT: Final = (
+    f"{EUFY_AIOT_API_BASE_URL}/app/things/get_product_data_point"
 )
 
 
@@ -179,6 +185,12 @@ CORNER_CLEANING_NAMES = {
     1: "Deep",
 }
 
+EUFY_CLEAN_CARPET_STRATEGIES = list(CARPET_STRATEGY_NAMES.values())
+EUFY_CLEAN_CORNER_CLEANING_MODES = list(CORNER_CLEANING_NAMES.values())
+
+CARPET_STRATEGY_REVERSE = {v: k for k, v in CARPET_STRATEGY_NAMES.items()}
+CORNER_CLEANING_REVERSE = {v: k for k, v in CORNER_CLEANING_NAMES.items()}
+
 FAN_SUCTION_NAMES = {
     0: "Quiet",
     1: "Standard",
@@ -199,6 +211,23 @@ WORK_MODE_NAMES = {
     7: "Point Cruise",
     8: "Scene",
     9: "Smart Follow",
+}
+
+CHARGING_STATE_NAMES: dict[int, str] = {
+    0: "Charging",
+    1: "Done",
+    2: "Abnormal",
+}
+
+GO_WASH_STATE_NAMES: dict[int, str] = {
+    0: "Doing",
+    1: "Paused",
+}
+
+GO_WASH_MODE_NAMES: dict[int, str] = {
+    0: "Navigation",
+    1: "Washing",
+    2: "Drying",
 }
 
 
@@ -254,6 +283,8 @@ class EUFY_CLEAN_CONTROL(int, Enum):
     START_SCENE_CLEAN = 24
     START_MAPPING_THEN_CLEAN = 25
 
+
+EUFY_CLEAN_PROMPT_CODES: dict[int, str] = {}
 
 EUFY_CLEAN_ERROR_CODES = {
     0: "NONE",
@@ -499,9 +530,9 @@ MOP_LEVEL_MAP = {
 }
 
 
-DPS_MAP = {
+DEFAULT_DPS_MAP = {
     "PLAY_PAUSE": "152",
-    "DIRECTION": "155",
+    "REMOTE_CTRL": "155",
     "WORK_MODE": "153",
     "WORK_STATUS": "153",
     "CLEANING_PARAMETERS": "154",
@@ -514,44 +545,166 @@ DPS_MAP = {
     "STATION_STATUS": "173",
     "ERROR_CODE": "177",
     "SCENE_INFO": "180",
-    "MAP_DATA": "165",
-    "MAP_EDIT": "164",
-    "MULTI_MAP_SW": "156",
-    "MAP_STREAM": "166",
+    "RESERVED2": "165",
+    "TIMING": "164",
+    "PAUSE_JOB": "156",
+    "LOG_DEBUG": "166",
     "UNSETTING": "176",
     "MAP_EDIT_REQUEST": "170",
     "MULTI_MAP_MANAGE": "172",
-    "MAP_MANAGE": "169",
+    "APP_DEV_INFO": "169",
     "UNDISTURBED": "157",
+    "BOOST_IQ": "159",
+    "VOLUME": "161",
+    "POWER": "151",
+    "TOAST": "178",
+    "MEDIA_MANAGER": "174",
 }
+DPS_MAP = DEFAULT_DPS_MAP  # backward-compatible alias
+
+CLOUD_CODE_TO_FUNC: dict[str, list[str]] = {
+    "mode_ctrl": ["PLAY_PAUSE"],
+    "work_status": ["WORK_MODE", "WORK_STATUS"],
+    "clean_params": ["CLEANING_PARAMETERS"],
+    "remote_ctrl": ["REMOTE_CTRL"],
+    "pause_job": ["PAUSE_JOB"],
+    "power": ["POWER"],
+    "dnd": ["UNDISTURBED"],
+    "suction_level": ["CLEAN_SPEED"],
+    "boost_iq": ["BOOST_IQ"],
+    "calling_robot": ["FIND_ROBOT"],
+    "volume": ["VOLUME"],
+    "bat_level": ["BATTERY_LEVEL"],
+    "timing": ["TIMING"],
+    "reserved2": ["RESERVED2"],
+    "log_debug": ["LOG_DEBUG"],
+    "clean_statistics": ["CLEANING_STATISTICS"],
+    "consumables": ["ACCESSORIES_STATUS"],
+    "app_dev_info": ["APP_DEV_INFO"],
+    "map_edit": ["MAP_EDIT_REQUEST"],
+    "multi_maps_mng": ["MULTI_MAP_MANAGE"],
+    "station": ["GO_HOME", "STATION_STATUS"],
+    "unisetting": ["UNSETTING"],
+    "error_warning": ["ERROR_CODE"],
+    "scenes": ["SCENE_INFO"],
+    "media_manager": ["MEDIA_MANAGER"],
+}
+
+
+def build_dps_map_from_catalog(catalog: list[dict]) -> dict[str, str]:
+    """Build a DPS map from a cloud catalog, falling back to DEFAULT_DPS_MAP for missing entries."""
+    if not catalog:
+        return dict(DEFAULT_DPS_MAP)
+    result = dict(DEFAULT_DPS_MAP)
+    for item in catalog:
+        dp_id = item.get("dp_id")
+        code = item.get("code")
+        if dp_id is None or code is None:
+            _LOGGER.warning("Skipping malformed catalog entry: %r", item)
+            continue
+        func_names = CLOUD_CODE_TO_FUNC.get(code)
+        if func_names is None:
+            _LOGGER.debug(
+                "Unknown cloud code %r in catalog (dp_id=%s), skipping", code, dp_id
+            )
+            continue
+        for func_name in func_names:
+            result[func_name] = str(dp_id)
+    return result
+
+
+def supported_dps_from_catalog(catalog: list[dict]) -> frozenset[str]:
+    """Return frozenset of functional DPS names supported by this device's catalog."""
+    if not catalog:
+        return frozenset(DEFAULT_DPS_MAP.keys())
+    supported: set[str] = set()
+    for item in catalog:
+        code = item.get("code")
+        if code is None:
+            continue
+        func_names = CLOUD_CODE_TO_FUNC.get(code)
+        if func_names:
+            supported.update(func_names)
+    return frozenset(supported)
+
 
 # DPS keys that are known but intentionally not parsed.
 # Values are already stored in raw_dps for diagnostics.
 KNOWN_UNPROCESSED_DPS: frozenset[str] = frozenset(
     {
-        DPS_MAP["DIRECTION"],  # 155 - RemoteCtrl echo
-        DPS_MAP["MULTI_MAP_SW"],  # 156 - multi-map toggle (also in DPS 176)
-        DPS_MAP["MAP_EDIT"],  # 164 - MapEditResponse ack
-        DPS_MAP[
-            "MAP_STREAM"
-        ],  # 166 - debug/metadata on T2351 (map data is local P2P only)
-        # Note: DPS 169 (MAP_MANAGE) is now parsed as DeviceInfo
-        DPS_MAP["MAP_EDIT_REQUEST"],  # 170 - MapEditRequest echo
-        # Unknown DPS keys observed in the wild:
-        "150",  # Unknown, value: None
-        "151",  # Unknown, value: True
-        "159",  # Unknown, value: True
-        "161",  # Unknown, likely volume (value: 80)
-        "162",  # Unknown protobuf, timing config
-        "171",  # Unknown, value: None
-        "174",  # Unknown, value: None
-        "175",  # Unknown, value: None
-        "178",  # Unknown protobuf, timestamp/event log
+        DPS_MAP["LOG_DEBUG"],  # 166 - log_debug: DebugRequest/DebugResponse
+        DPS_MAP["MAP_EDIT_REQUEST"],  # 170 - map_edit: MapEditRequest echo
+        "150",  # proto: reserved, not used
+        "162",  # user_language: LanguageRequest/LanguageResponse
+        "171",  # multi_maps_ctrl: MultiMapsCtrlRequest/Response
+        "175",  # reserved3: reserved
     }
 )
 
-# DPS 179 key (no named entry in DPS_MAP — undocumented telemetry channel)
+# DPS 179 - analysis: AnalysisRequest/AnalysisResponse (robot position telemetry)
 DPS_ROBOT_TELEMETRY = "179"
+
+HANDLED_DPS_IDS: frozenset[str] = frozenset(
+    {
+        DEFAULT_DPS_MAP["PLAY_PAUSE"],  # "152" - ModeCtrlRequest proto
+        DEFAULT_DPS_MAP["POWER"],  # "151" - restart button (send false)
+        DEFAULT_DPS_MAP["WORK_STATUS"],  # "153" - WorkStatus proto
+        DEFAULT_DPS_MAP["CLEANING_PARAMETERS"],  # "154" - CleanParam proto
+        DEFAULT_DPS_MAP["REMOTE_CTRL"],  # "155" - RC direction buttons (send)
+        DEFAULT_DPS_MAP["PAUSE_JOB"],
+        DEFAULT_DPS_MAP["UNDISTURBED"],  # "157" - UndisturbedRequest proto
+        DEFAULT_DPS_MAP["RESERVED2"],  # "165" - reserved proto
+        DEFAULT_DPS_MAP["TIMING"],  # "164" - TimerResponse proto
+        DEFAULT_DPS_MAP["CLEANING_STATISTICS"],  # "167" - CleanStatistics proto
+        DEFAULT_DPS_MAP["ACCESSORIES_STATUS"],  # "168" - ConsumableResponse proto
+        DEFAULT_DPS_MAP["APP_DEV_INFO"],  # "169" - DeviceInfo proto
+        DEFAULT_DPS_MAP["MAP_EDIT_REQUEST"],  # "170" - MapEditResponse proto
+        DEFAULT_DPS_MAP["MULTI_MAP_MANAGE"],  # "172" - MultiMapsManage proto
+        DEFAULT_DPS_MAP["GO_HOME"],  # "173" - StationRequest/Response proto
+        DEFAULT_DPS_MAP["UNSETTING"],  # "176" - UnisettingResponse proto
+        DEFAULT_DPS_MAP["ERROR_CODE"],  # "177" - ErrorCode proto
+        DEFAULT_DPS_MAP["TOAST"],  # "178" - PromptCode proto
+        DEFAULT_DPS_MAP["MEDIA_MANAGER"],  # "174" - MediaManagerResponse proto
+        DEFAULT_DPS_MAP["SCENE_INFO"],  # "180" - SceneResponse proto
+        DPS_ROBOT_TELEMETRY,  # "179" - analysis raw
+    }
+)
+
+AUTO_ENTITY_OVERRIDES: dict[str, dict[str, Any]] = {
+    "bat_level": {
+        "name": "Battery",
+        "device_class": "battery",
+        "unit": "%",
+        "state_class": "measurement",
+        "enabled_default": True,
+        "entity_category": None,
+    },
+    "suction_level": {
+        "name": "Suction Level",
+        "icon": "mdi:fan",
+        "options_map": {0: "Quiet", 1: "Standard", 2: "Turbo", 3: "Max", 4: "Boost_IQ"},
+        "enabled_default": True,
+    },
+    "boost_iq": {
+        "name": "Boost IQ",
+        "icon": "mdi:car-turbocharger",
+        "enabled_default": True,
+    },
+    "calling_robot": {
+        "name": "Find Robot",
+        "icon": "mdi:magnify",
+        "enabled_default": True,
+        "entity_category": None,
+    },
+    "volume": {
+        "name": "Volume",
+        "icon": "mdi:volume-high",
+        "min": 0,
+        "max": 100,
+        "step": 1,
+        "enabled_default": True,
+    },
+}
 
 
 ACCESSORY_MAX_LIFE = {
@@ -561,6 +714,10 @@ ACCESSORY_MAX_LIFE = {
     "sensor_usage": 60,  # Maintain/clean interval
     "scrape_usage": 30,  # Cleaning Tray maintain/clean interval
     "mop_usage": 180,
+    "accessory_12_usage": 300,
+    "accessory_13_usage": 300,
+    "accessory_15_usage": 300,
+    "accessory_19_usage": 300,
 }
 
 # Dock statuses that indicate active dock operations
@@ -591,3 +748,31 @@ EUFY_CLEAN_APP_TRIGGER_MODES = {
 }
 
 DRY_DURATION_MAP = {"SHORT": "2h", "MEDIUM": "3h", "LONG": "4h"}
+
+SCHEDULE_ACTION_NAMES: dict[int, str] = {
+    0: "Auto Clean",
+    1: "Room Clean",
+    2: "Cruise",
+    3: "Scene Clean",
+}
+
+MEDIA_RESOLUTION_NAMES: dict[int, str] = {
+    0: "480p",
+    1: "720p",
+    2: "1080p",
+}
+
+MEDIA_RESOLUTION_REVERSE: dict[str, int] = {
+    v: k for k, v in MEDIA_RESOLUTION_NAMES.items()
+}
+
+MEDIA_RECORDING_STATE_NAMES: dict[int, str] = {
+    0: "Idle",
+    1: "Recording",
+}
+
+MEDIA_STORAGE_STATE_NAMES: dict[int, str] = {
+    0: "Normal",
+    1: "Threshold",
+    2: "Full",
+}

@@ -117,25 +117,32 @@ DPS keys are numeric strings that route to specific protobuf message types:
 
 | DPS Key | Name | Protobuf Type | Direction |
 |---------|------|---------------|-----------|
-| "152" | PLAY_PAUSE | ModeCtrlRequest | Send |
-| "153" | WORK_MODE | WorkStatus | Receive |
-| "154" | CLEANING_PARAMETERS | CleanParam | Receive |
-| "155" | DIRECTION | — | (unused) |
-| "156" | MULTI_MAP_SW | — | (unused) |
-| "158" | CLEAN_SPEED | (plain int index) | Both |
-| "160" | FIND_ROBOT | (plain bool) | Both |
+| "152" | MODE_CTRL | ModeCtrlRequest/Response | Both |
+| "153" | WORK_STATUS | WorkStatus | Receive |
+| "154" | CLEAN_PARAMS | CleanParam | Both |
+| "155" | REMOTE_CTRL | (Enum) | Both |
+| "156" | PAUSE_JOB | (Bool) | Both |
+| "157" | DND | UndisturbedRequest/Response | Both |
+| "158" | SUCTION_LEVEL | (plain int index) | Both |
+| "159" | BOOST_IQ | (Bool) | Both |
+| "160" | CALLING_ROBOT | (plain bool) | Both |
+| "161" | VOLUME | (Value 0-100) | Both |
 | "163" | BATTERY_LEVEL | (plain int) | Receive |
-| "164" | MAP_EDIT | MapEditRequest | Send |
-| "165" | MAP_DATA | UniversalDataResponse / RoomParams | Receive |
-| "166" | MAP_STREAM | — | (unused) |
-| "167" | CLEANING_STATISTICS | CleanStatistics | Receive |
-| "168" | ACCESSORIES_STATUS | ConsumableResponse/Request | Both |
-| "169" | MAP_MANAGE | — | (unused) |
-| "170" | MAP_EDIT_REQUEST | MapEditRequest | Send |
-| "173" | STATION_STATUS / GO_HOME | StationResponse (recv) / StationRequest (send) | Both |
-| "176" | UNSETTING | — | (unused) |
-| "177" | ERROR_CODE | ErrorCode | Receive |
-| "180" | SCENE_INFO | SceneResponse | Receive |
+| "164" | TIMING | TimerRequest/TimerResponse | Both |
+| "165" | RESERVED2 | (reserved on T2351) | — |
+| "166" | LOG_DEBUG | DebugRequest/DebugResponse | Both |
+| "167" | CLEAN_STATISTICS | CleanStatistics | Receive |
+| "168" | CONSUMABLES | ConsumableResponse/Request | Both |
+| "169" | APP_DEV_INFO | AppInfo/DeviceInfo | Both |
+| "170" | MAP_EDIT | MapEditRequest/Response | Both |
+| "171" | MULTI_MAPS_CTRL | MultiMapsCtrlRequest/Response | Both |
+| "172" | MULTI_MAPS_MNG | MultiMapsManageRequest/Response | Both |
+| "173" | STATION | StationResponse (recv) / StationRequest (send) | Both |
+| "176" | UNISETTING | (Raw) | Both |
+| "177" | ERROR_WARNING | ErrorCode | Both |
+| "178" | TOAST | PromptCode | Both |
+| "179" | ANALYSIS | AnalysisRequest/AnalysisResponse | Both |
+| "180" | SCENES | SceneResponse/SceneRequest | Both |
 
 ## Key State Mappings
 

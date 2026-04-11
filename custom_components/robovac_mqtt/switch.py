@@ -14,8 +14,13 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .api.commands import build_command
+from .auto_entities import get_auto_switches
 from .const import DOMAIN
 from .coordinator import EufyCleanCoordinator
+from .descriptions.switch import (
+    UNISETTING_SWITCH_DESCRIPTIONS,
+    RoboVacUnisettingSwitchDescription,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -34,33 +39,47 @@ async def async_setup_entry(
     for coordinator in coordinators:
         _LOGGER.debug("Adding switch entities for %s", coordinator.device_name)
 
-        entities.append(
-            DockSwitchEntity(
-                coordinator,
-                "auto_empty",
-                "Auto Empty",
-                lambda cfg: cfg.get("collectdust_v2", {})
-                .get("sw", {})
-                .get("value", False),
-                set_collect_dust,
-                icon="mdi:delete-restore",
+        if "STATION_STATUS" in coordinator.supported_dps:
+            entities.append(
+                DockSwitchEntity(
+                    coordinator,
+                    "auto_empty",
+                    "Auto Empty",
+                    lambda cfg: cfg.get("collectdust_v2", {})
+                    .get("sw", {})
+                    .get("value", False),
+                    set_collect_dust,
+                    icon="mdi:delete-restore",
+                )
             )
-        )
 
-        entities.append(
-            DockSwitchEntity(
-                coordinator,
-                "auto_wash",
-                "Auto Wash",
-                lambda cfg: cfg.get("wash", {}).get("cfg", "CLOSE") == "STANDARD",
-                set_wash_cfg,
-                icon="mdi:water-sync",
+            entities.append(
+                DockSwitchEntity(
+                    coordinator,
+                    "auto_wash",
+                    "Auto Wash",
+                    lambda cfg: cfg.get("wash", {}).get("cfg", "CLOSE") == "STANDARD",
+                    set_wash_cfg,
+                    icon="mdi:water-sync",
+                )
             )
-        )
 
-        entities.append(DoNotDisturbSwitchEntity(coordinator))
-        entities.append(ChildLockSwitchEntity(coordinator))
-        entities.append(FindRobotSwitchEntity(coordinator))
+        if "UNDISTURBED" in coordinator.supported_dps:
+            entities.append(DoNotDisturbSwitchEntity(coordinator))
+
+        if "UNSETTING" in coordinator.supported_dps:
+            entities.append(ChildLockSwitchEntity(coordinator))
+            entities.extend(
+                UnisettingSwitch(coordinator, description)
+                for description in UNISETTING_SWITCH_DESCRIPTIONS
+            )
+
+        entities.append(SmartModeSwitchEntity(coordinator))
+
+        if "MEDIA_MANAGER" in coordinator.supported_dps:
+            entities.append(MediaRecordingSwitchEntity(coordinator))
+
+        entities.extend(get_auto_switches(coordinator))
 
     async_add_entities(entities)
 
@@ -121,6 +140,7 @@ class DockSwitchEntity(CoordinatorEntity[EufyCleanCoordinator], SwitchEntity):
             self._attr_icon = icon
 
         self._attr_device_info = coordinator.device_info
+        self._attr_entity_registry_visible_default = False
 
     @property
     def is_on(self) -> bool | None:
@@ -152,35 +172,9 @@ class DockSwitchEntity(CoordinatorEntity[EufyCleanCoordinator], SwitchEntity):
         cfg = copy.deepcopy(self.coordinator.data.dock_auto_cfg)
         self._setter(cfg, state)
 
-        command = build_command("set_auto_cfg", cfg=cfg)
-        await self.coordinator.async_send_command(command)
-
-
-class FindRobotSwitchEntity(CoordinatorEntity[EufyCleanCoordinator], SwitchEntity):
-    """Switch for Find Robot feature."""
-
-    def __init__(self, coordinator: EufyCleanCoordinator) -> None:
-        """Initialize the find robot switch."""
-        super().__init__(coordinator)
-        self._attr_unique_id = f"{coordinator.device_id}_find_robot"
-        self._attr_has_entity_name = True
-        self._attr_name = "Find Robot"
-        self._attr_icon = "mdi:robot-vacuum-variant"
-        self._attr_device_info = coordinator.device_info
-
-    @property
-    def is_on(self) -> bool | None:
-        """Return true if switch is on."""
-        return self.coordinator.data.find_robot
-
-    async def async_turn_on(self, **kwargs: Any) -> None:
-        """Turn the switch on."""
-        command = build_command("find_robot", active=True)
-        await self.coordinator.async_send_command(command)
-
-    async def async_turn_off(self, **kwargs: Any) -> None:
-        """Turn the switch off."""
-        command = build_command("find_robot", active=False)
+        command = build_command(
+            "set_auto_cfg", dps_map=self.coordinator.dps_map, cfg=cfg
+        )
         await self.coordinator.async_send_command(command)
 
 
@@ -196,6 +190,8 @@ class ChildLockSwitchEntity(CoordinatorEntity[EufyCleanCoordinator], SwitchEntit
         self._attr_icon = "mdi:lock-outline"
         self._attr_entity_category = EntityCategory.CONFIG
         self._attr_device_info = coordinator.device_info
+        self._attr_entity_registry_enabled_default = False
+        self._attr_entity_registry_visible_default = False
 
     @property
     def is_on(self) -> bool | None:
@@ -238,6 +234,8 @@ class DoNotDisturbSwitchEntity(CoordinatorEntity[EufyCleanCoordinator], SwitchEn
         self._attr_icon = "mdi:minus-circle-off-outline"
         self._attr_entity_category = EntityCategory.CONFIG
         self._attr_device_info = coordinator.device_info
+        self._attr_entity_registry_enabled_default = False
+        self._attr_entity_registry_visible_default = False
 
     @property
     def is_on(self) -> bool | None:
@@ -273,8 +271,140 @@ class DoNotDisturbSwitchEntity(CoordinatorEntity[EufyCleanCoordinator], SwitchEn
         """Send DND command and optimistically update state."""
         schedule = _current_dnd_schedule(self.coordinator)
         schedule["active"] = state
-        command = build_command("set_do_not_disturb", **schedule)
+        command = build_command("set_do_not_disturb", **schedule)  # type: ignore[arg-type]
         await self.coordinator.async_send_command(command)
         self.coordinator.async_set_updated_data(
             replace(self.coordinator.data, dnd_enabled=state)
+        )
+
+
+class SmartModeSwitchEntity(CoordinatorEntity[EufyCleanCoordinator], SwitchEntity):
+    """Switch for the smart mode cleaning setting."""
+
+    def __init__(self, coordinator: EufyCleanCoordinator) -> None:
+        """Initialize the smart mode switch."""
+        super().__init__(coordinator)
+        self._attr_unique_id = f"{coordinator.device_id}_smart_mode"
+        self._attr_has_entity_name = True
+        self._attr_name = "Smart Mode"
+        self._attr_icon = "mdi:brain"
+        self._attr_entity_category = EntityCategory.CONFIG
+        self._attr_device_info = coordinator.device_info
+        self._attr_entity_registry_enabled_default = False
+        self._attr_entity_registry_visible_default = False
+
+    @property
+    def is_on(self) -> bool | None:
+        """Return true if smart mode is enabled."""
+        return self.coordinator.data.smart_mode
+
+    @property
+    def available(self) -> bool:
+        """Return whether the entity is available."""
+        return (
+            super().available and "smart_mode" in self.coordinator.data.received_fields
+        )
+
+    async def async_turn_on(self, **kwargs: Any) -> None:
+        """Enable smart mode."""
+        await self._set_state(True)
+
+    async def async_turn_off(self, **kwargs: Any) -> None:
+        """Disable smart mode."""
+        await self._set_state(False)
+
+    async def _set_state(self, state: bool) -> None:
+        """Send smart mode command and optimistically update state."""
+        command = build_command(
+            "set_smart_mode", dps_map=self.coordinator.dps_map, active=state
+        )
+        await self.coordinator.async_send_command(command)
+        self.coordinator.async_set_updated_data(
+            replace(self.coordinator.data, smart_mode=state)
+        )
+
+
+class UnisettingSwitch(CoordinatorEntity[EufyCleanCoordinator], SwitchEntity):
+
+    def __init__(
+        self,
+        coordinator: EufyCleanCoordinator,
+        description: RoboVacUnisettingSwitchDescription,
+    ) -> None:
+        super().__init__(coordinator)
+        self._field_name = description.field_name
+        self._attr_unique_id = f"{coordinator.device_id}_{description.field_name}"
+        self._attr_has_entity_name = True
+        self._attr_name = description.name
+        self._attr_icon = description.icon
+        self._attr_entity_category = EntityCategory.CONFIG
+        self._attr_device_info = coordinator.device_info
+        self._attr_entity_registry_enabled_default = False
+        self._attr_entity_registry_visible_default = False
+
+    @property
+    def is_on(self) -> bool | None:
+        return getattr(self.coordinator.data, self._field_name, None)
+
+    @property
+    def available(self) -> bool:
+        return (
+            super().available
+            and self._field_name in self.coordinator.data.received_fields
+        )
+
+    async def async_turn_on(self, **kwargs: Any) -> None:
+        await self._set(True)
+
+    async def async_turn_off(self, **kwargs: Any) -> None:
+        await self._set(False)
+
+    async def _set(self, value: bool) -> None:
+        cmd = build_command(
+            "set_unisetting",
+            dps_map=self.coordinator.dps_map,
+            field=self._field_name,
+            value=value,
+            current_state=self.coordinator.data,
+        )
+        await self.coordinator.async_send_command(cmd)
+
+
+class MediaRecordingSwitchEntity(CoordinatorEntity[EufyCleanCoordinator], SwitchEntity):
+
+    def __init__(self, coordinator: EufyCleanCoordinator) -> None:
+        super().__init__(coordinator)
+        self._attr_unique_id = f"{coordinator.device_id}_media_recording"
+        self._attr_has_entity_name = True
+        self._attr_name = "Recording"
+        self._attr_icon = "mdi:record-rec"
+        self._attr_entity_category = EntityCategory.CONFIG
+        self._attr_device_info = coordinator.device_info
+        self._attr_entity_registry_enabled_default = False
+        self._attr_entity_registry_visible_default = False
+
+    @property
+    def is_on(self) -> bool | None:
+        return self.coordinator.data.media_recording
+
+    @property
+    def available(self) -> bool:
+        return (
+            super().available
+            and "media_status" in self.coordinator.data.received_fields
+        )
+
+    async def async_turn_on(self, **kwargs: Any) -> None:
+        await self._set_state(True)
+
+    async def async_turn_off(self, **kwargs: Any) -> None:
+        await self._set_state(False)
+
+    async def _set_state(self, state: bool) -> None:
+        cmd = build_command(
+            "media_record", dps_map=self.coordinator.dps_map, start=state
+        )
+        await self.coordinator.async_send_command(cmd)
+        self.coordinator.async_set_updated_data(
+            replace(self.coordinator.data, media_recording=state)
         )

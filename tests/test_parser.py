@@ -34,9 +34,12 @@ from unittest.mock import MagicMock
 
 from custom_components.robovac_mqtt.api.parser import (
     _deduplicate_room_names,
+    _log_proto_novelty,
     _map_task_status,
+    update_state,
 )
-from custom_components.robovac_mqtt.const import WORK_MODE_NAMES
+from custom_components.robovac_mqtt.const import DEFAULT_DPS_MAP, WORK_MODE_NAMES
+from custom_components.robovac_mqtt.models import VacuumState
 
 
 def test_map_task_status_emptying_dust():
@@ -81,3 +84,40 @@ def test_work_mode_names_mapping():
     assert WORK_MODE_NAMES[1] == "Room"
     assert WORK_MODE_NAMES[3] == "Spot"
     assert WORK_MODE_NAMES[8] == "Scene"
+
+
+def test_log_proto_novelty_exception_logs_debug(caplog):
+    """_log_proto_novelty swallows exceptions but logs at debug level."""
+    import logging
+    from unittest.mock import patch
+
+    with caplog.at_level(
+        logging.DEBUG, logger="custom_components.robovac_mqtt.api.parser"
+    ):
+        with patch(
+            "custom_components.robovac_mqtt.api.parser._listfields_paths",
+            side_effect=Exception("boom"),
+        ):
+            _log_proto_novelty("153", MagicMock(), "AAAA")
+
+    assert "Proto novelty detection failed" in caplog.text
+
+
+def test_update_state_consumable_runtime_exception_logs_warning(caplog):
+    """update_state() logs warning when consumable runtime decode fails."""
+    import logging
+    from unittest.mock import patch
+
+    base_state = VacuumState()
+    dps_key = DEFAULT_DPS_MAP.get("ACCESSORIES_STATUS", "168")
+
+    with caplog.at_level(
+        logging.WARNING, logger="custom_components.robovac_mqtt.api.parser"
+    ):
+        with patch(
+            "custom_components.robovac_mqtt.api.parser.decode",
+            side_effect=Exception("decode error"),
+        ):
+            update_state(base_state, {dps_key: "AAAA"})
+
+    assert "Failed to parse consumable runtime" in caplog.text

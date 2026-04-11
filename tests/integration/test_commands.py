@@ -245,9 +245,7 @@ class TestCleanParamCommands:
         assert result == {}
 
     def test_set_cleaning_intensity_standard(self):
-        result = build_command(
-            "set_cleaning_intensity", cleaning_intensity="standard"
-        )
+        result = build_command("set_cleaning_intensity", cleaning_intensity="standard")
         assert DPS_CLEANING_PARAMS in result
         proto = decode(CleanParamRequest, result[DPS_CLEANING_PARAMS])
         assert proto.clean_param.clean_extent.value == CleanExtent.NORMAL

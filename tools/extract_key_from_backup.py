@@ -60,11 +60,13 @@ def search_binary(data: bytes, filename: str = "") -> list[dict]:
             start = max(0, match.start() - 50)
             end = min(len(data), match.end() + 50)
             context = data[start:end]
-            found.append({
-                "key": key,
-                "file": filename,
-                "context": context.decode("ascii", errors="replace"),
-            })
+            found.append(
+                {
+                    "key": key,
+                    "file": filename,
+                    "context": context.decode("ascii", errors="replace"),
+                }
+            )
             print(f"  🔑 Potential key: {key} in {filename}")
 
     return found
@@ -119,7 +121,10 @@ def extract_from_encrypted_backup(backup_path: str, password: str) -> list[dict]
         try:
             for domain, rel_path in backup._iter_files():
                 lower = rel_path.lower() if rel_path else ""
-                if any(kw in lower for kw in ["tuya", "eufy", "clean", "robo", "vacuum", "device"]):
+                if any(
+                    kw in lower
+                    for kw in ["tuya", "eufy", "clean", "robo", "vacuum", "device"]
+                ):
                     try:
                         out = os.path.join(tmpdir, f"match_{hash(rel_path)}")
                         backup.extract_file(
@@ -148,7 +153,11 @@ def extract_from_encrypted_backup(backup_path: str, password: str) -> list[dict]
                     )
                     with open(out, "rb") as f:
                         data = f.read()
-                    if DEVICE_ID_BYTES in data or b"localKey" in data or b"local_key" in data:
+                    if (
+                        DEVICE_ID_BYTES in data
+                        or b"localKey" in data
+                        or b"local_key" in data
+                    ):
                         print(f"  🎯 HIT in {domain}/{rel_path}")
                         keys = search_binary(data, f"{domain}/{rel_path}")
                         all_keys.extend(keys)
@@ -188,15 +197,23 @@ def search_plist(obj, path: str, found: list):
         for k, v in obj.items():
             if isinstance(v, (str, bytes)):
                 s = v if isinstance(v, str) else v.decode("ascii", errors="replace")
-                if DEVICE_ID in s or "localKey" in s.lower() or "local_key" in s.lower():
+                if (
+                    DEVICE_ID in s
+                    or "localKey" in s.lower()
+                    or "local_key" in s.lower()
+                ):
                     print(f"  🎯 Plist hit: {path}.{k} = {s[:100]}")
                     for pattern in TUYA_KEY_PATTERNS:
-                        for m in pattern.finditer(v if isinstance(v, bytes) else v.encode()):
-                            found.append({
-                                "key": m.group(1).decode("ascii", errors="replace"),
-                                "file": f"{path}.{k}",
-                                "context": s[:200],
-                            })
+                        for m in pattern.finditer(
+                            v if isinstance(v, bytes) else v.encode()
+                        ):
+                            found.append(
+                                {
+                                    "key": m.group(1).decode("ascii", errors="replace"),
+                                    "file": f"{path}.{k}",
+                                    "context": s[:200],
+                                }
+                            )
             else:
                 search_plist(v, f"{path}.{k}", found)
     elif isinstance(obj, list):

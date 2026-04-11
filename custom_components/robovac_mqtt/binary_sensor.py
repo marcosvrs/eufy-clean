@@ -1,20 +1,20 @@
 from __future__ import annotations
 
 import logging
-from collections.abc import Callable
 
-from homeassistant.components.binary_sensor import (
-    BinarySensorDeviceClass,
-    BinarySensorEntity,
-)
+from homeassistant.components.binary_sensor import BinarySensorEntity
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
+from .auto_entities import get_auto_binary_sensors
 from .const import DOMAIN
-from .coordinator import EufyCleanCoordinator, VacuumState
+from .coordinator import EufyCleanCoordinator
+from .descriptions.binary_sensor import (
+    BINARY_SENSOR_DESCRIPTIONS,
+    RoboVacBinarySensorDescription,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -24,62 +24,53 @@ async def async_setup_entry(
     config_entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-    """Setup binary sensor entities."""
+    """Set up binary sensor entities from descriptions."""
     data = hass.data[DOMAIN][config_entry.entry_id]
     coordinators: list[EufyCleanCoordinator] = data["coordinators"]
-
-    entities = []
-
+    entities: list[BinarySensorEntity] = []
     for coordinator in coordinators:
         _LOGGER.debug("Adding binary sensors for %s", coordinator.device_name)
-
-        entities.append(
-            RoboVacBinarySensor(
-                coordinator,
-                "charging",
-                "Charging",
-                lambda s: s.charging,
-                device_class=BinarySensorDeviceClass.BATTERY_CHARGING,
-            )
+        entities.extend(
+            RoboVacBinarySensor(coordinator, description)
+            for description in BINARY_SENSOR_DESCRIPTIONS
+            if description.exists_fn(coordinator)
         )
-
+        entities.extend(get_auto_binary_sensors(coordinator))
     async_add_entities(entities)
 
 
 class RoboVacBinarySensor(CoordinatorEntity[EufyCleanCoordinator], BinarySensorEntity):
     """Eufy Clean Binary Sensor Entity."""
 
+    _attr_has_entity_name = True
+    _attr_entity_registry_visible_default = False
+
     def __init__(
         self,
         coordinator: EufyCleanCoordinator,
-        id_suffix: str,
-        name_suffix: str,
-        value_fn: Callable[[VacuumState], bool],
-        device_class: BinarySensorDeviceClass | None = None,
-        category: EntityCategory | None = EntityCategory.DIAGNOSTIC,
-        availability_fn: Callable[[VacuumState], bool] | None = None,
+        description: RoboVacBinarySensorDescription,
     ) -> None:
         """Initialize the binary sensor."""
         super().__init__(coordinator)
-        self._value_fn = value_fn
-        self._availability_fn = availability_fn
-        self._attr_unique_id = f"{coordinator.device_id}_{id_suffix}"
-        self._attr_has_entity_name = True
-        self._attr_name = name_suffix
+        self.entity_description = description
+        self._attr_unique_id = f"{coordinator.device_id}_{description.key}"
+        self._attr_name = description.name
         self._attr_device_info = coordinator.device_info
-        self._attr_device_class = device_class
-        self._attr_entity_category = category
+        self._attr_entity_registry_enabled_default = (
+            description.availability_fn is None
+            and getattr(description, "enabled_default", True)
+        )
 
     @property
     def available(self) -> bool:
         """Return True if entity is available."""
         if not super().available:
             return False
-        if self._availability_fn is not None:
-            return self._availability_fn(self.coordinator.data)
+        if self.entity_description.availability_fn is not None:
+            return self.entity_description.availability_fn(self.coordinator.data)
         return True
 
     @property
     def is_on(self) -> bool | None:
         """Return true if the binary sensor is on."""
-        return self._value_fn(self.coordinator.data)
+        return self.entity_description.value_fn(self.coordinator.data)

@@ -26,8 +26,9 @@ async def async_setup_entry(
 
     entities = []
     for coordinator in coordinators:
-        entities.append(DoNotDisturbStartTimeEntity(coordinator))
-        entities.append(DoNotDisturbEndTimeEntity(coordinator))
+        if "UNDISTURBED" in coordinator.supported_dps:
+            entities.append(DoNotDisturbStartTimeEntity(coordinator))
+            entities.append(DoNotDisturbEndTimeEntity(coordinator))
 
     async_add_entities(entities)
 
@@ -52,6 +53,8 @@ class _DoNotDisturbTimeEntity(CoordinatorEntity[EufyCleanCoordinator], TimeEntit
         self._attr_icon = icon
         self._attr_entity_category = EntityCategory.CONFIG
         self._attr_device_info = coordinator.device_info
+        self._attr_entity_registry_enabled_default = False
+        self._attr_entity_registry_visible_default = False
 
     @property
     def available(self) -> bool:

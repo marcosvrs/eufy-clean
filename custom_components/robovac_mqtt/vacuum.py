@@ -134,6 +134,8 @@ class RoboVacMQTTEntity(CoordinatorEntity[EufyCleanCoordinator], StateVacuumEnti
 
     _attr_has_entity_name = True
     _attr_name = None
+    _attr_entity_registry_visible_default = True
+    _unrecorded_attributes = frozenset({"rooms", "segments"})
 
     def __init__(
         self, coordinator: EufyCleanCoordinator, config_entry: ConfigEntry | None = None
@@ -519,7 +521,7 @@ class RoboVacMQTTEntity(CoordinatorEntity[EufyCleanCoordinator], StateVacuumEnti
                 try:
                     room_ids.append(int(room_id))
                 except (ValueError, TypeError):
-                    pass
+                    _LOGGER.warning("Skipping room with invalid id: %s", room_id)
             if room_ids:
                 await self._async_handle_room_clean({"room_ids": room_ids})
                 return

@@ -6,6 +6,7 @@ DPS values. Run from the project root:
 
     python -m tests.generate_fixtures
 """
+
 from __future__ import annotations
 
 import importlib
@@ -36,8 +37,10 @@ for pkg_name, pkg_path in (
         mod.__package__ = pkg_name
         sys.modules[pkg_name] = mod
 
-# Now safe to import proto modules (their relative imports find stubs above)
-from custom_components.robovac_mqtt.proto.cloud.clean_param_pb2 import (
+# encode_message also needs the stub workaround (utils.py has no HA imports)
+import importlib.util  # noqa: E402
+
+from custom_components.robovac_mqtt.proto.cloud.clean_param_pb2 import (  # noqa: E402
     CleanCarpet,
     CleanExtent,
     CleanParam,
@@ -47,31 +50,36 @@ from custom_components.robovac_mqtt.proto.cloud.clean_param_pb2 import (
     Fan,
     MopMode,
 )
-from custom_components.robovac_mqtt.proto.cloud.clean_statistics_pb2 import (
+from custom_components.robovac_mqtt.proto.cloud.clean_statistics_pb2 import (  # noqa: E402
     CleanStatistics,
 )
-from custom_components.robovac_mqtt.proto.cloud.common_pb2 import (
+from custom_components.robovac_mqtt.proto.cloud.common_pb2 import (  # noqa: E402
     RoomScene,
     Switch,
 )
-from custom_components.robovac_mqtt.proto.cloud.consumable_pb2 import (
+from custom_components.robovac_mqtt.proto.cloud.consumable_pb2 import (  # noqa: E402
     ConsumableResponse,
     ConsumableRuntime,
 )
-from custom_components.robovac_mqtt.proto.cloud.error_code_pb2 import ErrorCode
-from custom_components.robovac_mqtt.proto.cloud.scene_pb2 import (
+from custom_components.robovac_mqtt.proto.cloud.error_code_pb2 import (  # noqa: E402
+    ErrorCode,
+)
+from custom_components.robovac_mqtt.proto.cloud.scene_pb2 import (  # noqa: E402
     SceneInfo,
     SceneResponse,
 )
-from custom_components.robovac_mqtt.proto.cloud.station_pb2 import StationResponse
-from custom_components.robovac_mqtt.proto.cloud.stream_pb2 import RoomParams
-from custom_components.robovac_mqtt.proto.cloud.universal_data_pb2 import (
+from custom_components.robovac_mqtt.proto.cloud.station_pb2 import (  # noqa: E402
+    StationResponse,
+)
+from custom_components.robovac_mqtt.proto.cloud.stream_pb2 import (  # noqa: E402
+    RoomParams,
+)
+from custom_components.robovac_mqtt.proto.cloud.universal_data_pb2 import (  # noqa: E402
     UniversalDataResponse,
 )
-from custom_components.robovac_mqtt.proto.cloud.work_status_pb2 import WorkStatus
-
-# encode_message also needs the stub workaround (utils.py has no HA imports)
-import importlib.util
+from custom_components.robovac_mqtt.proto.cloud.work_status_pb2 import (  # noqa: E402
+    WorkStatus,
+)
 
 _utils_spec = importlib.util.spec_from_file_location(
     "robovac_utils",
@@ -98,76 +106,92 @@ def write_fixture(path: str, data: dict) -> None:
 # WORK STATUS FIXTURES (DPS 153)
 # ──────────────────────────────────────────────────────────────
 
+
 def gen_work_status_idle_standby():
     ws = WorkStatus(state=WorkStatus.STANDBY)
-    write_fixture("mqtt/work_status/idle_standby.json", {
-        "description": "WorkStatus state=0 (idle/standby)",
-        "dps": {"153": encode_message(ws)},
-        "expected_state": {
-            "activity": "idle",
-            "task_status": "Idle",
-            "charging": False,
-            "trigger_source": "unknown",
+    write_fixture(
+        "mqtt/work_status/idle_standby.json",
+        {
+            "description": "WorkStatus state=0 (idle/standby)",
+            "dps": {"153": encode_message(ws)},
+            "expected_state": {
+                "activity": "idle",
+                "task_status": "Idle",
+                "charging": False,
+                "trigger_source": "unknown",
+            },
         },
-    })
+    )
 
 
 def gen_work_status_idle_sleep():
     ws = WorkStatus(state=WorkStatus.SLEEP)
-    write_fixture("mqtt/work_status/idle_sleep.json", {
-        "description": "WorkStatus state=1 (idle/sleep)",
-        "dps": {"153": encode_message(ws)},
-        "expected_state": {
-            "activity": "idle",
-            "task_status": "Idle",
-            "charging": False,
-            "trigger_source": "unknown",
+    write_fixture(
+        "mqtt/work_status/idle_sleep.json",
+        {
+            "description": "WorkStatus state=1 (idle/sleep)",
+            "dps": {"153": encode_message(ws)},
+            "expected_state": {
+                "activity": "idle",
+                "task_status": "Idle",
+                "charging": False,
+                "trigger_source": "unknown",
+            },
         },
-    })
+    )
 
 
 def gen_work_status_error():
     ws = WorkStatus(state=WorkStatus.FAULT)
-    write_fixture("mqtt/work_status/error.json", {
-        "description": "WorkStatus state=2 (fault/error)",
-        "dps": {"153": encode_message(ws)},
-        "expected_state": {
-            "activity": "error",
-            "task_status": "Error",
-            "charging": False,
-            "trigger_source": "unknown",
+    write_fixture(
+        "mqtt/work_status/error.json",
+        {
+            "description": "WorkStatus state=2 (fault/error)",
+            "dps": {"153": encode_message(ws)},
+            "expected_state": {
+                "activity": "error",
+                "task_status": "Error",
+                "charging": False,
+                "trigger_source": "unknown",
+            },
         },
-    })
+    )
 
 
 def gen_work_status_docked_charging():
     ws = WorkStatus(state=WorkStatus.CHARGING)
     ws.charging.state = WorkStatus.Charging.DOING
-    write_fixture("mqtt/work_status/docked_charging.json", {
-        "description": "WorkStatus state=3 (charging), charging.state=DOING",
-        "dps": {"153": encode_message(ws)},
-        "expected_state": {
-            "activity": "docked",
-            "task_status": "Completed",
-            "charging": True,
-            "trigger_source": "unknown",
+    write_fixture(
+        "mqtt/work_status/docked_charging.json",
+        {
+            "description": "WorkStatus state=3 (charging), charging.state=DOING",
+            "dps": {"153": encode_message(ws)},
+            "expected_state": {
+                "activity": "docked",
+                "task_status": "Completed",
+                "charging": True,
+                "trigger_source": "unknown",
+            },
         },
-    })
+    )
 
 
 def gen_work_status_cleaning_positioning():
     ws = WorkStatus(state=WorkStatus.FAST_MAPPING)
     ws.mode.value = WorkStatus.Mode.AUTO
-    write_fixture("mqtt/work_status/cleaning_positioning.json", {
-        "description": "WorkStatus state=4 (positioning/fast_mapping)",
-        "dps": {"153": encode_message(ws)},
-        "expected_state": {
-            "activity": "cleaning",
-            "task_status": "Positioning",
-            "charging": False,
-            "work_mode": "Auto",
+    write_fixture(
+        "mqtt/work_status/cleaning_positioning.json",
+        {
+            "description": "WorkStatus state=4 (positioning/fast_mapping)",
+            "dps": {"153": encode_message(ws)},
+            "expected_state": {
+                "activity": "cleaning",
+                "task_status": "Positioning",
+                "charging": False,
+                "work_mode": "Auto",
+            },
         },
-    })
+    )
 
 
 def gen_work_status_cleaning_active():
@@ -175,17 +199,20 @@ def gen_work_status_cleaning_active():
     ws.mode.value = WorkStatus.Mode.AUTO
     ws.cleaning.state = WorkStatus.Cleaning.DOING
     ws.trigger.source = WorkStatus.Trigger.APP
-    write_fixture("mqtt/work_status/cleaning_active.json", {
-        "description": "WorkStatus state=5 (active cleaning), no station activity",
-        "dps": {"153": encode_message(ws)},
-        "expected_state": {
-            "activity": "cleaning",
-            "task_status": "Cleaning",
-            "charging": False,
-            "trigger_source": "app",
-            "work_mode": "Auto",
+    write_fixture(
+        "mqtt/work_status/cleaning_active.json",
+        {
+            "description": "WorkStatus state=5 (active cleaning), no station activity",
+            "dps": {"153": encode_message(ws)},
+            "expected_state": {
+                "activity": "cleaning",
+                "task_status": "Cleaning",
+                "charging": False,
+                "trigger_source": "app",
+                "work_mode": "Auto",
+            },
         },
-    })
+    )
 
 
 def gen_work_status_docked_washing():
@@ -201,19 +228,22 @@ def gen_work_status_docked_washing():
     sr.status.connected = True
     sr.status.state = StationResponse.StationStatus.WASHING
 
-    write_fixture("mqtt/work_status/docked_washing.json", {
-        "description": "WorkStatus state=5 + station washing (cross-DPS: 153+173)",
-        "dps": {
-            "153": encode_message(ws),
-            "173": encode_message(sr),
+    write_fixture(
+        "mqtt/work_status/docked_washing.json",
+        {
+            "description": "WorkStatus state=5 + station washing (cross-DPS: 153+173)",
+            "dps": {
+                "153": encode_message(ws),
+                "173": encode_message(sr),
+            },
+            "expected_state": {
+                "activity": "docked",
+                "task_status": "Washing Mop",
+                "dock_status": "Washing",
+                "charging": False,
+            },
         },
-        "expected_state": {
-            "activity": "docked",
-            "task_status": "Washing Mop",
-            "dock_status": "Washing",
-            "charging": False,
-        },
-    })
+    )
 
 
 def gen_work_status_docked_drying():
@@ -229,34 +259,40 @@ def gen_work_status_docked_drying():
     sr.status.connected = True
     sr.status.state = StationResponse.StationStatus.DRYING
 
-    write_fixture("mqtt/work_status/docked_drying.json", {
-        "description": "WorkStatus state=5 + station drying (cross-DPS: 153+173)",
-        "dps": {
-            "153": encode_message(ws),
-            "173": encode_message(sr),
+    write_fixture(
+        "mqtt/work_status/docked_drying.json",
+        {
+            "description": "WorkStatus state=5 + station drying (cross-DPS: 153+173)",
+            "dps": {
+                "153": encode_message(ws),
+                "173": encode_message(sr),
+            },
+            "expected_state": {
+                "activity": "docked",
+                "task_status": "Completed",
+                "dock_status": "Drying",
+                "charging": False,
+            },
         },
-        "expected_state": {
-            "activity": "docked",
-            "task_status": "Completed",
-            "dock_status": "Drying",
-            "charging": False,
-        },
-    })
+    )
 
 
 def gen_work_status_returning():
     ws = WorkStatus(state=WorkStatus.GO_HOME)
     ws.go_home.state = WorkStatus.GoHome.DOING
     ws.go_home.mode = WorkStatus.GoHome.COMPLETE_TASK
-    write_fixture("mqtt/work_status/returning.json", {
-        "description": "WorkStatus state=7 (go home / returning)",
-        "dps": {"153": encode_message(ws)},
-        "expected_state": {
-            "activity": "returning",
-            "task_status": "Returning",
-            "charging": False,
+    write_fixture(
+        "mqtt/work_status/returning.json",
+        {
+            "description": "WorkStatus state=7 (go home / returning)",
+            "dps": {"153": encode_message(ws)},
+            "expected_state": {
+                "activity": "returning",
+                "task_status": "Returning",
+                "charging": False,
+            },
         },
-    })
+    )
 
 
 def gen_work_status_trigger_app():
@@ -264,15 +300,18 @@ def gen_work_status_trigger_app():
     ws.mode.value = WorkStatus.Mode.AUTO
     ws.cleaning.state = WorkStatus.Cleaning.DOING
     ws.trigger.source = WorkStatus.Trigger.APP
-    write_fixture("mqtt/work_status/trigger_app.json", {
-        "description": "WorkStatus with trigger.source=1 (APP)",
-        "dps": {"153": encode_message(ws)},
-        "expected_state": {
-            "activity": "cleaning",
-            "trigger_source": "app",
-            "work_mode": "Auto",
+    write_fixture(
+        "mqtt/work_status/trigger_app.json",
+        {
+            "description": "WorkStatus with trigger.source=1 (APP)",
+            "dps": {"153": encode_message(ws)},
+            "expected_state": {
+                "activity": "cleaning",
+                "trigger_source": "app",
+                "work_mode": "Auto",
+            },
         },
-    })
+    )
 
 
 def gen_work_status_trigger_button():
@@ -280,15 +319,18 @@ def gen_work_status_trigger_button():
     ws.mode.value = WorkStatus.Mode.AUTO
     ws.cleaning.state = WorkStatus.Cleaning.DOING
     ws.trigger.source = WorkStatus.Trigger.KEY
-    write_fixture("mqtt/work_status/trigger_button.json", {
-        "description": "WorkStatus with trigger.source=2 (KEY/button)",
-        "dps": {"153": encode_message(ws)},
-        "expected_state": {
-            "activity": "cleaning",
-            "trigger_source": "button",
-            "work_mode": "Auto",
+    write_fixture(
+        "mqtt/work_status/trigger_button.json",
+        {
+            "description": "WorkStatus with trigger.source=2 (KEY/button)",
+            "dps": {"153": encode_message(ws)},
+            "expected_state": {
+                "activity": "cleaning",
+                "trigger_source": "button",
+                "work_mode": "Auto",
+            },
         },
-    })
+    )
 
 
 def gen_work_status_trigger_schedule():
@@ -296,15 +338,18 @@ def gen_work_status_trigger_schedule():
     ws.mode.value = WorkStatus.Mode.AUTO
     ws.cleaning.state = WorkStatus.Cleaning.DOING
     ws.trigger.source = WorkStatus.Trigger.TIMING
-    write_fixture("mqtt/work_status/trigger_schedule.json", {
-        "description": "WorkStatus with trigger.source=3 (TIMING/schedule)",
-        "dps": {"153": encode_message(ws)},
-        "expected_state": {
-            "activity": "cleaning",
-            "trigger_source": "schedule",
-            "work_mode": "Auto",
+    write_fixture(
+        "mqtt/work_status/trigger_schedule.json",
+        {
+            "description": "WorkStatus with trigger.source=3 (TIMING/schedule)",
+            "dps": {"153": encode_message(ws)},
+            "expected_state": {
+                "activity": "cleaning",
+                "trigger_source": "schedule",
+                "work_mode": "Auto",
+            },
         },
-    })
+    )
 
 
 def gen_work_status_trigger_missing_app_mode():
@@ -313,58 +358,71 @@ def gen_work_status_trigger_missing_app_mode():
     ws.mode.value = WorkStatus.Mode.SELECT_ROOM
     ws.cleaning.state = WorkStatus.Cleaning.DOING
     # Deliberately NO trigger field set
-    write_fixture("mqtt/work_status/trigger_missing_app_mode.json", {
-        "description": "WorkStatus with no trigger field, mode=1 (SELECT_ROOM in APP_TRIGGER_MODES) → inferred app",
-        "dps": {"153": encode_message(ws)},
-        "expected_state": {
-            "activity": "cleaning",
-            "trigger_source": "app",
-            "work_mode": "Room",
+    write_fixture(
+        "mqtt/work_status/trigger_missing_app_mode.json",
+        {
+            "description": "WorkStatus with no trigger field, mode=1 (SELECT_ROOM in APP_TRIGGER_MODES) → inferred app",
+            "dps": {"153": encode_message(ws)},
+            "expected_state": {
+                "activity": "cleaning",
+                "trigger_source": "app",
+                "work_mode": "Room",
+            },
         },
-    })
+    )
 
 
 # ──────────────────────────────────────────────────────────────
 # STATION STATUS FIXTURES (DPS 173)
 # ──────────────────────────────────────────────────────────────
 
+
 def gen_station_idle():
     sr = StationResponse()
     sr.status.connected = True
     sr.status.state = StationResponse.StationStatus.IDLE
-    write_fixture("mqtt/station_status/idle.json", {
-        "description": "StationResponse: idle, connected",
-        "dps": {"173": encode_message(sr)},
-        "expected_state": {
-            "dock_status": "Idle",
+    write_fixture(
+        "mqtt/station_status/idle.json",
+        {
+            "description": "StationResponse: idle, connected",
+            "dps": {"173": encode_message(sr)},
+            "expected_state": {
+                "dock_status": "Idle",
+            },
         },
-    })
+    )
 
 
 def gen_station_washing():
     sr = StationResponse()
     sr.status.connected = True
     sr.status.state = StationResponse.StationStatus.WASHING
-    write_fixture("mqtt/station_status/washing.json", {
-        "description": "StationResponse: washing mop",
-        "dps": {"173": encode_message(sr)},
-        "expected_state": {
-            "dock_status": "Washing",
+    write_fixture(
+        "mqtt/station_status/washing.json",
+        {
+            "description": "StationResponse: washing mop",
+            "dps": {"173": encode_message(sr)},
+            "expected_state": {
+                "dock_status": "Washing",
+            },
         },
-    })
+    )
 
 
 def gen_station_drying():
     sr = StationResponse()
     sr.status.connected = True
     sr.status.state = StationResponse.StationStatus.DRYING
-    write_fixture("mqtt/station_status/drying.json", {
-        "description": "StationResponse: drying mop",
-        "dps": {"173": encode_message(sr)},
-        "expected_state": {
-            "dock_status": "Drying",
+    write_fixture(
+        "mqtt/station_status/drying.json",
+        {
+            "description": "StationResponse: drying mop",
+            "dps": {"173": encode_message(sr)},
+            "expected_state": {
+                "dock_status": "Drying",
+            },
         },
-    })
+    )
 
 
 def gen_station_emptying_dust():
@@ -372,18 +430,22 @@ def gen_station_emptying_dust():
     sr.status.connected = True
     sr.status.state = StationResponse.StationStatus.IDLE
     sr.status.collecting_dust = True
-    write_fixture("mqtt/station_status/emptying_dust.json", {
-        "description": "StationResponse: emptying dust (collecting_dust=True)",
-        "dps": {"173": encode_message(sr)},
-        "expected_state": {
-            "dock_status": "Emptying dust",
+    write_fixture(
+        "mqtt/station_status/emptying_dust.json",
+        {
+            "description": "StationResponse: emptying dust (collecting_dust=True)",
+            "dps": {"173": encode_message(sr)},
+            "expected_state": {
+                "dock_status": "Emptying dust",
+            },
         },
-    })
+    )
 
 
 # ──────────────────────────────────────────────────────────────
 # CLEANING PARAMETERS FIXTURES (DPS 154)
 # ──────────────────────────────────────────────────────────────
+
 
 def gen_cleaning_params_response():
     cp = CleanParam()
@@ -399,19 +461,22 @@ def gen_cleaning_params_response():
     resp = CleanParamResponse()
     resp.clean_param.CopyFrom(cp)
 
-    write_fixture("mqtt/cleaning_params/response_format.json", {
-        "description": "CleanParamResponse with full cleaning parameters",
-        "dps": {"154": encode_message(resp)},
-        "expected_state": {
-            "cleaning_mode": "Vacuum and mop",
-            "fan_speed": "Turbo",
-            "mop_water_level": "Medium",
-            "cleaning_intensity": "Normal",
-            "carpet_strategy": "Auto Raise",
-            "corner_cleaning": "Normal",
-            "smart_mode": False,
+    write_fixture(
+        "mqtt/cleaning_params/response_format.json",
+        {
+            "description": "CleanParamResponse with full cleaning parameters",
+            "dps": {"154": encode_message(resp)},
+            "expected_state": {
+                "cleaning_mode": "Vacuum and mop",
+                "fan_speed": "Turbo",
+                "mop_water_level": "Medium",
+                "cleaning_intensity": "Normal",
+                "carpet_strategy": "Auto Raise",
+                "corner_cleaning": "Normal",
+                "smart_mode": False,
+            },
         },
-    })
+    )
 
 
 def gen_cleaning_params_request():
@@ -423,20 +488,24 @@ def gen_cleaning_params_request():
     req = CleanParamRequest()
     req.clean_param.CopyFrom(cp)
 
-    write_fixture("mqtt/cleaning_params/request_format.json", {
-        "description": "CleanParamRequest fallback format",
-        "dps": {"154": encode_message(req)},
-        "expected_state": {
-            "cleaning_mode": "Mop",
-            "fan_speed": "Quiet",
-            "mop_water_level": "High",
+    write_fixture(
+        "mqtt/cleaning_params/request_format.json",
+        {
+            "description": "CleanParamRequest fallback format",
+            "dps": {"154": encode_message(req)},
+            "expected_state": {
+                "cleaning_mode": "Mop",
+                "fan_speed": "Quiet",
+                "mop_water_level": "High",
+            },
         },
-    })
+    )
 
 
 # ──────────────────────────────────────────────────────────────
 # MAP DATA FIXTURES (DPS 165)
 # ──────────────────────────────────────────────────────────────
+
 
 def gen_map_universal_data():
     udr = UniversalDataResponse()
@@ -461,18 +530,21 @@ def gen_map_universal_data():
     r3.scene.type = RoomScene.BEDROOM
     r3.scene.index.value = 1
 
-    write_fixture("mqtt/map_data/universal_data_response.json", {
-        "description": "UniversalDataResponse with 3 rooms on map_id=4",
-        "dps": {"165": encode_message(udr)},
-        "expected_state": {
-            "map_id": 4,
-            "rooms": [
-                {"id": 1, "name": "Kitchen"},
-                {"id": 2, "name": "Living Room"},
-                {"id": 3, "name": "Bedroom"},
-            ],
+    write_fixture(
+        "mqtt/map_data/universal_data_response.json",
+        {
+            "description": "UniversalDataResponse with 3 rooms on map_id=4",
+            "dps": {"165": encode_message(udr)},
+            "expected_state": {
+                "map_id": 4,
+                "rooms": [
+                    {"id": 1, "name": "Kitchen"},
+                    {"id": 2, "name": "Living Room"},
+                    {"id": 3, "name": "Bedroom"},
+                ],
+            },
         },
-    })
+    )
 
 
 def gen_map_room_params():
@@ -492,79 +564,96 @@ def gen_map_room_params():
     rm2.scene.type = RoomScene.CORRIDOR
     rm2.scene.index.value = 1
 
-    write_fixture("mqtt/map_data/room_params.json", {
-        "description": "RoomParams with 2 rooms on map_id=6",
-        "dps": {"165": encode_message(rp)},
-        "expected_state": {
-            "map_id": 6,
-            "rooms": [
-                {"id": 1, "name": "Office"},
-                {"id": 2, "name": "Hallway"},
-            ],
+    write_fixture(
+        "mqtt/map_data/room_params.json",
+        {
+            "description": "RoomParams with 2 rooms on map_id=6",
+            "dps": {"165": encode_message(rp)},
+            "expected_state": {
+                "map_id": 6,
+                "rooms": [
+                    {"id": 1, "name": "Office"},
+                    {"id": 2, "name": "Hallway"},
+                ],
+            },
         },
-    })
+    )
 
 
 # ──────────────────────────────────────────────────────────────
 # ERROR CODE FIXTURES (DPS 177)
 # ──────────────────────────────────────────────────────────────
 
+
 def gen_error_no_error():
     ec = ErrorCode()
     # No error/warn fields set → code 0
-    write_fixture("mqtt/error_code/no_error.json", {
-        "description": "ErrorCode with no errors (code=0)",
-        "dps": {"177": encode_message(ec)},
-        "expected_state": {
-            "error_code": 0,
-            "error_message": "",
+    write_fixture(
+        "mqtt/error_code/no_error.json",
+        {
+            "description": "ErrorCode with no errors (code=0)",
+            "dps": {"177": encode_message(ec)},
+            "expected_state": {
+                "error_code": 0,
+                "error_message": "",
+            },
         },
-    })
+    )
 
 
 def gen_error_wheel_stuck():
     ec = ErrorCode()
     ec.warn.append(2)  # WHEEL STUCK
-    write_fixture("mqtt/error_code/wheel_stuck.json", {
-        "description": "ErrorCode with warn=2 (WHEEL STUCK)",
-        "dps": {"177": encode_message(ec)},
-        "expected_state": {
-            "error_code": 2,
-            "error_message": "WHEEL STUCK",
+    write_fixture(
+        "mqtt/error_code/wheel_stuck.json",
+        {
+            "description": "ErrorCode with warn=2 (WHEEL STUCK)",
+            "dps": {"177": encode_message(ec)},
+            "expected_state": {
+                "error_code": 2,
+                "error_message": "WHEEL STUCK",
+            },
         },
-    })
+    )
 
 
 # ──────────────────────────────────────────────────────────────
 # TASK STATUS FIXTURES (DPS 153 — different WorkStatus configs)
 # ──────────────────────────────────────────────────────────────
 
+
 def gen_task_cleaning():
     ws = WorkStatus(state=WorkStatus.CLEANING)
     ws.mode.value = WorkStatus.Mode.AUTO
     ws.cleaning.state = WorkStatus.Cleaning.DOING
-    write_fixture("mqtt/task_status/cleaning.json", {
-        "description": "Task status: actively cleaning (state=5, cleaning.state=DOING)",
-        "dps": {"153": encode_message(ws)},
-        "expected_state": {
-            "activity": "cleaning",
-            "task_status": "Cleaning",
+    write_fixture(
+        "mqtt/task_status/cleaning.json",
+        {
+            "description": "Task status: actively cleaning (state=5, cleaning.state=DOING)",
+            "dps": {"153": encode_message(ws)},
+            "expected_state": {
+                "activity": "cleaning",
+                "task_status": "Cleaning",
+            },
         },
-    })
+    )
 
 
 def gen_task_paused():
     ws = WorkStatus(state=WorkStatus.CLEANING)
     ws.mode.value = WorkStatus.Mode.AUTO
     ws.cleaning.state = WorkStatus.Cleaning.PAUSED
-    write_fixture("mqtt/task_status/paused.json", {
-        "description": "Task status: paused (state=5, cleaning.state=PAUSED, no go_wash)",
-        "dps": {"153": encode_message(ws)},
-        "expected_state": {
-            "activity": "paused",
-            "task_status": "Paused",
+    write_fixture(
+        "mqtt/task_status/paused.json",
+        {
+            "description": "Task status: paused (state=5, cleaning.state=PAUSED, no go_wash)",
+            "dps": {"153": encode_message(ws)},
+            "expected_state": {
+                "activity": "paused",
+                "task_status": "Paused",
+            },
         },
-    })
+    )
 
 
 def gen_task_returning_to_charge():
@@ -572,19 +661,23 @@ def gen_task_returning_to_charge():
     ws.go_home.state = WorkStatus.GoHome.DOING
     ws.go_home.mode = WorkStatus.GoHome.COLLECT_DUST
     ws.breakpoint.state = WorkStatus.Breakpoint.DOING
-    write_fixture("mqtt/task_status/returning_to_charge.json", {
-        "description": "Task status: returning to charge with breakpoint (resume pending)",
-        "dps": {"153": encode_message(ws)},
-        "expected_state": {
-            "activity": "returning",
-            "task_status": "Returning to Charge",
+    write_fixture(
+        "mqtt/task_status/returning_to_charge.json",
+        {
+            "description": "Task status: returning to charge with breakpoint (resume pending)",
+            "dps": {"153": encode_message(ws)},
+            "expected_state": {
+                "activity": "returning",
+                "task_status": "Returning to Charge",
+            },
         },
-    })
+    )
 
 
 # ──────────────────────────────────────────────────────────────
 # ACCESSORIES FIXTURES (DPS 168)
 # ──────────────────────────────────────────────────────────────
+
 
 def gen_accessories_full():
     runtime = ConsumableRuntime()
@@ -602,40 +695,47 @@ def gen_accessories_full():
     resp = ConsumableResponse()
     resp.runtime.CopyFrom(runtime)
 
-    write_fixture("mqtt/accessories/consumable_full.json", {
-        "description": "ConsumableResponse with all accessory types and Runtime durations",
-        "dps": {"168": encode_message(resp)},
-        "expected_state": {
-            "accessories": {
-                "filter_usage": 150,
-                "main_brush_usage": 200,
-                "side_brush_usage": 120,
-                "sensor_usage": 30,
-                "scrape_usage": 20,
-                "mop_usage": 100,
-                "dustbag_usage": 50,
-                "dirty_watertank_usage": 40,
-                "dirty_waterfilter_usage": 35,
+    write_fixture(
+        "mqtt/accessories/consumable_full.json",
+        {
+            "description": "ConsumableResponse with all accessory types and Runtime durations",
+            "dps": {"168": encode_message(resp)},
+            "expected_state": {
+                "accessories": {
+                    "filter_usage": 150,
+                    "main_brush_usage": 200,
+                    "side_brush_usage": 120,
+                    "sensor_usage": 30,
+                    "scrape_usage": 20,
+                    "mop_usage": 100,
+                    "dustbag_usage": 50,
+                    "dirty_watertank_usage": 40,
+                    "dirty_waterfilter_usage": 35,
+                },
             },
         },
-    })
+    )
 
 
 def gen_accessories_no_runtime():
     resp = ConsumableResponse()
     # No runtime field set at all
-    write_fixture("mqtt/accessories/consumable_no_runtime.json", {
-        "description": "ConsumableResponse with missing Runtime field (no changes)",
-        "dps": {"168": encode_message(resp)},
-        "expected_state": {
-            "accessories": "unchanged",
+    write_fixture(
+        "mqtt/accessories/consumable_no_runtime.json",
+        {
+            "description": "ConsumableResponse with missing Runtime field (no changes)",
+            "dps": {"168": encode_message(resp)},
+            "expected_state": {
+                "accessories": "unchanged",
+            },
         },
-    })
+    )
 
 
 # ──────────────────────────────────────────────────────────────
 # SCENE INFO FIXTURES (DPS 180)
 # ──────────────────────────────────────────────────────────────
+
 
 def gen_scene_list():
     sr = SceneResponse()
@@ -666,22 +766,26 @@ def gen_scene_list():
     s3.type = SceneInfo.SCENE_NORMAL
     s3.index = 3
 
-    write_fixture("mqtt/scene_info/scenes_list.json", {
-        "description": "SceneResponse with 3 valid scenes (2 default + 1 custom)",
-        "dps": {"180": encode_message(sr)},
-        "expected_state": {
-            "scenes": [
-                {"id": 1, "name": "Full Home Daily Clean", "type": 1},
-                {"id": 2, "name": "Full Home Deep Clean", "type": 2},
-                {"id": 4, "name": "Kitchen Quick Clean", "type": 0},
-            ],
+    write_fixture(
+        "mqtt/scene_info/scenes_list.json",
+        {
+            "description": "SceneResponse with 3 valid scenes (2 default + 1 custom)",
+            "dps": {"180": encode_message(sr)},
+            "expected_state": {
+                "scenes": [
+                    {"id": 1, "name": "Full Home Daily Clean", "type": 1},
+                    {"id": 2, "name": "Full Home Deep Clean", "type": 2},
+                    {"id": 4, "name": "Kitchen Quick Clean", "type": 0},
+                ],
+            },
         },
-    })
+    )
 
 
 # ──────────────────────────────────────────────────────────────
 # CLEANING STATISTICS FIXTURES (DPS 167)
 # ──────────────────────────────────────────────────────────────
+
 
 def gen_cleaning_stats():
     cs = CleanStatistics()
@@ -691,136 +795,172 @@ def gen_cleaning_stats():
     cs.total.clean_area = 1200
     cs.total.clean_count = 50
 
-    write_fixture("mqtt/cleaning_stats/stats_response.json", {
-        "description": "CleanStatistics with single session and total stats",
-        "dps": {"167": encode_message(cs)},
-        "expected_state": {
-            "cleaning_time": 2400,
-            "cleaning_area": 85,
+    write_fixture(
+        "mqtt/cleaning_stats/stats_response.json",
+        {
+            "description": "CleanStatistics with single session and total stats",
+            "dps": {"167": encode_message(cs)},
+            "expected_state": {
+                "cleaning_time": 2400,
+                "cleaning_area": 85,
+            },
         },
-    })
+    )
 
 
 # ──────────────────────────────────────────────────────────────
 # PLAIN DPS FIXTURES (no protobuf)
 # ──────────────────────────────────────────────────────────────
 
+
 def gen_dps_battery_50():
-    write_fixture("mqtt/dps_plain/battery_50.json", {
-        "description": "DPS 163: battery level 50% (plain int string)",
-        "dps": {"163": "50"},
-        "expected_state": {
-            "battery_level": 50,
+    write_fixture(
+        "mqtt/dps_plain/battery_50.json",
+        {
+            "description": "DPS 163: battery level 50% (plain int string)",
+            "dps": {"163": "50"},
+            "expected_state": {
+                "battery_level": 50,
+            },
         },
-    })
+    )
 
 
 def gen_dps_battery_100():
-    write_fixture("mqtt/dps_plain/battery_100.json", {
-        "description": "DPS 163: battery level 100% (plain int string)",
-        "dps": {"163": "100"},
-        "expected_state": {
-            "battery_level": 100,
+    write_fixture(
+        "mqtt/dps_plain/battery_100.json",
+        {
+            "description": "DPS 163: battery level 100% (plain int string)",
+            "dps": {"163": "100"},
+            "expected_state": {
+                "battery_level": 100,
+            },
         },
-    })
+    )
 
 
 def gen_dps_battery_0():
-    write_fixture("mqtt/dps_plain/battery_0.json", {
-        "description": "DPS 163: battery level 0% (plain int string)",
-        "dps": {"163": "0"},
-        "expected_state": {
-            "battery_level": 0,
+    write_fixture(
+        "mqtt/dps_plain/battery_0.json",
+        {
+            "description": "DPS 163: battery level 0% (plain int string)",
+            "dps": {"163": "0"},
+            "expected_state": {
+                "battery_level": 0,
+            },
         },
-    })
+    )
 
 
 def gen_dps_clean_speed_standard():
     # DPS 158: index into EUFY_CLEAN_NOVEL_CLEAN_SPEED
     # Index 1 = Standard (list: Quiet=0, Standard=1, Turbo=2, Max=3, Boost_IQ=4)
-    write_fixture("mqtt/dps_plain/clean_speed_standard.json", {
-        "description": "DPS 158: clean speed index 1 (Standard)",
-        "dps": {"158": "1"},
-        "expected_state": {
-            "fan_speed": "Standard",
+    write_fixture(
+        "mqtt/dps_plain/clean_speed_standard.json",
+        {
+            "description": "DPS 158: clean speed index 1 (Standard)",
+            "dps": {"158": "1"},
+            "expected_state": {
+                "fan_speed": "Standard",
+            },
         },
-    })
+    )
 
 
 def gen_dps_find_robot_true():
-    write_fixture("mqtt/dps_plain/find_robot_true.json", {
-        "description": "DPS 160: find_robot=true (plain bool string)",
-        "dps": {"160": "true"},
-        "expected_state": {
-            "find_robot": True,
+    write_fixture(
+        "mqtt/dps_plain/find_robot_true.json",
+        {
+            "description": "DPS 160: find_robot=true (plain bool string)",
+            "dps": {"160": "true"},
+            "expected_state": {
+                "find_robot": True,
+            },
         },
-    })
+    )
 
 
 # ──────────────────────────────────────────────────────────────
 # HTTP FIXTURES (placeholder / anonymized)
 # ──────────────────────────────────────────────────────────────
 
+
 def gen_http_fixtures():
-    write_fixture("http/login_response.json", {
-        "description": "Login response (anonymized)",
-        "access_token": "ANON_TOKEN_ACCESS_001",
-        "user_id": "ANON_USER_001",
-        "email": "anon@example.com",
-        "token_expires_at": 1700000000,
-    })
+    write_fixture(
+        "http/login_response.json",
+        {
+            "description": "Login response (anonymized)",
+            "access_token": "ANON_TOKEN_ACCESS_001",
+            "user_id": "ANON_USER_001",
+            "email": "anon@example.com",
+            "token_expires_at": 1700000000,
+        },
+    )
 
-    write_fixture("http/user_info_response.json", {
-        "description": "User info response (anonymized)",
-        "user_center_id": "ANON_USER_CENTER_001",
-        "user_center_token": "ANON_TOKEN_CENTER_001",
-        "user_name": "Anonymous User",
-        "email": "anon@example.com",
-    })
+    write_fixture(
+        "http/user_info_response.json",
+        {
+            "description": "User info response (anonymized)",
+            "user_center_id": "ANON_USER_CENTER_001",
+            "user_center_token": "ANON_TOKEN_CENTER_001",
+            "user_name": "Anonymous User",
+            "email": "anon@example.com",
+        },
+    )
 
-    write_fixture("http/device_list_response.json", {
-        "description": "Device list response (anonymized T2351)",
-        "devices": [
-            {
-                "device_sn": "ANON_DEVICE_SN_001",
-                "device_name": "RoboVac X10 Pro Omni",
-                "device_model": "T2351",
-                "device_type": 1,
-                "product_code": "T2351",
-                "wifi_mac": "AA:BB:CC:DD:EE:FF",
-                "share": False,
-                "device_sw_version": "2.0.7.6",
-            }
-        ],
-    })
+    write_fixture(
+        "http/device_list_response.json",
+        {
+            "description": "Device list response (anonymized T2351)",
+            "devices": [
+                {
+                    "device_sn": "ANON_DEVICE_SN_001",
+                    "device_name": "RoboVac X10 Pro Omni",
+                    "device_model": "T2351",
+                    "device_type": 1,
+                    "product_code": "T2351",
+                    "wifi_mac": "AA:BB:CC:DD:EE:FF",
+                    "share": False,
+                    "device_sw_version": "2.0.7.6",
+                }
+            ],
+        },
+    )
 
-    write_fixture("http/cloud_device_list_response.json", {
-        "description": "Cloud device list V2 response (anonymized)",
-        "items": [
-            {
-                "id": "ANON_DEVICE_ID_001",
-                "device_sn": "ANON_DEVICE_SN_001",
-                "device_name": "RoboVac X10 Pro Omni",
-                "device_model": "T2351",
-                "firmware_version": "2.0.7.6",
-                "time_zone": "Europe/Copenhagen",
-                "ip_addr": "",
-            }
-        ],
-    })
+    write_fixture(
+        "http/cloud_device_list_response.json",
+        {
+            "description": "Cloud device list V2 response (anonymized)",
+            "items": [
+                {
+                    "id": "ANON_DEVICE_ID_001",
+                    "device_sn": "ANON_DEVICE_SN_001",
+                    "device_name": "RoboVac X10 Pro Omni",
+                    "device_model": "T2351",
+                    "firmware_version": "2.0.7.6",
+                    "time_zone": "Europe/Copenhagen",
+                    "ip_addr": "",
+                }
+            ],
+        },
+    )
 
-    write_fixture("http/mqtt_credentials_response.json", {
-        "description": "MQTT credentials response (anonymized)",
-        "thing_name": "ANON_THING_001",
-        "endpoint": "mqtt-endpoint.example.com",
-        "certificate_pem": "ANON_CERT_PEM_PLACEHOLDER",
-        "private_key": "ANON_PRIVATE_KEY_PLACEHOLDER",
-    })
+    write_fixture(
+        "http/mqtt_credentials_response.json",
+        {
+            "description": "MQTT credentials response (anonymized)",
+            "thing_name": "ANON_THING_001",
+            "endpoint": "mqtt-endpoint.example.com",
+            "certificate_pem": "ANON_CERT_PEM_PLACEHOLDER",
+            "private_key": "ANON_PRIVATE_KEY_PLACEHOLDER",
+        },
+    )
 
 
 # ──────────────────────────────────────────────────────────────
 # SEQUENCE FIXTURES
 # ──────────────────────────────────────────────────────────────
+
 
 def gen_sequence_full_cleaning_cycle():
     """Full auto cleaning cycle: docked → cleaning → returning → docked."""
@@ -853,41 +993,56 @@ def gen_sequence_full_cleaning_cycle():
     ws6 = WorkStatus(state=WorkStatus.CHARGING)
     ws6.charging.state = WorkStatus.Charging.DOING
 
-    write_fixture("sequences/full_cleaning_cycle.json", {
-        "description": "Full auto cleaning cycle: docked → positioning → cleaning → returning → docked",
-        "messages": [
-            {
-                "dps": {"153": encode_message(ws1)},
-                "expected_state_after": {"activity": "docked", "charging": True},
-                "delay_seconds": 0,
-            },
-            {
-                "dps": {"153": encode_message(ws2)},
-                "expected_state_after": {"activity": "cleaning", "trigger_source": "app"},
-                "delay_seconds": 2,
-            },
-            {
-                "dps": {"153": encode_message(ws3)},
-                "expected_state_after": {"activity": "cleaning", "task_status": "Positioning"},
-                "delay_seconds": 5,
-            },
-            {
-                "dps": {"153": encode_message(ws4)},
-                "expected_state_after": {"activity": "cleaning", "task_status": "Cleaning"},
-                "delay_seconds": 10,
-            },
-            {
-                "dps": {"153": encode_message(ws5)},
-                "expected_state_after": {"activity": "returning", "task_status": "Returning"},
-                "delay_seconds": 1800,
-            },
-            {
-                "dps": {"153": encode_message(ws6)},
-                "expected_state_after": {"activity": "docked", "charging": True},
-                "delay_seconds": 120,
-            },
-        ],
-    })
+    write_fixture(
+        "sequences/full_cleaning_cycle.json",
+        {
+            "description": "Full auto cleaning cycle: docked → positioning → cleaning → returning → docked",
+            "messages": [
+                {
+                    "dps": {"153": encode_message(ws1)},
+                    "expected_state_after": {"activity": "docked", "charging": True},
+                    "delay_seconds": 0,
+                },
+                {
+                    "dps": {"153": encode_message(ws2)},
+                    "expected_state_after": {
+                        "activity": "cleaning",
+                        "trigger_source": "app",
+                    },
+                    "delay_seconds": 2,
+                },
+                {
+                    "dps": {"153": encode_message(ws3)},
+                    "expected_state_after": {
+                        "activity": "cleaning",
+                        "task_status": "Positioning",
+                    },
+                    "delay_seconds": 5,
+                },
+                {
+                    "dps": {"153": encode_message(ws4)},
+                    "expected_state_after": {
+                        "activity": "cleaning",
+                        "task_status": "Cleaning",
+                    },
+                    "delay_seconds": 10,
+                },
+                {
+                    "dps": {"153": encode_message(ws5)},
+                    "expected_state_after": {
+                        "activity": "returning",
+                        "task_status": "Returning",
+                    },
+                    "delay_seconds": 1800,
+                },
+                {
+                    "dps": {"153": encode_message(ws6)},
+                    "expected_state_after": {"activity": "docked", "charging": True},
+                    "delay_seconds": 120,
+                },
+            ],
+        },
+    )
 
 
 def gen_sequence_dock_wash_dry():
@@ -931,41 +1086,61 @@ def gen_sequence_dock_wash_dry():
     sr5.status.connected = True
     sr5.status.state = StationResponse.StationStatus.IDLE
 
-    write_fixture("sequences/dock_wash_dry_cycle.json", {
-        "description": "Dock wash+dry cycle: cleaning → return to wash → washing → drying → idle",
-        "messages": [
-            {
-                "dps": {"153": encode_message(ws1)},
-                "expected_state_after": {"activity": "cleaning", "task_status": "Cleaning"},
-                "delay_seconds": 0,
-            },
-            {
-                "dps": {"153": encode_message(ws2)},
-                "expected_state_after": {"activity": "cleaning", "task_status": "Returning to Wash"},
-                "delay_seconds": 900,
-            },
-            {
-                "dps": {"153": encode_message(ws3), "173": encode_message(sr3)},
-                "expected_state_after": {"activity": "docked", "dock_status": "Washing"},
-                "delay_seconds": 30,
-            },
-            {
-                "dps": {"153": encode_message(ws4), "173": encode_message(sr4)},
-                "expected_state_after": {"activity": "docked", "dock_status": "Drying"},
-                "delay_seconds": 180,
-            },
-            {
-                "dps": {"153": encode_message(ws5), "173": encode_message(sr5)},
-                "expected_state_after": {"activity": "docked", "charging": True, "dock_status": "Idle"},
-                "delay_seconds": 7200,
-            },
-        ],
-    })
+    write_fixture(
+        "sequences/dock_wash_dry_cycle.json",
+        {
+            "description": "Dock wash+dry cycle: cleaning → return to wash → washing → drying → idle",
+            "messages": [
+                {
+                    "dps": {"153": encode_message(ws1)},
+                    "expected_state_after": {
+                        "activity": "cleaning",
+                        "task_status": "Cleaning",
+                    },
+                    "delay_seconds": 0,
+                },
+                {
+                    "dps": {"153": encode_message(ws2)},
+                    "expected_state_after": {
+                        "activity": "cleaning",
+                        "task_status": "Returning to Wash",
+                    },
+                    "delay_seconds": 900,
+                },
+                {
+                    "dps": {"153": encode_message(ws3), "173": encode_message(sr3)},
+                    "expected_state_after": {
+                        "activity": "docked",
+                        "dock_status": "Washing",
+                    },
+                    "delay_seconds": 30,
+                },
+                {
+                    "dps": {"153": encode_message(ws4), "173": encode_message(sr4)},
+                    "expected_state_after": {
+                        "activity": "docked",
+                        "dock_status": "Drying",
+                    },
+                    "delay_seconds": 180,
+                },
+                {
+                    "dps": {"153": encode_message(ws5), "173": encode_message(sr5)},
+                    "expected_state_after": {
+                        "activity": "docked",
+                        "charging": True,
+                        "dock_status": "Idle",
+                    },
+                    "delay_seconds": 7200,
+                },
+            ],
+        },
+    )
 
 
 # ──────────────────────────────────────────────────────────────
 # MAIN
 # ──────────────────────────────────────────────────────────────
+
 
 def main():
     print("Generating fixtures...")

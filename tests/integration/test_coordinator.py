@@ -16,14 +16,12 @@ from homeassistant.util.dt import utcnow
 from pytest_homeassistant_custom_component.common import async_fire_time_changed
 
 from custom_components.robovac_mqtt.coordinator import EufyCleanCoordinator
-from custom_components.robovac_mqtt.models import VacuumState
 from custom_components.robovac_mqtt.proto.cloud.station_pb2 import StationResponse
 from custom_components.robovac_mqtt.proto.cloud.work_status_pb2 import WorkStatus
 from tests.integration.conftest import load_fixture, simulate_mqtt_message
 from tests.integration.helpers import (
     make_device_info_dict,
     make_dps_payload,
-    make_mqtt_bytes,
     make_station_response,
     make_work_status,
 )

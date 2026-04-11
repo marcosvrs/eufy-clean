@@ -17,8 +17,6 @@ from custom_components.robovac_mqtt.api.commands import (
 )
 from custom_components.robovac_mqtt.api.parser import update_state
 from custom_components.robovac_mqtt.const import (
-    CARPET_STRATEGY_NAMES,
-    CORNER_CLEANING_NAMES,
     DEFAULT_DPS_MAP,
     DPS_MAP,
     EUFY_CLEAN_CARPET_STRATEGIES,

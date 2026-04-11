@@ -172,7 +172,7 @@ class DockSwitchEntity(CoordinatorEntity[EufyCleanCoordinator], SwitchEntity):
         cfg = copy.deepcopy(self.coordinator.data.dock_auto_cfg)
         self._setter(cfg, state)
 
-        command = build_command("set_auto_cfg", cfg=cfg)
+        command = build_command("set_auto_cfg", dps_map=self.coordinator.dps_map, cfg=cfg)
         await self.coordinator.async_send_command(command)
 
 
@@ -399,7 +399,9 @@ class MediaRecordingSwitchEntity(CoordinatorEntity[EufyCleanCoordinator], Switch
         await self._set_state(False)
 
     async def _set_state(self, state: bool) -> None:
-        cmd = build_command("media_record", start=state)
+        cmd = build_command(
+            "media_record", dps_map=self.coordinator.dps_map, start=state
+        )
         await self.coordinator.async_send_command(cmd)
         self.coordinator.async_set_updated_data(
             replace(self.coordinator.data, media_recording=state)

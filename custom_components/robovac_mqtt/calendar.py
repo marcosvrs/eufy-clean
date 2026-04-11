@@ -377,6 +377,9 @@ class EufyCleanCalendar(CoordinatorEntity[EufyCleanCoordinator], CalendarEntity)
         recurrence_id: str | None = None,
         recurrence_range: str | None = None,
     ) -> None:
+        if not uid.isdigit():
+            _LOGGER.warning("Skipping delete for non-numeric timer uid: %s", uid)
+            return
         timer_id = int(uid)
         cmd = build_command(
             "timer_delete",
@@ -393,6 +396,9 @@ class EufyCleanCalendar(CoordinatorEntity[EufyCleanCoordinator], CalendarEntity)
         recurrence_id: str | None = None,
         recurrence_range: str | None = None,
     ) -> None:
+        if not uid.isdigit():
+            _LOGGER.warning("Skipping update for non-numeric timer uid: %s", uid)
+            return
         timer_id = int(uid)
         timer_info = _build_timer_info_from_event(event, timer_id=timer_id)
         cmd = build_command(

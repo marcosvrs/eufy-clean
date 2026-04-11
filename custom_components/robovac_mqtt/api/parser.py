@@ -25,7 +25,6 @@ from ..const import (
     GO_WASH_STATE_NAMES,
     HANDLED_DPS_IDS,
     KNOWN_UNPROCESSED_DPS,
-    MEDIA_RECORDING_STATE_NAMES,
     MEDIA_RESOLUTION_NAMES,
     MEDIA_STORAGE_STATE_NAMES,
     MOP_WATER_LEVEL_NAMES,
@@ -1139,6 +1138,7 @@ def _process_other_dps(
                         except (ValueError, TypeError):
                             new_dynamic[key] = value
                     changes["dynamic_values"] = new_dynamic
+                    _track_field(state, changes, f"dynamic_{key}")
                 else:
                     _LOGGER.debug(
                         "UNKNOWN_DPS | key=%s | value=%s | value_type=%s | %s",
@@ -1628,10 +1628,10 @@ def _parse_analysis_response(
 
     if analysis.HasField("statistics") and analysis.statistics.HasField("battery_info"):
         bat = analysis.statistics.battery_info
-        if bat.real_level:
+        if bat.real_level is not None:
             changes["battery_real_level"] = bat.real_level
             _track_field(state, changes, "battery_real_level")
-        if bat.voltage:
+        if bat.voltage is not None:
             changes["battery_voltage"] = bat.voltage
             _track_field(state, changes, "battery_voltage")
         if bat.current is not None:
@@ -1640,7 +1640,7 @@ def _parse_analysis_response(
         if bat.temperature:
             changes["battery_temperature"] = round(bat.temperature[0] / 1000.0, 1)
             _track_field(state, changes, "battery_temperature")
-        if bat.show_level:
+        if bat.show_level is not None:
             changes["battery_show_level"] = bat.show_level
             _track_field(state, changes, "battery_show_level")
         if bat.update_time:

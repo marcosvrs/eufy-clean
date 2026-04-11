@@ -7,7 +7,6 @@ import json
 from custom_components.robovac_mqtt.api.parser import update_state
 from custom_components.robovac_mqtt.const import (
     DPS_MAP,
-    EUFY_CLEAN_CLEAN_SPEED,
     EUFY_CLEAN_ERROR_CODES,
     EUFY_CLEAN_NOVEL_CLEAN_SPEED,
 )

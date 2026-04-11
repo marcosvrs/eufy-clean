@@ -6,7 +6,7 @@ obtained from ``hass.states.get(entity_id)``.
 
 from __future__ import annotations
 
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
@@ -29,11 +29,7 @@ from custom_components.robovac_mqtt.proto.cloud.consumable_pb2 import (
 )
 from custom_components.robovac_mqtt.proto.cloud.error_code_pb2 import ErrorCode
 from custom_components.robovac_mqtt.proto.cloud.work_status_pb2 import WorkStatus
-from tests.integration.conftest import (
-    MOCK_DEVICE_INFO,
-    MOCK_MQTT_CREDENTIALS,
-    simulate_mqtt_message,
-)
+from tests.integration.conftest import simulate_mqtt_message
 from tests.integration.helpers import make_dps_payload, make_work_status
 
 # ---------------------------------------------------------------------------

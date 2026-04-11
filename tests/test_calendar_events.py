@@ -25,8 +25,13 @@ def _freeze_time(
     tz: dt.tzinfo = UTC,
 ) -> None:
     monkeypatch.setattr(calendar_mod.dt_util, "now", lambda: now)
-    get_tz = lambda: tz
-    get_tz.cache_clear = lambda: None  # satisfy HA teardown expectation
+    def get_tz():
+        return tz
+
+    def clear_cache() -> None:
+        return None
+
+    get_tz.cache_clear = clear_cache  # satisfy HA teardown expectation
     monkeypatch.setattr(calendar_mod.dt_util, "get_default_time_zone", get_tz)
 
 

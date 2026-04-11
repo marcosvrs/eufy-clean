@@ -32,8 +32,6 @@ by the integration suite."""
 
 from unittest.mock import MagicMock
 
-import pytest  # pyright: ignore[reportMissingImports]
-
 from custom_components.robovac_mqtt.api.parser import (
     _deduplicate_room_names,
     _log_proto_novelty,

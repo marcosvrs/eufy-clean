@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import pytest
 
-from custom_components.robovac_mqtt.const import DOMAIN, DPS_MAP
+from custom_components.robovac_mqtt.const import DPS_MAP
 from tests.integration.conftest import simulate_mqtt_message
 from tests.integration.helpers import (
     make_clean_param_response,

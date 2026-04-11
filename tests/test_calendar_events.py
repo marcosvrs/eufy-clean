@@ -25,6 +25,7 @@ def _freeze_time(
     tz: dt.tzinfo = UTC,
 ) -> None:
     monkeypatch.setattr(calendar_mod.dt_util, "now", lambda: now)
+
     def get_tz():
         return tz
 

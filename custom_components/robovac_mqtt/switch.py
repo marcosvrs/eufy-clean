@@ -172,7 +172,9 @@ class DockSwitchEntity(CoordinatorEntity[EufyCleanCoordinator], SwitchEntity):
         cfg = copy.deepcopy(self.coordinator.data.dock_auto_cfg)
         self._setter(cfg, state)
 
-        command = build_command("set_auto_cfg", dps_map=self.coordinator.dps_map, cfg=cfg)
+        command = build_command(
+            "set_auto_cfg", dps_map=self.coordinator.dps_map, cfg=cfg
+        )
         await self.coordinator.async_send_command(command)
 
 

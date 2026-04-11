@@ -256,7 +256,11 @@ async def test_consumable_filter_remaining(hass, mock_eufy_login, mock_mqtt_clie
     """DPS 168 ConsumableResponse → filter_remaining sensor shows remaining hours."""
     ctx = await setup_vacuum(hass, mock_eufy_login, mock_mqtt_client)
     coordinator = await enable_entity(
-        hass, ctx, mock_eufy_login, mock_mqtt_client, "sensor.test_vacuum_filter_remaining"
+        hass,
+        ctx,
+        mock_eufy_login,
+        mock_mqtt_client,
+        "sensor.test_vacuum_filter_remaining",
     )
 
     consumable = ConsumableResponse(
@@ -354,7 +358,11 @@ async def test_consumable_unavailable_before_dps(
     """Before any DPS 168, consumable sensors should be unavailable."""
     ctx = await setup_vacuum(hass, mock_eufy_login, mock_mqtt_client)
     await enable_entity(
-        hass, ctx, mock_eufy_login, mock_mqtt_client, "sensor.test_vacuum_filter_remaining"
+        hass,
+        ctx,
+        mock_eufy_login,
+        mock_mqtt_client,
+        "sensor.test_vacuum_filter_remaining",
     )
 
     state = hass.states.get("sensor.test_vacuum_filter_remaining")

@@ -28,7 +28,7 @@ except ImportError:
 MAP_DATA_THRESHOLD = 500  # bytes — packets above this are flagged
 TUYA_COMMAND_PORT = 6668
 
-streams = defaultdict(
+streams: defaultdict[str, dict] = defaultdict(
     lambda: {
         "count": 0,
         "bytes": 0,

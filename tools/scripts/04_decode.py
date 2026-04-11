@@ -216,7 +216,7 @@ def try_tuya_standard_decode(data: bytes, prefix: str) -> list[str]:
       offset 34: charge_angle (uint32)
       offset 38: pixel data (width * height bytes)
     """
-    saved = []
+    saved: list[str] = []
     if len(data) < 40:
         return saved
 

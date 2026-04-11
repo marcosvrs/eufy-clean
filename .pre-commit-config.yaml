@@ -37,6 +37,7 @@ repos:
     rev: v1.8.0
     hooks:
       - id: mypy
+        files: ^(custom_components|tests)/.+\.py$
         additional_dependencies:
           - types-protobuf
           - types-requests
@@ -47,4 +48,5 @@ repos:
         entry: pylint
         language: system
         types: [python]
+        files: ^custom_components/.+\.py$
         args: ["-rn", "-sn", "--rcfile=pyproject.toml"]

@@ -28,14 +28,14 @@ def make_vacuum_state(**overrides: Any) -> VacuumState:
     Default values:
         activity="docked", battery_level=100, error_code=0, charging=True
     """
-    defaults = {
+    defaults: dict[str, Any] = {
         "activity": "docked",
         "battery_level": 100,
         "error_code": 0,
         "charging": True,
     }
     defaults.update(overrides)
-    return replace(VacuumState(), **defaults)
+    return replace(VacuumState(), **defaults)  # type: ignore[arg-type]
 
 
 def make_dps_payload(dps_key: str, proto_msg: Any) -> dict[str, str]:

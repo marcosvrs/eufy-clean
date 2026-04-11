@@ -151,7 +151,7 @@ def test_generic_handler_accumulates_multiple_dps():
     assert state.dynamic_values.get("201") == 7
 
 
-from custom_components.robovac_mqtt.api.commands import (
+from custom_components.robovac_mqtt.api.commands import (  # noqa: E402
     build_command,
     build_generic_command,
 )

@@ -28,7 +28,7 @@ def extract_streams(pcap_path: str, vacuum_ip: str, map_ports: list[int]) -> dic
     packets = rdpcap(pcap_path)
     print(f"    Total packets: {len(packets)}")
 
-    streams = {}
+    streams: dict[int, dict] = {}
     for port in map_ports:
         streams[port] = {
             "outgoing": [],  # vacuum → phone

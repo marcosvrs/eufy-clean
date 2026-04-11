@@ -19,6 +19,7 @@ from custom_components.robovac_mqtt.api.parser import update_state
 from custom_components.robovac_mqtt.const import (
     CARPET_STRATEGY_NAMES,
     CORNER_CLEANING_NAMES,
+    DEFAULT_DPS_MAP,
     DPS_MAP,
     EUFY_CLEAN_CARPET_STRATEGIES,
     EUFY_CLEAN_CORNER_CLEANING_MODES,
@@ -43,6 +44,7 @@ def mock_coordinator():
     coordinator.device_model = "T2351"
     coordinator.last_update_success = True
     coordinator.async_send_command = AsyncMock()
+    coordinator.dps_map = dict(DEFAULT_DPS_MAP)
     return coordinator
 
 

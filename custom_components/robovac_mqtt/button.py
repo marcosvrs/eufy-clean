@@ -192,4 +192,4 @@ class RCModeButton(CoordinatorEntity[EufyCleanCoordinator], ButtonEntity):
         self._attr_entity_registry_visible_default = False
 
     async def async_press(self) -> None:
-        await self.coordinator.async_send_command(build_command(self._cmd))
+        await self.coordinator.async_send_command(build_command(self._cmd, dps_map=self.coordinator.dps_map))

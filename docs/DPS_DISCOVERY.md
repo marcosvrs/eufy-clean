@@ -130,14 +130,14 @@ Note: These return 401 with bad auth but 404 with valid auth — meaning the PAT
 ## Device Details
 
 - **Model**: Eufy X10 Pro Omni (T2351)
-- **SN**: AMP96Z0E21600132
+- **SN**: `<redacted>`
 - **FW**: v3.4.85
-- **IP**: 192.168.50.246 (home WiFi)
-- **MAC**: 98:a8:29:52:c6:af
-- **MQTT Thing**: 64a06ec6ebcec24529b563801c57744f7cd40532-eufy_home
-- **Tuya PID**: eqjjicnai45fqzom
+- **IP**: `<redacted>`
+- **MAC**: `<redacted>`
+- **MQTT Thing**: `<redacted>`
+- **Tuya PID**: `<redacted>`
 - **S3 Bucket**: eufy-data-frankfurt (eu-central-1)
-- **MEGA API**: mega-eu-pr.eufy.com (megaeufy-fra-pr-871949979.eu-central-1.elb.amazonaws.com)
+- **MEGA API**: mega-eu-pr.eufy.com
 
 ## Authentication Flow
 

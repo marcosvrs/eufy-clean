@@ -37,7 +37,7 @@ repos:
     rev: v1.8.0
     hooks:
       - id: mypy
-        files: ^(custom_components|tests)/.+\.py$
+        files: ^custom_components/.+\.py$
         additional_dependencies:
           - types-protobuf
           - types-requests

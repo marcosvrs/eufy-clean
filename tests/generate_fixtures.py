@@ -38,7 +38,7 @@ for pkg_name, pkg_path in (
         sys.modules[pkg_name] = mod
 
 # encode_message also needs the stub workaround (utils.py has no HA imports)
-import importlib.util
+import importlib.util  # noqa: E402
 
 from custom_components.robovac_mqtt.proto.cloud.clean_param_pb2 import (  # noqa: E402
     CleanCarpet,
@@ -61,17 +61,25 @@ from custom_components.robovac_mqtt.proto.cloud.consumable_pb2 import (  # noqa:
     ConsumableResponse,
     ConsumableRuntime,
 )
-from custom_components.robovac_mqtt.proto.cloud.error_code_pb2 import ErrorCode  # noqa: E402
+from custom_components.robovac_mqtt.proto.cloud.error_code_pb2 import (  # noqa: E402
+    ErrorCode,
+)
 from custom_components.robovac_mqtt.proto.cloud.scene_pb2 import (  # noqa: E402
     SceneInfo,
     SceneResponse,
 )
-from custom_components.robovac_mqtt.proto.cloud.station_pb2 import StationResponse  # noqa: E402
-from custom_components.robovac_mqtt.proto.cloud.stream_pb2 import RoomParams  # noqa: E402
+from custom_components.robovac_mqtt.proto.cloud.station_pb2 import (  # noqa: E402
+    StationResponse,
+)
+from custom_components.robovac_mqtt.proto.cloud.stream_pb2 import (  # noqa: E402
+    RoomParams,
+)
 from custom_components.robovac_mqtt.proto.cloud.universal_data_pb2 import (  # noqa: E402
     UniversalDataResponse,
 )
-from custom_components.robovac_mqtt.proto.cloud.work_status_pb2 import WorkStatus  # noqa: E402
+from custom_components.robovac_mqtt.proto.cloud.work_status_pb2 import (  # noqa: E402
+    WorkStatus,
+)
 
 _utils_spec = importlib.util.spec_from_file_location(
     "robovac_utils",

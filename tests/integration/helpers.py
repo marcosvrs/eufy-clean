@@ -35,7 +35,7 @@ def make_vacuum_state(**overrides: Any) -> VacuumState:
         "charging": True,
     }
     defaults.update(overrides)
-    return replace(VacuumState(), **defaults)  # type: ignore[arg-type]
+    return replace(VacuumState(), **defaults)
 
 
 def make_dps_payload(dps_key: str, proto_msg: Any) -> dict[str, str]:

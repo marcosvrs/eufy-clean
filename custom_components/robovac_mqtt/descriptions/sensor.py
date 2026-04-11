@@ -174,6 +174,9 @@ SENSOR_DESCRIPTIONS: tuple[RoboVacSensorDescription, ...] = (
         entity_category=EntityCategory.DIAGNOSTIC,
         value_fn=lambda s: s.battery_real_level,
         availability_fn=lambda s: "battery_real_level" in s.received_fields,
+        extra_state_attributes_fn=lambda s: {
+            "discharge_curve": s.battery_discharge_curve,
+        } if s.battery_discharge_curve else None,
     ),
     RoboVacSensorDescription(
         key="battery_voltage",

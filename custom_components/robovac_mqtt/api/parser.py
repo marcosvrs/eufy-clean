@@ -1608,6 +1608,12 @@ def _parse_analysis_response(
             changes["ctrl_event_timestamp"] = ce.timestamp
             _track_field(state, changes, "ctrl_event")
 
+        if stats.HasField("battery_curve") and stats.battery_curve.HasField("discharge"):
+            readings = [v / 10.0 for v in stats.battery_curve.discharge.values]
+            if readings:
+                changes["battery_discharge_curve"] = readings
+                _track_field(state, changes, "battery_discharge_curve")
+
 
 
 def _process_timer_response(

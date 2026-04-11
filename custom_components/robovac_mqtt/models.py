@@ -190,6 +190,7 @@ class VacuumState:
     battery_voltage: int = 0       # Battery voltage in mV
     battery_current: int = 0       # Battery current in mA (signed)
     battery_temperature: float = 0.0  # Battery temperature in °C (from millidegree units)
+    battery_discharge_curve: list[float] = field(default_factory=list)
 
     last_clean_area: int = 0
     last_clean_time: int = 0

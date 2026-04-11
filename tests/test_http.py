@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -65,6 +66,90 @@ async def test_get_product_data_points_returns_empty_without_user_info():
 
     mock_session.assert_not_called()
     assert result == []
+
+
+@pytest.mark.asyncio
+async def test_eufy_login_json_parse_exception_logs_debug(caplog):
+    """eufy_login() logs debug when JSON parsing raises an exception."""
+    client = _make_client()
+    mock_response = AsyncMock()
+    mock_response.status = 200
+    mock_response.json.side_effect = Exception("json decode error")
+    mock_response.text = AsyncMock(return_value="bad json")
+
+    with patch("aiohttp.ClientSession", return_value=_mock_aiohttp_session(mock_response)):
+        with caplog.at_level(logging.DEBUG, logger="custom_components.robovac_mqtt.api.http"):
+            result = await client.eufy_login()
+
+    assert result is None
+    assert "Failed to parse login response as JSON" in caplog.text
+
+
+@pytest.mark.asyncio
+async def test_get_device_list_non_200_logs_warning(caplog):
+    """get_device_list() logs warning when response status is not 200."""
+    client = _make_client()
+    client.user_info = {"user_center_token": "tok", "gtoken": "g"}
+    mock_response = AsyncMock()
+    mock_response.status = 503
+    mock_response.json = AsyncMock(return_value={})
+
+    with patch("aiohttp.ClientSession", return_value=_mock_aiohttp_session(mock_response)):
+        with caplog.at_level(logging.WARNING, logger="custom_components.robovac_mqtt.api.http"):
+            result = await client.get_device_list()
+
+    assert result == []
+    assert "get_device_list failed" in caplog.text
+    assert "503" in caplog.text
+
+
+@pytest.mark.asyncio
+async def test_get_product_data_points_none_user_info_logs_warning(caplog):
+    """get_product_data_points() logs warning when user_info is None."""
+    client = _make_client()
+    assert client.user_info is None
+
+    with caplog.at_level(logging.WARNING, logger="custom_components.robovac_mqtt.api.http"):
+        result = await client.get_product_data_points("T2261")
+
+    assert result == []
+    assert "Cannot get product data points" in caplog.text
+
+
+@pytest.mark.asyncio
+async def test_get_cloud_device_list_non_200_logs_warning(caplog):
+    """get_cloud_device_list() logs warning when response status is not 200."""
+    client = _make_client()
+    client.session = {"access_token": "token123"}
+    mock_response = AsyncMock()
+    mock_response.status = 401
+    mock_response.json = AsyncMock(return_value={})
+
+    with patch("aiohttp.ClientSession", return_value=_mock_aiohttp_session(mock_response)):
+        with caplog.at_level(logging.WARNING, logger="custom_components.robovac_mqtt.api.http"):
+            result = await client.get_cloud_device_list()
+
+    assert result == []
+    assert "get_cloud_device_list failed" in caplog.text
+    assert "401" in caplog.text
+
+
+@pytest.mark.asyncio
+async def test_get_mqtt_credentials_non_200_logs_warning(caplog):
+    """get_mqtt_credentials() logs warning when response status is not 200."""
+    client = _make_client()
+    client.user_info = {"user_center_token": "tok", "gtoken": "g"}
+    mock_response = AsyncMock()
+    mock_response.status = 500
+    mock_response.json = AsyncMock(return_value={})
+
+    with patch("aiohttp.ClientSession", return_value=_mock_aiohttp_session(mock_response)):
+        with caplog.at_level(logging.WARNING, logger="custom_components.robovac_mqtt.api.http"):
+            result = await client.get_mqtt_credentials()
+
+    assert result is None
+    assert "get_mqtt_credentials failed" in caplog.text
+    assert "500" in caplog.text
 
 
 @pytest.mark.asyncio

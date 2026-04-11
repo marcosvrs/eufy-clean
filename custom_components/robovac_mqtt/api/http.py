@@ -68,7 +68,7 @@ class EufyHTTPClient:
                 try:
                     response_json = await response.json()
                 except Exception:
-                    pass
+                    _LOGGER.debug("Failed to parse login response as JSON", exc_info=True)
 
                 if response.status == 200 and response_json:
                     if response_json.get("access_token"):
@@ -141,10 +141,12 @@ class EufyHTTPClient:
                     if not devices:
                         return []
                     return [device["device"] for device in devices]
+                _LOGGER.warning("get_device_list failed: status %s", response.status)
                 return []
 
     async def get_product_data_points(self, product_code: str) -> list[dict[str, Any]]:
         if not self.user_info:
+            _LOGGER.warning("Cannot get product data points: user_info is None")
             return []
 
         try:
@@ -197,6 +199,7 @@ class EufyHTTPClient:
                 if response.status == 200:
                     data = await response.json()
                     return data.get("devices", [])
+                _LOGGER.warning("get_cloud_device_list failed: status %s", response.status)
                 return []
 
     async def get_mqtt_credentials(self) -> dict[str, Any] | None:
@@ -221,4 +224,5 @@ class EufyHTTPClient:
             ) as response:
                 if response.status == 200:
                     return (await response.json()).get("data")
+                _LOGGER.warning("get_mqtt_credentials failed: status %s", response.status)
                 return None

@@ -50,8 +50,7 @@ class _AutoEntityBase(CoordinatorEntity[EufyCleanCoordinator]):
             if cat is not None:
                 self._attr_entity_category = cat
             # else: leave unset → defaults to None (primary entity)
-        else:
-            self._attr_entity_category = EntityCategory.CONFIG
+        # No default here — subclasses set their own default
         self._attr_entity_registry_enabled_default = override.get(
             "enabled_default", False
         )
@@ -72,6 +71,17 @@ class _AutoEntityBase(CoordinatorEntity[EufyCleanCoordinator]):
 
 class AutoSwitch(_AutoEntityBase, SwitchEntity):
     """Auto-generated switch for Bool + rw DPS entries."""
+
+    def __init__(
+        self,
+        coordinator: EufyCleanCoordinator,
+        dp_id: str,
+        cloud_code: str,
+        override: dict[str, Any],
+    ) -> None:
+        super().__init__(coordinator, dp_id, cloud_code, override)
+        if "entity_category" not in override:
+            self._attr_entity_category = EntityCategory.CONFIG
 
     @property
     def is_on(self) -> bool | None:
@@ -109,6 +119,8 @@ class AutoBinarySensor(_AutoEntityBase, BinarySensorEntity):
         override: dict[str, Any],
     ) -> None:
         super().__init__(coordinator, dp_id, cloud_code, override)
+        if "entity_category" not in override:
+            self._attr_entity_category = EntityCategory.DIAGNOSTIC
         if dc := override.get("device_class"):
             self._attr_device_class = dc
 
@@ -130,6 +142,8 @@ class AutoNumber(_AutoEntityBase, NumberEntity):
         catalog_property: dict[str, Any] | None = None,
     ) -> None:
         super().__init__(coordinator, dp_id, cloud_code, override)
+        if "entity_category" not in override:
+            self._attr_entity_category = EntityCategory.CONFIG
         prop = catalog_property or {}
         self._attr_native_min_value = float(override.get("min", prop.get("min", 0)))
         self._attr_native_max_value = float(override.get("max", prop.get("max", 100)))
@@ -169,6 +183,8 @@ class AutoSensor(_AutoEntityBase, SensorEntity):
         override: dict[str, Any],
     ) -> None:
         super().__init__(coordinator, dp_id, cloud_code, override)
+        if "entity_category" not in override:
+            self._attr_entity_category = EntityCategory.DIAGNOSTIC
         if dc := override.get("device_class"):
             self._attr_device_class = dc
         if unit := override.get("unit"):
@@ -195,6 +211,8 @@ class AutoSelect(_AutoEntityBase, SelectEntity):
         override: dict[str, Any],
     ) -> None:
         super().__init__(coordinator, dp_id, cloud_code, override)
+        if "entity_category" not in override:
+            self._attr_entity_category = EntityCategory.CONFIG
         self._options_map: dict[int, str] = override.get("options_map", {})
         self._reverse_map: dict[str, int] = {v: k for k, v in self._options_map.items()}
         self._label_set: set[str] = set(self._options_map.values())

@@ -167,8 +167,6 @@ EXPECTED_SENSOR_METADATA = {
             "error_message",
             "task_status",
             "work_mode",
-            "cleaning_time",
-            "cleaning_area",
             "water_level",
             "waste_water_level",
             "dock_status",
@@ -178,8 +176,6 @@ EXPECTED_SENSOR_METADATA = {
     ),
     **_snapshot_entries(
         {
-            "cleaning_time",
-            "cleaning_area",
             "water_level",
             "waste_water_level",
             "dock_status",

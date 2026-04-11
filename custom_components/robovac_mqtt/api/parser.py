@@ -298,7 +298,7 @@ def _log_proto_novelty(
             raw = raw[pos:]
         _scan_unknown_tags_recursive(dps_key, proto_msg, raw)
     except Exception:
-        pass  # Novelty detection must never break parsing
+        _LOGGER.debug("Proto novelty detection failed for dps=%s", dps_key, exc_info=True)
 
 
 def _parse_robot_telemetry(value: str) -> dict[str, Any] | None:
@@ -832,7 +832,7 @@ def _process_other_dps(
                         changes["consumable_last_time"] = _cr.runtime.last_time
                         _track_field(state, changes, "consumable_last_time")
                 except Exception:
-                    pass
+                    _LOGGER.warning("Failed to parse consumable runtime from DPS %s", key, exc_info=True)
 
             elif key == dps_map["CLEANING_STATISTICS"]:
                 stats = decode(CleanStatistics, value)

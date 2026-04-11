@@ -1,8 +1,9 @@
 """Unit tests for the cloud login module."""
 
+from typing import cast
 from unittest.mock import AsyncMock, MagicMock, patch
 
-import pytest
+import pytest  # pyright: ignore[reportMissingImports]
 
 from custom_components.robovac_mqtt.api.cloud import EufyLogin
 
@@ -34,16 +35,17 @@ async def test_check_login_uses_mqtt_credentials():
     """When mqtt_credentials is None, checkLogin() calls login().
     When mqtt_credentials is already set, checkLogin() does NOT call login()."""
     login = _make_login(mqtt_credentials=None)
+    login_login = cast(AsyncMock, login.eufyApi.login)
 
     await login.checkLogin()
-    login.eufyApi.login.assert_called_once()
+    login_login.assert_called_once()
 
     # Reset and set credentials
-    login.eufyApi.login.reset_mock()
+    login_login.reset_mock()
     login.mqtt_credentials = {"endpoint": "mqtt.example.com"}
 
     await login.checkLogin()
-    login.eufyApi.login.assert_not_called()
+    login_login.assert_not_called()
 
 
 def test_check_api_type_novel():
@@ -188,3 +190,35 @@ async def test_get_devices_catalog_failure_fallback():
 
     assert len(login.mqtt_devices) == 1
     assert login.mqtt_devices[0]["dps_catalog"] == []
+
+
+@pytest.mark.asyncio
+async def test_getDevices_catalog_exception_logs_debug(caplog):
+    """getDevices() logs debug when catalog fetch raises an unexpected exception."""
+    import logging
+
+    login = _make_login()
+    device = {
+        "device_sn": "T2261ABC",
+        "dps": {"153": "base64val"},
+        "main_sw_version": "1.0",
+    }
+    login.eufyApi.get_cloud_device_list = AsyncMock(
+        return_value=[
+            {
+                "id": "T2261ABC",
+                "product": {"product_code": "T2261", "name": "Robot"},
+                "alias_name": "Robot",
+            }
+        ]
+    )
+    login.eufyApi.get_device_list = AsyncMock(return_value=[device])
+    login.eufyApi.get_product_data_points = AsyncMock(
+        side_effect=RuntimeError("network down")
+    )
+
+    with caplog.at_level(logging.DEBUG, logger="custom_components.robovac_mqtt.api.cloud"):
+        await login.getDevices()
+
+    assert "Unexpected error fetching catalog" in caplog.text
+    assert "T2261" in caplog.text

@@ -62,7 +62,8 @@ class EufyLogin:
         for code in product_codes:
             try:
                 catalogs[code] = await self.eufyApi.get_product_data_points(code)
-            except Exception:
+            except Exception as exc:
+                _LOGGER.debug("Unexpected error fetching catalog for %s: %s", code, exc)
                 catalogs[code] = []
 
         devices = []

@@ -185,6 +185,15 @@ message AnalysisStatistics {
         repeated sint32 temperature = 6;   // 温度，单位0.1摄氏度（支持单个或多个电池）
     }
     BatteryInfo battery_info = 7;
+
+    // Battery discharge curve sampled during cleaning (field discovered via wire analysis)
+    message BatteryDischargeCurve {
+        message Series {
+            repeated uint32 values = 1;  // Battery level × 10 (e.g., 982 = 98.2%)
+        }
+        Series discharge = 2;
+    }
+    BatteryDischargeCurve battery_curve = 16;
 }
 
 message AnalysisResponse {

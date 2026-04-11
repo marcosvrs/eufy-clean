@@ -336,10 +336,14 @@ class EufyCleanCoordinator(DataUpdateCoordinator[VacuumState]):
         if not device_entry:
             return
 
+        received = state.received_fields
         for entity_entry in er.async_entries_for_device(
             ent_reg, device_entry.id, include_disabled_entities=True
         ):
-            if entity_entry.disabled_by is er.RegistryEntryDisabler.INTEGRATION:
+            if (
+                entity_entry.disabled_by is er.RegistryEntryDisabler.INTEGRATION
+                and entity_entry.unique_id.partition("_")[2] in received
+            ):
                 ent_reg.async_update_entity(
                     entity_entry.entity_id, disabled_by=None
                 )
@@ -593,11 +597,11 @@ class EufyCleanCoordinator(DataUpdateCoordinator[VacuumState]):
             )
 
     async def _async_save_novelty(self) -> None:
-        clear_novelty_dirty()
         async with self._store_lock:
             existing = await self._store.async_load() or {}
             existing["novelty_caches"] = get_novelty_caches()
             await self._store.async_save(existing)
+        clear_novelty_dirty()
 
     async def async_save_segments(self, segments_payload: list[dict[str, Any]]) -> None:
         """Save segments to storage."""

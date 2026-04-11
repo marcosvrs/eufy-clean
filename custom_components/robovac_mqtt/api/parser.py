@@ -1042,27 +1042,20 @@ def _process_other_dps(
             elif key not in HANDLED_DPS_IDS and key not in KNOWN_UNPROCESSED_DPS:
                 if catalog_types and key in catalog_types:
                     dtype = catalog_types[key]
+                    new_dynamic = dict(changes.get("dynamic_values", state.dynamic_values))
                     if dtype == "Bool":
-                        parsed_val = str(value).lower() == "true" if isinstance(value, str) else bool(value)
-                        new_dynamic = dict(changes.get("dynamic_values", state.dynamic_values))
-                        new_dynamic[key] = parsed_val
-                        changes["dynamic_values"] = new_dynamic
+                        new_dynamic[key] = str(value).lower() == "true" if isinstance(value, str) else bool(value)
                     elif dtype == "Value":
                         try:
-                            parsed_val = int(value) if isinstance(value, str) else value
-                            new_dynamic = dict(changes.get("dynamic_values", state.dynamic_values))
-                            new_dynamic[key] = parsed_val
-                            changes["dynamic_values"] = new_dynamic
+                            new_dynamic[key] = int(value) if isinstance(value, str) else value
                         except (ValueError, TypeError):
                             pass
                     elif dtype == "Enum":
                         try:
-                            parsed_val = int(value)
+                            new_dynamic[key] = int(value)
                         except (ValueError, TypeError):
-                            parsed_val = value
-                        new_dynamic = dict(changes.get("dynamic_values", state.dynamic_values))
-                        new_dynamic[key] = parsed_val
-                        changes["dynamic_values"] = new_dynamic
+                            new_dynamic[key] = value
+                    changes["dynamic_values"] = new_dynamic
                 else:
                     _LOGGER.debug(
                         "UNKNOWN_DPS | key=%s | value=%s | value_type=%s | %s",
@@ -1562,7 +1555,7 @@ def _parse_analysis_response(
         if bat.voltage:
             changes["battery_voltage"] = bat.voltage
             _track_field(state, changes, "battery_voltage")
-        if bat.current:
+        if bat.current is not None:
             changes["battery_current"] = bat.current
             _track_field(state, changes, "battery_current")
         if bat.temperature:

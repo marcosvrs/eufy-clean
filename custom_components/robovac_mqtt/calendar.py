@@ -109,7 +109,7 @@ def _build_timer_info_from_event(
     info["desc"] = {
         "trigger": 1 if is_cycle else 0,
         "timing": {
-            "user_tz": _local_tz_offset_seconds(),
+            "user_tz": _local_tz_offset_seconds() & 0xFFFFFFFF,
             "summer": _is_dst(),
             "hours": hour,
             "minutes": minute,

@@ -143,7 +143,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: EufyCleanConfigEntry) ->
     entry.async_on_unload(
         async_track_time_interval(
             hass,
-            lambda _now: _async_check_new_devices(hass, entry),
+            lambda _now: hass.async_create_task(_async_check_new_devices(hass, entry)),
             timedelta(hours=1),
         )
     )

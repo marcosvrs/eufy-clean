@@ -111,15 +111,45 @@ async def test_unload_entry_shuts_down_timers(hass: HomeAssistant):
     assert timer_fired == []
 
 
-async def test_remove_config_entry_device_returns_true(hass: HomeAssistant):
-    """async_remove_config_entry_device always returns True."""
+async def test_remove_config_entry_device_blocks_active_device(hass: HomeAssistant):
+    """async_remove_config_entry_device returns False for devices still in cloud list."""
     entry, _, _ = await _setup_entry(hass)
 
     device_entry = MagicMock()
     device_entry.identifiers = {(DOMAIN, "T2261_ANON_001")}
 
     result = await async_remove_config_entry_device(hass, entry, device_entry)
+    assert result is False
+
+    await hass.config_entries.async_unload(entry.entry_id)
+    await hass.async_block_till_done()
+
+
+async def test_remove_config_entry_device_allows_stale_device(hass: HomeAssistant):
+    """async_remove_config_entry_device returns True for devices not in cloud list."""
+    entry, _, _ = await _setup_entry(hass)
+
+    device_entry = MagicMock()
+    device_entry.identifiers = {(DOMAIN, "STALE_DEVICE_999")}
+
+    result = await async_remove_config_entry_device(hass, entry, device_entry)
     assert result is True
+
+    await hass.config_entries.async_unload(entry.entry_id)
+    await hass.async_block_till_done()
+
+
+async def test_remove_config_entry_device_blocks_when_cloud_empty(hass: HomeAssistant):
+    """async_remove_config_entry_device returns False when cloud list is empty."""
+    entry, _, _ = await _setup_entry(hass)
+
+    entry.runtime_data.cloud.mqtt_devices = []
+
+    device_entry = MagicMock()
+    device_entry.identifiers = {(DOMAIN, "T2261_ANON_001")}
+
+    result = await async_remove_config_entry_device(hass, entry, device_entry)
+    assert result is False
 
     await hass.config_entries.async_unload(entry.entry_id)
     await hass.async_block_till_done()

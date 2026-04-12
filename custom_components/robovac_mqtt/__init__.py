@@ -3,6 +3,7 @@ from __future__ import annotations
 import logging
 import random
 import string
+from datetime import timedelta
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME, Platform
@@ -10,6 +11,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers import device_registry as dr
+from homeassistant.helpers.event import async_track_time_interval
 
 from .api.cloud import EufyLogin
 from .api.http import EufyAuthError, EufyConnectionError
@@ -139,6 +141,14 @@ async def async_setup_entry(hass: HomeAssistant, entry: EufyCleanConfigEntry) ->
 
     entry.async_on_unload(entry.add_update_listener(update_listener))
 
+    entry.async_on_unload(
+        async_track_time_interval(
+            hass,
+            lambda _now: _async_check_new_devices(hass, entry),
+            timedelta(hours=1),
+        )
+    )
+
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
     return True
@@ -160,8 +170,46 @@ async def async_unload_entry(hass: HomeAssistant, entry: EufyCleanConfigEntry) -
 async def async_remove_config_entry_device(
     hass: HomeAssistant, config_entry: EufyCleanConfigEntry, device_entry: dr.DeviceEntry
 ) -> bool:
-    """Remove a config entry device."""
+    """Remove a config entry device — only allow if device is not in cloud list."""
+    eufy_id = next(
+        (identifier[1] for identifier in device_entry.identifiers if identifier[0] == DOMAIN),
+        None,
+    )
+    if not eufy_id:
+        return True
+
+    cloud = config_entry.runtime_data.cloud
+    if not cloud.mqtt_devices:
+        _LOGGER.warning(
+            "Cannot verify device %s — cloud device list not loaded. Blocking removal.",
+            eufy_id,
+        )
+        return False
+
+    cloud_ids = {d.get("deviceId") for d in cloud.mqtt_devices}
+    if eufy_id in cloud_ids:
+        return False
+
     return True
+
+
+async def _async_check_new_devices(
+    hass: HomeAssistant, entry: EufyCleanConfigEntry
+) -> None:
+    cloud = entry.runtime_data.cloud
+    try:
+        await cloud.getDevices()
+    except Exception:
+        _LOGGER.debug("Periodic device refresh failed", exc_info=True)
+        return
+
+    current_ids = set(entry.runtime_data.coordinators.keys())
+    cloud_ids = {d.get("deviceId") for d in cloud.mqtt_devices if d.get("deviceId")}
+
+    new_ids = cloud_ids - current_ids
+    if new_ids:
+        _LOGGER.info("New devices detected: %s — reloading integration", new_ids)
+        await hass.config_entries.async_reload(entry.entry_id)
 
 
 async def update_listener(hass: HomeAssistant, entry: EufyCleanConfigEntry):

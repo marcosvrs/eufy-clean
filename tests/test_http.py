@@ -7,7 +7,12 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from custom_components.robovac_mqtt.api.http import _REQUEST_TIMEOUT, EufyHTTPClient
+from custom_components.robovac_mqtt.api.http import (
+    _REQUEST_TIMEOUT,
+    EufyAuthError,
+    EufyConnectionError,
+    EufyHTTPClient,
+)
 
 
 def _make_client() -> EufyHTTPClient:
@@ -30,6 +35,7 @@ def _mock_aiohttp_session(mock_response: AsyncMock) -> MagicMock:
     mock_session = MagicMock()
     mock_session.__aenter__ = AsyncMock(return_value=mock_session)
     mock_session.__aexit__ = AsyncMock(return_value=False)
+    mock_session.close = AsyncMock()
     mock_session.post.return_value = ctx
     mock_session.get.return_value = ctx
 
@@ -70,7 +76,7 @@ async def test_get_product_data_points_returns_empty_without_user_info():
 
 @pytest.mark.asyncio
 async def test_eufy_login_json_parse_exception_logs_debug(caplog):
-    """eufy_login() logs debug when JSON parsing raises an exception."""
+    """eufy_login() logs debug and raises when JSON parsing fails."""
     client = _make_client()
     mock_response = AsyncMock()
     mock_response.status = 200
@@ -83,9 +89,9 @@ async def test_eufy_login_json_parse_exception_logs_debug(caplog):
         with caplog.at_level(
             logging.DEBUG, logger="custom_components.robovac_mqtt.api.http"
         ):
-            result = await client.eufy_login()
+            with pytest.raises(EufyConnectionError, match="Login failed: 200"):
+                await client.eufy_login()
 
-    assert result is None
     assert "Failed to parse login response as JSON" in caplog.text
 
 
@@ -132,7 +138,7 @@ async def test_get_cloud_device_list_non_200_logs_warning(caplog):
     client = _make_client()
     client.session = {"access_token": "token123"}
     mock_response = AsyncMock()
-    mock_response.status = 401
+    mock_response.status = 503
     mock_response.json = AsyncMock(return_value={})
 
     with patch(
@@ -145,7 +151,23 @@ async def test_get_cloud_device_list_non_200_logs_warning(caplog):
 
     assert result == []
     assert "get_cloud_device_list failed" in caplog.text
-    assert "401" in caplog.text
+    assert "503" in caplog.text
+
+
+@pytest.mark.asyncio
+async def test_get_cloud_device_list_raises_auth_error_on_401():
+    """get_cloud_device_list() raises auth error for expired credentials."""
+    client = _make_client()
+    client.session = {"access_token": "token123"}
+    mock_response = AsyncMock()
+    mock_response.status = 401
+    mock_response.json = AsyncMock(return_value={})
+
+    with patch(
+        "aiohttp.ClientSession", return_value=_mock_aiohttp_session(mock_response)
+    ):
+        with pytest.raises(EufyAuthError, match="Authentication failed"):
+            await client.get_cloud_device_list()
 
 
 @pytest.mark.asyncio
@@ -193,7 +215,7 @@ async def test_get_mqtt_credentials_returns_none_without_user_info():
 
 @pytest.mark.asyncio
 async def test_login_returns_empty_on_failed_login():
-    """login() should return {} when eufy_login gets a non-200 / no access_token response."""
+    """login() should raise auth errors on invalid credentials."""
     mock_response = AsyncMock()
     mock_response.status = 401
     mock_response.json = AsyncMock(return_value=None)
@@ -203,9 +225,8 @@ async def test_login_returns_empty_on_failed_login():
 
     with patch("aiohttp.ClientSession", return_value=mock_session):
         client = _make_client()
-        result = await client.login()
-
-    assert result == {}
+        with pytest.raises(EufyAuthError, match="Invalid credentials"):
+            await client.login()
 
 
 @pytest.mark.asyncio

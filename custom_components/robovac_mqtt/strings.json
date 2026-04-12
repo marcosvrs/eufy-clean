@@ -1,4 +1,60 @@
 {
+  "config": {
+    "step": {
+      "user": {
+        "title": "Eufy Clean",
+        "description": "Enter your Eufy account credentials",
+        "data": {
+          "username": "Email",
+          "password": "Password"
+        },
+        "data_description": {
+          "username": "The email address associated with your Eufy account",
+          "password": "Your Eufy account password"
+        }
+      },
+      "reauth_confirm": {
+        "title": "Reauthenticate Eufy Clean",
+        "description": "The authentication for {name} has expired. Please re-enter your password.",
+        "data": {
+          "password": "Password"
+        },
+        "data_description": {
+          "password": "Your Eufy account password"
+        }
+      },
+      "reconfigure": {
+        "title": "Reconfigure Eufy Clean",
+        "description": "Update your Eufy account credentials",
+        "data": {
+          "username": "Email",
+          "password": "Password"
+        },
+        "data_description": {
+          "username": "The email address associated with your Eufy account",
+          "password": "Your Eufy account password"
+        }
+      }
+    },
+    "error": {
+      "invalid_auth": "Invalid authentication — check your email and password",
+      "cannot_connect": "Failed to connect to Eufy servers. Check your network connection.",
+      "unknown": "An unknown error occurred"
+    },
+    "abort": {
+      "already_configured": "This account is already configured",
+      "reauth_successful": "Reauthentication successful"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Eufy Clean Options",
+        "description": "Options for Eufy Clean will appear here.",
+        "data": {}
+      }
+    }
+  },
   "issues": {
     "segments_changed": {
       "title": "Vacuum segments have changed",

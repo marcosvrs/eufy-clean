@@ -7,9 +7,12 @@ import string
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME, Platform
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
+from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers import device_registry as dr
 
 from .api.cloud import EufyLogin
+from .api.http import EufyAuthError, EufyConnectionError
 from .const import DOMAIN
 from .coordinator import EufyCleanCoordinator
 from .models import EufyCleanData
@@ -33,8 +36,6 @@ _LOGGER = logging.getLogger(__name__)
 
 async def async_setup_entry(hass: HomeAssistant, entry: EufyCleanConfigEntry) -> bool:
     """Initialize the integration."""
-    entry.async_on_unload(entry.add_update_listener(update_listener))
-
     username = entry.data[CONF_USERNAME]
     password = entry.data[CONF_PASSWORD]
 
@@ -42,12 +43,17 @@ async def async_setup_entry(hass: HomeAssistant, entry: EufyCleanConfigEntry) ->
     openudid = "".join(random.choices(string.hexdigits, k=32))
 
     # Initialize Login Controller
-    eufy_login = EufyLogin(username, password, openudid)
+    session = async_get_clientsession(hass)
+    eufy_login = EufyLogin(username, password, openudid, session=session)
     try:
         await eufy_login.init()
+    except EufyAuthError as err:
+        raise ConfigEntryAuthFailed from err
+    except EufyConnectionError as err:
+        raise ConfigEntryNotReady from err
     except Exception as e:
-        _LOGGER.error("Failed to login to Eufy Clean: %s", e)
-        return False
+        _LOGGER.error("Failed to initialize Eufy Clean: %s", e)
+        raise ConfigEntryNotReady from e
 
     coordinators: dict[str, EufyCleanCoordinator] = {}
 
@@ -130,6 +136,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: EufyCleanConfigEntry) ->
         _LOGGER.info(
             "Removed legacy last_seen_segments from config entry %s", entry.entry_id
         )
+
+    entry.async_on_unload(entry.add_update_listener(update_listener))
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 

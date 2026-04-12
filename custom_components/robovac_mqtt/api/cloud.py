@@ -3,6 +3,8 @@ from __future__ import annotations
 import logging
 from typing import Any
 
+import aiohttp
+
 from ..const import DEFAULT_DPS_MAP
 from .http import EufyHTTPClient
 
@@ -14,8 +16,14 @@ class EufyLoginError(Exception):
 
 
 class EufyLogin:
-    def __init__(self, username: str, password: str, openudid: str):
-        self.eufyApi = EufyHTTPClient(username, password, openudid)
+    def __init__(
+        self,
+        username: str,
+        password: str,
+        openudid: str,
+        session: aiohttp.ClientSession | None = None,
+    ):
+        self.eufyApi = EufyHTTPClient(username, password, openudid, session=session)
         self.username = username
         self.password = password
         self.openudid = openudid

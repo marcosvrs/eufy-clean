@@ -161,7 +161,7 @@ def _log_scalar_novelty(dps_key: str, value: Any) -> None:
         _novelty_dirty = True
 
 
-def _flatten_proto_paths(d: dict, prefix: str = "") -> set[str]:
+def _flatten_proto_paths(d: dict[str, object], prefix: str = "") -> set[str]:
     paths: set[str] = set()
     for k, v in d.items():
         path = f"{prefix}.{k}" if prefix else k
@@ -1342,7 +1342,7 @@ def _map_dock_status(value: StationResponse) -> str:
             return "Cutting hair"
 
         state = status.state
-        state_name = StationResponse.StationStatus.State.Name(state)
+        state_name = str(StationResponse.StationStatus.State.Name(state))
         state_string = state_name.strip().lower().replace("_", " ")
         return state_string[:1].upper() + state_string[1:]
     except Exception as e:

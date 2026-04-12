@@ -6,6 +6,7 @@ from typing import Any
 import aiohttp
 
 from ..const import DEFAULT_DPS_MAP
+from ..typing_defs import EufyDeviceInfo, MqttCredentials
 from .http import EufyHTTPClient
 
 _LOGGER = logging.getLogger(__name__)
@@ -22,33 +23,31 @@ class EufyLogin:
         password: str,
         openudid: str,
         session: aiohttp.ClientSession | None = None,
-    ):
+    ) -> None:
         self.eufyApi = EufyHTTPClient(username, password, openudid, session=session)
         self.username = username
         self.password = password
         self.openudid = openudid
-        self.mqtt_credentials: dict[str, Any] | None = None
-        self.mqtt_devices: list[dict[str, Any]] = []
+        self.mqtt_credentials: MqttCredentials | None = None
+        self.mqtt_devices: list[EufyDeviceInfo] = []
         self.eufy_api_devices: list[dict[str, Any]] = []
 
-    async def init(self):
+    async def init(self) -> None:
         await self.login({"mqtt": True})
-        return await self.getDevices()
+        await self.getDevices()
 
-    async def login(self, config: dict):
-        eufyLogin = None
-
+    async def login(self, config: dict[str, bool]) -> None:
         if not config["mqtt"]:
             raise EufyLoginError("MQTT login is required")
 
-        eufyLogin = await self.eufyApi.login()
+        eufy_login = await self.eufyApi.login()
 
-        if not eufyLogin:
+        if not eufy_login:
             raise EufyLoginError("Login failed")
 
-        self.mqtt_credentials = eufyLogin["mqtt"]
+        self.mqtt_credentials = eufy_login["mqtt"]
 
-    async def checkLogin(self):
+    async def checkLogin(self) -> None:
         if not self.mqtt_credentials:
             await self.login({"mqtt": True})
 
@@ -66,7 +65,7 @@ class EufyLogin:
                     product_codes.add(code)
                     device_models[device["device_sn"]] = code
 
-        catalogs: dict[str, list] = {}
+        catalogs: dict[str, list[dict[str, Any]]] = {}
         for code in product_codes:
             try:
                 catalogs[code] = await self.eufyApi.get_product_data_points(code)
@@ -74,7 +73,7 @@ class EufyLogin:
                 _LOGGER.debug("Unexpected error fetching catalog for %s: %s", code, exc)
                 catalogs[code] = []
 
-        devices = []
+        devices: list[EufyDeviceInfo] = []
         for device in raw_devices:
             sn = device["device_sn"]
             model_info = self.findModel(sn)
@@ -94,28 +93,29 @@ class EufyLogin:
 
         self.mqtt_devices = [d for d in devices if not d["invalid"]]
 
-    async def getMqttDevice(self, deviceId: str):
+    async def getMqttDevice(self, deviceId: str) -> dict[str, Any] | None:
         devices = await self.eufyApi.get_device_list()
         return next((d for d in devices if d.get("device_sn") == deviceId), None)
 
     @staticmethod
-    def checkApiType(dps: dict):
+    def checkApiType(dps: dict[str, Any]) -> str:
         if any(k in dps for k in DEFAULT_DPS_MAP.values()):
             return "novel"
         return "legacy"
 
-    def findModel(self, deviceId: str):
+    def findModel(self, deviceId: str) -> EufyDeviceInfo:
         device = next((d for d in self.eufy_api_devices if d["id"] == deviceId), None)
 
         if device:
+            product = device.get("product", {})
+            product_code = product.get("product_code", "") if isinstance(product, dict) else ""
+            product_name = product.get("name") if isinstance(product, dict) else None
+            device_name = device.get("alias_name") or device.get("device_name") or device.get("name")
             return {
                 "deviceId": deviceId,
-                "deviceModel": device.get("product", {}).get("product_code", "")[:5]
-                or device.get("device_model", "")[:5],
-                "deviceName": device.get("alias_name")
-                or device.get("device_name")
-                or device.get("name"),
-                "deviceModelName": device.get("product", {}).get("name"),
+                "deviceModel": str(product_code)[:5] or str(device.get("device_model", ""))[:5],
+                "deviceName": str(device_name or ""),
+                "deviceModelName": str(product_name or ""),
                 "invalid": False,
             }
 

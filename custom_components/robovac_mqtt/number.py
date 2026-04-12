@@ -12,7 +12,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .__init__ import EufyCleanConfigEntry
+from .typing_defs import EufyCleanConfigEntry
 from .api.commands import build_command
 from .auto_entities import get_auto_numbers
 from .const import DOMAIN
@@ -29,7 +29,7 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Setup number entities."""
-    entities = []
+    entities: list[NumberEntity] = []
 
     for coordinator in config_entry.runtime_data.coordinators.values():
         _LOGGER.debug("Adding number entities for %s", coordinator.device_name)

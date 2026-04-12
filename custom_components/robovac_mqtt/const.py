@@ -591,7 +591,7 @@ CLOUD_CODE_TO_FUNC: dict[str, list[str]] = {
 }
 
 
-def build_dps_map_from_catalog(catalog: list[dict]) -> dict[str, str]:
+def build_dps_map_from_catalog(catalog: list[dict[str, object]]) -> dict[str, str]:
     """Build a DPS map from a cloud catalog, falling back to DEFAULT_DPS_MAP for missing entries."""
     if not catalog:
         return dict(DEFAULT_DPS_MAP)
@@ -601,6 +601,9 @@ def build_dps_map_from_catalog(catalog: list[dict]) -> dict[str, str]:
         code = item.get("code")
         if dp_id is None or code is None:
             _LOGGER.warning("Skipping malformed catalog entry: %r", item)
+            continue
+        if not isinstance(code, str):
+            _LOGGER.warning("Skipping catalog entry with non-string code: %r", item)
             continue
         func_names = CLOUD_CODE_TO_FUNC.get(code)
         if func_names is None:
@@ -613,14 +616,14 @@ def build_dps_map_from_catalog(catalog: list[dict]) -> dict[str, str]:
     return result
 
 
-def supported_dps_from_catalog(catalog: list[dict]) -> frozenset[str]:
+def supported_dps_from_catalog(catalog: list[dict[str, object]]) -> frozenset[str]:
     """Return frozenset of functional DPS names supported by this device's catalog."""
     if not catalog:
         return frozenset(DEFAULT_DPS_MAP.keys())
     supported: set[str] = set()
     for item in catalog:
         code = item.get("code")
-        if code is None:
+        if not isinstance(code, str):
             continue
         func_names = CLOUD_CODE_TO_FUNC.get(code)
         if func_names:

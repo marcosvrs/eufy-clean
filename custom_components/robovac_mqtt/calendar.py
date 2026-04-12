@@ -6,18 +6,15 @@ import time
 from datetime import datetime as dt_datetime
 from typing import Any
 
-from homeassistant.components.calendar import (
-    CalendarEntity,
-    CalendarEntityFeature,
-    CalendarEvent,
-)
+from homeassistant.components import calendar as calendar_component
+from homeassistant.components.calendar import CalendarEntity, CalendarEvent
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.util import dt as dt_util
 
-from .__init__ import EufyCleanConfigEntry
+from .typing_defs import EufyCleanConfigEntry
 from .api.commands import build_command
 from .const import DOMAIN
 from .coordinator import EufyCleanCoordinator
@@ -25,6 +22,8 @@ from .coordinator import EufyCleanCoordinator
 PARALLEL_UPDATES = 1
 
 _LOGGER = logging.getLogger(__name__)
+
+_CALENDAR_ENTITY_FEATURE = getattr(calendar_component, "CalendarEntityFeature")
 
 _EVENT_DURATION = dt.timedelta(minutes=30)
 
@@ -140,7 +139,7 @@ def _find_schedule_by_uid(
 
 
 def _estimate_duration(
-    history: list[dict],
+    history: list[dict[str, Any]],
     trigger_source: str | None = None,
     scene_name: str | None = None,
     default_minutes: int = 30,
@@ -172,7 +171,7 @@ def _estimate_duration(
     return max(10, int(avg_seconds / 60))
 
 
-def _session_summary(session: dict) -> str:
+def _session_summary(session: dict[str, Any]) -> str:
     """Build calendar event summary from a cleaning session record."""
     trigger = session.get("trigger_source", "unknown")
     duration_min = session.get("duration_seconds", 0) // 60
@@ -193,7 +192,7 @@ def _session_summary(session: dict) -> str:
     return f"{icon} {label} ({duration_min} min, {area}m\u00b2)"
 
 
-def _session_description(session: dict) -> str:
+def _session_description(session: dict[str, Any]) -> str:
     """Build calendar event description from a cleaning session record."""
     parts = []
     trigger = session.get("trigger_source", "unknown")
@@ -285,7 +284,7 @@ async def async_setup_entry(
     config_entry: EufyCleanConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-    entities = []
+    entities: list[CalendarEntity] = []
     for coordinator in config_entry.runtime_data.coordinators.values():
         if "TIMING" in coordinator.supported_dps:
             entities.append(EufyCleanCalendar(coordinator))
@@ -296,9 +295,9 @@ async def async_setup_entry(
 class EufyCleanCalendar(CoordinatorEntity[EufyCleanCoordinator], CalendarEntity):
 
     _attr_supported_features = (
-        CalendarEntityFeature.CREATE_EVENT
-        | CalendarEntityFeature.DELETE_EVENT
-        | CalendarEntityFeature.UPDATE_EVENT
+        _CALENDAR_ENTITY_FEATURE.CREATE_EVENT
+        | _CALENDAR_ENTITY_FEATURE.DELETE_EVENT
+        | _CALENDAR_ENTITY_FEATURE.UPDATE_EVENT
     )
 
     def __init__(self, coordinator: EufyCleanCoordinator) -> None:
@@ -476,7 +475,7 @@ class EufyCleanCalendar(CoordinatorEntity[EufyCleanCoordinator], CalendarEntity)
 
     @staticmethod
     def _session_to_event(
-        session: dict,
+        session: dict[str, Any],
         tz: dt.tzinfo,
         range_start: dt.datetime,
         range_end: dt.datetime,

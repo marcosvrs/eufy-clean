@@ -1,7 +1,11 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from .api.cloud import EufyLogin
+    from .coordinator import EufyCleanCoordinator
 
 
 @dataclass
@@ -255,5 +259,5 @@ class CleaningSession:
 class EufyCleanData:
     """Runtime data for the Eufy Clean integration."""
 
-    coordinators: dict[str, Any]  # dict[device_id, EufyCleanCoordinator]
-    cloud: Any  # EufyLogin - avoid circular import
+    coordinators: dict[str, EufyCleanCoordinator]
+    cloud: EufyLogin

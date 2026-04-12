@@ -8,7 +8,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .__init__ import EufyCleanConfigEntry
+from .typing_defs import EufyCleanConfigEntry
 from .auto_entities import get_auto_binary_sensors
 from .const import DOMAIN
 from .coordinator import EufyCleanCoordinator
@@ -53,7 +53,7 @@ class RoboVacBinarySensor(CoordinatorEntity[EufyCleanCoordinator], BinarySensorE
     ) -> None:
         """Initialize the binary sensor."""
         super().__init__(coordinator)
-        self.entity_description = description
+        self.entity_description: RoboVacBinarySensorDescription = description
         self._attr_unique_id = f"{coordinator.device_id}_{description.key}"
         self._attr_translation_key = description.key
         self._attr_device_info = coordinator.device_info

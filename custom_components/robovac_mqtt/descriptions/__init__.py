@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 """EntityDescription dataclasses for robovac_mqtt platforms."""
 
 from .binary_sensor import (

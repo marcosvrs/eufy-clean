@@ -6,7 +6,7 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .__init__ import EufyCleanConfigEntry
+from .typing_defs import EufyCleanConfigEntry
 from .const import DOMAIN
 from .coordinator import EufyCleanCoordinator
 

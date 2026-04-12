@@ -1,5 +1,6 @@
-"""Diagnostics support for Eufy Clean."""
 from __future__ import annotations
+
+"""Diagnostics support for Eufy Clean."""
 
 from dataclasses import asdict
 from typing import Any
@@ -7,7 +8,7 @@ from typing import Any
 from homeassistant.components.diagnostics import async_redact_data
 from homeassistant.core import HomeAssistant
 
-from .__init__ import EufyCleanConfigEntry
+from .typing_defs import EufyCleanConfigEntry
 
 TO_REDACT = {
     "password",

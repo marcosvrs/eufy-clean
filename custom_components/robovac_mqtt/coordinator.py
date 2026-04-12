@@ -37,6 +37,7 @@ from .const import (
     supported_dps_from_catalog,
 )
 from .models import CleaningSession, VacuumState
+from .typing_defs import EufyCleanConfigEntry, EufyDeviceInfo
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -80,8 +81,8 @@ class EufyCleanCoordinator(DataUpdateCoordinator[VacuumState]):
         self,
         hass: HomeAssistant,
         eufy_login: EufyLogin,
-        device_info: dict[str, Any],
-        config_entry: Any | None = None,
+        device_info: EufyDeviceInfo,
+        config_entry: EufyCleanConfigEntry | None = None,
     ) -> None:
         """Initialize coordinator."""
         self.device_id = device_info["deviceId"]
@@ -116,8 +117,8 @@ class EufyCleanCoordinator(DataUpdateCoordinator[VacuumState]):
         self._prev_task_status: str = ""
         self._store_lock = asyncio.Lock()
         self._pending_dock_status: str | None = None
-        self.last_seen_segments: list[Any] | None = None
-        self._store = Store(hass, 1, f"{DOMAIN}.{self.device_id}")
+        self.last_seen_segments: list[dict[str, Any]] | None = None
+        self._store: Store[dict[str, Any]] = Store(hass, 1, f"{DOMAIN}.{self.device_id}")
 
         catalog = device_info.get("dps_catalog", [])
         self._raw_catalog: list[dict[str, object]] = catalog
@@ -138,7 +139,10 @@ class EufyCleanCoordinator(DataUpdateCoordinator[VacuumState]):
             {str(item.get("dp_id", "")): item for item in catalog} if catalog else {}
         )
         self.catalog_types: dict[str, str] = (
-            {str(item.get("dp_id", "")): item.get("data_type", "") for item in catalog}
+            {
+                str(item.get("dp_id", "")): str(item.get("data_type", ""))
+                for item in catalog
+            }
             if catalog
             else {}
         )

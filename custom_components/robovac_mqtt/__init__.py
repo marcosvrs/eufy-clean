@@ -18,8 +18,7 @@ from .api.http import EufyAuthError, EufyConnectionError
 from .const import DOMAIN
 from .coordinator import EufyCleanCoordinator
 from .models import EufyCleanData
-
-type EufyCleanConfigEntry = ConfigEntry[EufyCleanData]
+from .typing_defs import EufyCleanConfigEntry
 
 PLATFORMS: list[Platform] = [
     Platform.VACUUM,
@@ -212,5 +211,5 @@ async def _async_check_new_devices(
         await hass.config_entries.async_reload(entry.entry_id)
 
 
-async def update_listener(hass: HomeAssistant, entry: EufyCleanConfigEntry):
+async def update_listener(hass: HomeAssistant, entry: EufyCleanConfigEntry) -> None:
     await hass.config_entries.async_reload(entry.entry_id)

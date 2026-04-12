@@ -5,7 +5,7 @@ import hashlib
 import logging
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
-from typing import Any
+from typing import Any, cast
 
 import aiohttp
 
@@ -21,6 +21,16 @@ from ..const import (
 _REQUEST_TIMEOUT = aiohttp.ClientTimeout(total=30)
 
 _LOGGER = logging.getLogger(__name__)
+
+
+def _as_dict(value: Any) -> dict[str, Any]:
+    """Return a JSON object as a typed dict."""
+    return cast(dict[str, Any], value)
+
+
+def _as_list_of_dicts(value: Any) -> list[dict[str, Any]]:
+    """Return a JSON array of objects with a typed shape."""
+    return cast(list[dict[str, Any]], value)
 
 
 class EufyCleanError(Exception):
@@ -59,6 +69,7 @@ class EufyHTTPClient:
         own_session = session is None
         if own_session:
             session = aiohttp.ClientSession(timeout=_REQUEST_TIMEOUT)
+        assert session is not None
         try:
             yield session
         finally:
@@ -110,8 +121,8 @@ class EufyHTTPClient:
                         "access_token"
                     ):
                         _LOGGER.debug("eufyLogin successful")
-                        self.session = response_json
-                        return response_json
+                        self.session = _as_dict(response_json)
+                        return self.session
 
                     body = response_json or await response.text()
                     _LOGGER.error("Login failed: %s %s", response.status, body)
@@ -217,8 +228,8 @@ class EufyHTTPClient:
                     json={"product_code": product_code, "code": product_code},
                 ) as response:
                     if response.status == 200:
-                        data = await response.json()
-                        return data.get("data", {}).get("data_point_list", [])
+                         data = _as_dict(await response.json())
+                         return _as_list_of_dicts(data.get("data", {}).get("data_point_list", []))
                     if response.status in (401, 403):
                         raise EufyAuthError("Authentication failed")
                     _LOGGER.warning(
@@ -257,8 +268,8 @@ class EufyHTTPClient:
                     },
                 ) as response:
                     if response.status == 200:
-                        data = await response.json()
-                        return data.get("devices", [])
+                        data = _as_dict(await response.json())
+                        return _as_list_of_dicts(data.get("devices", []))
                     if response.status in (401, 403):
                         raise EufyAuthError("Authentication failed")
                     _LOGGER.warning(
@@ -290,7 +301,8 @@ class EufyHTTPClient:
                     },
                 ) as response:
                     if response.status == 200:
-                        return (await response.json()).get("data")
+                        data = _as_dict(await response.json()).get("data")
+                        return _as_dict(data) if isinstance(data, dict) else None
                     if response.status in (401, 403):
                         raise EufyAuthError("Authentication failed")
                     _LOGGER.warning(

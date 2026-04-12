@@ -188,7 +188,9 @@ class EufyCleanClient:
         tls_params = self._build_tls_params()
 
         try:
-            while not self._shutdown:
+            while True:
+                if self._shutdown:
+                    break
                 try:
                     async with aiomqtt.Client(
                         hostname=self.endpoint,
@@ -216,15 +218,11 @@ class EufyCleanClient:
 
                         self._mark_disconnected("MQTT message stream ended")
                 except aiomqtt.MqttError as err:
-                    if self._shutdown:
-                        break
                     self._mark_disconnected(
                         f"MQTT disconnected: {err} — reconnecting in 5s..."
                     )
                     await asyncio.sleep(5)
                 except Exception as err:
-                    if self._shutdown:
-                        break
                     self._mark_disconnected(
                         f"Unexpected MQTT error: {err} — reconnecting in 10s...",
                         unexpected=True,

@@ -26,7 +26,7 @@ USER_SCHEMA = Schema(
 )
 
 
-class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call-arg]
+class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     """Handle a config flow for Eufy Robovac."""
 
     VERSION = 1

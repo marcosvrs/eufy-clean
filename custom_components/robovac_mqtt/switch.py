@@ -13,7 +13,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .__init__ import EufyCleanConfigEntry
+from .typing_defs import EufyCleanConfigEntry
 from .api.commands import build_command
 from .auto_entities import get_auto_switches
 from .const import DOMAIN
@@ -34,7 +34,7 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Setup switch entities."""
-    entities = []
+    entities: list[SwitchEntity] = []
 
     for coordinator in config_entry.runtime_data.coordinators.values():
         _LOGGER.debug("Adding switch entities for %s", coordinator.device_name)
@@ -267,8 +267,14 @@ class DoNotDisturbSwitchEntity(CoordinatorEntity[EufyCleanCoordinator], SwitchEn
     async def _set_state(self, state: bool) -> None:
         """Send DND command and optimistically update state."""
         schedule = _current_dnd_schedule(self.coordinator)
-        schedule["active"] = state
-        command = build_command("set_do_not_disturb", **schedule)  # type: ignore[arg-type]
+        command = build_command(
+            "set_do_not_disturb",
+            active=state,
+            begin_hour=int(schedule["begin_hour"]),
+            begin_minute=int(schedule["begin_minute"]),
+            end_hour=int(schedule["end_hour"]),
+            end_minute=int(schedule["end_minute"]),
+        )
         await self.coordinator.async_send_command(command)
         self.coordinator.async_set_updated_data(
             replace(self.coordinator.data, dnd_enabled=state)

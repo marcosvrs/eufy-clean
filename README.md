@@ -10,6 +10,21 @@ This project provides an interface to interact with Eufy cleaning devices via MQ
 - This code was ported and tested on a Robovac X10 Pro Omni, but it should work on other models as well 🤞🏼
 - This is a personal project maintained for Home Assistant users. Contributions are welcome!
 
+## Supported Devices
+
+This integration supports Eufy RoboVac models that use MQTT for communication.
+
+| Series | Supported Models |
+|--------|------------------|
+| **X-Series** | X8, X8 Hybrid, X8 Pro, X8 Pro SES, X9 Pro, X10 Pro Omni |
+| **G-Series** | G20, G20 Hybrid, G30, G30 Hybrid, G30 Verge, G30+ SES, G32, G35, G35+, G40, G40 Hybrid, G40 Hybrid+, G50 |
+| **L-Series** | L60, L60 Hybrid, L60 SES, L60 Hybrid SES, L70 Hybrid, LR20, LR30 Hybrid, LR30 Hybrid+, LR35 Hybrid, LR35 Hybrid+ |
+| **C-Series** | 15C MAX, 25C, 30C, 30C MAX, 35C, Omni C20, AE C10 |
+| **S-Series** | 11S, S1 |
+
+> [!NOTE]
+> If your model is not listed but supports MQTT, it may still work. Models that only support Bluetooth or local HTTP are not compatible.
+
 ## Features
 
 This custom component provides comprehensive control over your Eufy robot vacuum and its cleaning station:
@@ -95,17 +110,40 @@ For exposing your Eufy vacuum to Apple Home, Google Home, or other Matter-compat
 
 ## Usage
 
+### Prerequisites
+- A Eufy account with your vacuum already set up in the Eufy Clean app.
+- Your vacuum must support MQTT (most modern X, G, and L series models).
+
 ### Installation via HACS
 1.  Open HACS in Home Assistant.
 2.  Add this repository as a custom repository.
 3.  Install "Eufy Robovac MQTT".
 4.  Restart Home Assistant.
 
+### Removal
+1. Go to **Settings → Devices & Services**.
+2. Find the **Eufy Robovac MQTT** integration.
+3. Click the three-dot menu and select **Delete**.
+4. To remove the code, go to **HACS → Integrations**, find "Eufy Robovac MQTT", and select **Uninstall**.
+5. Restart Home Assistant.
+
 ### Configuration
-1.  Go to Settings -> Devices & Services.
-2.  Click "Add Integration".
-3.  Search for "Eufy Robovac MQTT" and follow the setup flow.
+1.  Go to **Settings → Devices & Services**.
+2.  Click **Add Integration**.
+3.  Search for **Eufy Robovac MQTT** and follow the setup flow.
 4.  Login with your Eufy App credentials.
+
+#### Configuration Parameters
+| Parameter | Description | Required |
+|-----------|-------------|----------|
+| Email | The email address for your Eufy account | Yes |
+| Password | Your Eufy account password | Yes |
+
+#### Options
+After setup, you can configure additional options via **Settings → Devices & Services → Eufy Robovac MQTT → Configure**:
+| Option | Description | Default |
+|--------|-------------|---------|
+| Max cleaning history | Maximum cleaning sessions to retain | 100 |
 
 ### Cleaning Scenes
 The integration provides a dynamic **Scene** select entity (under the Configuration category) that automatically populates with all **valid** scenes from your Eufy app. Selecting an option in the UI will immediately trigger that cleaning routine.
@@ -176,6 +214,31 @@ data:
 
 > [!TIP]
 > If you get an error like "Unable to identify position", it's likely that the `map_id` provided in your service call doesn't match the vacuum's current hardware map. Check the **Active Map** sensor to verify.
+
+## Data Update
+This integration uses **cloud push** (`iot_class: cloud_push`) via MQTT. The vacuum pushes state updates in real-time, so there's no polling interval. Changes to vacuum state like cleaning status, battery levels, and errors appear in Home Assistant within seconds.
+
+MQTT messages arrive on the topic `cmd/eufy_home/{model}/{device_id}/res` and are parsed via protobuf into entity state.
+
+## Known Limitations
+- **Cloud dependency**: Requires an active internet connection to Eufy servers for authentication and MQTT credential provisioning. Local-only operation is not supported.
+- **MQTT-only devices**: Only Eufy vacuums with MQTT support are compatible. Older Bluetooth-only or HTTP-only models won't work.
+- **Map switching**: You can't switch maps from Home Assistant. Use the Eufy app for this.
+- **Dock state debounce**: Dock status updates are debounced by 2 seconds to avoid flickering during rapid state transitions.
+- **Single account**: Each integration instance supports one Eufy account. Multiple accounts require multiple integration entries.
+
+## Use Cases
+- **Daily automated cleaning**: Schedule full-home or room-specific cleans via Home Assistant automations.
+- **Room-specific cleaning**: Clean specific rooms on demand with custom suction and water settings.
+- **Consumable monitoring**: Track filter, brush, and mop lifespan. Get notifications when it's time for a replacement.
+- **Multi-floor homes**: Use scene selection to trigger floor-specific cleaning routines.
+- **Smart home integration**: Combine with presence detection, time-of-day rules, and other Home Assistant automations.
+
+## Troubleshooting
+- **Integration won't load**: Verify your Eufy credentials are correct and that your vacuum is visible in the Eufy Clean app.
+- **Entities are unavailable**: Some entities only appear after the vacuum reports them for the first time. Try starting a cleaning session to trigger a state update.
+- **MQTT connection errors**: Ensure your Home Assistant instance has outbound access to the internet on port 8883.
+- **Room names are wrong**: If you've renamed rooms in the Eufy app, you may need to re-sync your area mapping. Check for a Repair issue in Home Assistant.
 
 ## Development
 This project is maintained as a Home Assistant component. Issues and PRs should be relevant to the integration's functionality within Home Assistant.

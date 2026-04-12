@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 import logging
 from dataclasses import replace
-from typing import Any
+from typing import Any, cast
 
 from homeassistant.components.binary_sensor import BinarySensorEntity
 from homeassistant.components.number import NumberEntity, NumberMode
@@ -19,6 +19,12 @@ from .const import AUTO_ENTITY_OVERRIDES, HANDLED_DPS_IDS, KNOWN_UNPROCESSED_DPS
 from .coordinator import EufyCleanCoordinator
 
 _LOGGER = logging.getLogger(__name__)
+
+
+def _catalog_code(entry: dict[str, object], dp_id_str: str) -> str:
+    """Return the cloud code for a DPS entry."""
+    code = entry.get("code")
+    return code if isinstance(code, str) else f"dps_{dp_id_str}"
 
 
 # ---------------------------------------------------------------------------
@@ -86,7 +92,8 @@ class AutoSwitch(_AutoEntityBase, SwitchEntity):
     @property
     def is_on(self) -> bool | None:
         """Return current switch state."""
-        return self.coordinator.data.dynamic_values.get(self._dp_id, False)
+        value = self.coordinator.data.dynamic_values.get(self._dp_id, False)
+        return value if isinstance(value, bool) else None
 
     async def async_turn_on(self, **kwargs: Any) -> None:
         """Turn the switch on."""
@@ -127,7 +134,8 @@ class AutoBinarySensor(_AutoEntityBase, BinarySensorEntity):
     @property
     def is_on(self) -> bool | None:
         """Return current binary sensor state."""
-        return self.coordinator.data.dynamic_values.get(self._dp_id, False)
+        value = self.coordinator.data.dynamic_values.get(self._dp_id, False)
+        return value if isinstance(value, bool) else None
 
 
 class AutoNumber(_AutoEntityBase, NumberEntity):
@@ -266,7 +274,7 @@ def get_auto_switches(
         if dp_id_str in HANDLED_DPS_IDS or dp_id_str in KNOWN_UNPROCESSED_DPS:
             continue
         if entry.get("data_type") == "Bool" and entry.get("mode") == "rw":
-            code = entry.get("code", f"dps_{dp_id_str}")
+            code = _catalog_code(entry, dp_id_str)
             override = AUTO_ENTITY_OVERRIDES.get(code, {})
             entities.append(AutoSwitch(coordinator, dp_id_str, code, override))
     return entities
@@ -281,7 +289,7 @@ def get_auto_binary_sensors(
         if dp_id_str in HANDLED_DPS_IDS or dp_id_str in KNOWN_UNPROCESSED_DPS:
             continue
         if entry.get("data_type") == "Bool" and entry.get("mode") == "ro":
-            code = entry.get("code", f"dps_{dp_id_str}")
+            code = _catalog_code(entry, dp_id_str)
             override = AUTO_ENTITY_OVERRIDES.get(code, {})
             entities.append(AutoBinarySensor(coordinator, dp_id_str, code, override))
     return entities
@@ -296,7 +304,7 @@ def get_auto_numbers(
         if dp_id_str in HANDLED_DPS_IDS or dp_id_str in KNOWN_UNPROCESSED_DPS:
             continue
         if entry.get("data_type") == "Value" and entry.get("mode") == "rw":
-            code = entry.get("code", f"dps_{dp_id_str}")
+            code = _catalog_code(entry, dp_id_str)
             override = AUTO_ENTITY_OVERRIDES.get(code, {})
             catalog_property = _parse_property_json(entry)
             entities.append(
@@ -314,7 +322,7 @@ def get_auto_sensors(
         if dp_id_str in HANDLED_DPS_IDS or dp_id_str in KNOWN_UNPROCESSED_DPS:
             continue
         if entry.get("data_type") == "Value" and entry.get("mode") == "ro":
-            code = entry.get("code", f"dps_{dp_id_str}")
+            code = _catalog_code(entry, dp_id_str)
             override = AUTO_ENTITY_OVERRIDES.get(code, {})
             entities.append(AutoSensor(coordinator, dp_id_str, code, override))
     return entities
@@ -329,13 +337,13 @@ def get_auto_selects(
         if dp_id_str in HANDLED_DPS_IDS or dp_id_str in KNOWN_UNPROCESSED_DPS:
             continue
         if entry.get("data_type") == "Enum" and entry.get("mode") in ("rw", "w"):
-            code = entry.get("code", f"dps_{dp_id_str}")
+            code = _catalog_code(entry, dp_id_str)
             override = AUTO_ENTITY_OVERRIDES.get(code, {})
             if "options_map" not in override:
                 options_map = _parse_enum_options(entry)
                 if not options_map:
                     continue
-                override = {**override, "options_map": options_map}
+                override = cast(dict[str, Any], {**override, "options_map": options_map})
             entities.append(AutoSelect(coordinator, dp_id_str, code, override))
     return entities
 

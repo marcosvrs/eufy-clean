@@ -13,7 +13,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .__init__ import EufyCleanConfigEntry
+from .typing_defs import EufyCleanConfigEntry
 from .api.commands import build_command
 from .auto_entities import get_auto_selects
 from .const import (
@@ -71,7 +71,7 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Setup select entities."""
-    entities = []
+    entities: list[SelectEntity] = []
 
     for coordinator in config_entry.runtime_data.coordinators.values():
         _LOGGER.debug("Adding select entities for %s", coordinator.device_name)

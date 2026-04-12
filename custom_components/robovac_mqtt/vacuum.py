@@ -4,11 +4,8 @@ import logging
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any
 
-from homeassistant.components.vacuum import (
-    StateVacuumEntity,
-    VacuumActivity,
-    VacuumEntityFeature,
-)
+from homeassistant.components import vacuum as vacuum_component
+from homeassistant.components.vacuum import StateVacuumEntity, VacuumEntityFeature
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
@@ -21,7 +18,7 @@ from homeassistant.helpers.issue_registry import (
 )
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .__init__ import EufyCleanConfigEntry
+from .typing_defs import EufyCleanConfigEntry
 from .api.commands import build_command
 from .api.http import EufyConnectionError
 from .const import DOMAIN, EUFY_CLEAN_NOVEL_CLEAN_SPEED
@@ -106,14 +103,16 @@ _BASE_SUPPORTED_FEATURES = (
     | VacuumEntityFeature.CLEAN_SPOT
 )
 
-_ACTIVITY_MAP: dict[str, VacuumActivity] = {
-    "cleaning": VacuumActivity.CLEANING,
-    "docked": VacuumActivity.DOCKED,
-    "charging": VacuumActivity.DOCKED,
-    "error": VacuumActivity.ERROR,
-    "returning": VacuumActivity.RETURNING,
-    "idle": VacuumActivity.IDLE,
-    "paused": VacuumActivity.PAUSED,
+_VACUUM_ACTIVITY = getattr(vacuum_component, "VacuumActivity")
+
+_ACTIVITY_MAP: dict[str, Any] = {
+    "cleaning": _VACUUM_ACTIVITY.CLEANING,
+    "docked": _VACUUM_ACTIVITY.DOCKED,
+    "charging": _VACUUM_ACTIVITY.DOCKED,
+    "error": _VACUUM_ACTIVITY.ERROR,
+    "returning": _VACUUM_ACTIVITY.RETURNING,
+    "idle": _VACUUM_ACTIVITY.IDLE,
+    "paused": _VACUUM_ACTIVITY.PAUSED,
 }
 
 
@@ -413,7 +412,7 @@ class RoboVacMQTTEntity(CoordinatorEntity[EufyCleanCoordinator], StateVacuumEnti
         return supported_features
 
     @property
-    def activity(self) -> VacuumActivity | None:
+    def activity(self) -> Any | None:
         """Return the current vacuum activity."""
         activity = self.coordinator.data.activity
         if activity in _ACTIVITY_MAP:
@@ -456,7 +455,7 @@ class RoboVacMQTTEntity(CoordinatorEntity[EufyCleanCoordinator], StateVacuumEnti
     async def async_start(self, **kwargs: Any) -> None:
         """Start or resume the cleaning task."""
         try:
-            if self.activity == VacuumActivity.PAUSED:
+            if self.activity == _VACUUM_ACTIVITY.PAUSED:
                 await self.coordinator.async_send_command(build_command("play"))
             else:
                 await self.coordinator.async_send_command(build_command("start_auto"))

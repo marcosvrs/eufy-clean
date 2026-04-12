@@ -10,7 +10,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .__init__ import EufyCleanConfigEntry
+from .typing_defs import EufyCleanConfigEntry
 from .api.commands import build_command
 from .const import DOMAIN
 from .coordinator import EufyCleanCoordinator
@@ -24,7 +24,7 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up DND time entities."""
-    entities = []
+    entities: list[TimeEntity] = []
     for coordinator in config_entry.runtime_data.coordinators.values():
         if "UNDISTURBED" in coordinator.supported_dps:
             entities.append(DoNotDisturbStartTimeEntity(coordinator))
@@ -93,15 +93,14 @@ class _DoNotDisturbTimeEntity(CoordinatorEntity[EufyCleanCoordinator], TimeEntit
             ),
         )
         await self.coordinator.async_send_command(command)
-        self.coordinator.async_set_updated_data(
-            replace(
-                data,
-                **{
-                    f"{self._field_prefix}_hour": value.hour,
-                    f"{self._field_prefix}_minute": value.minute,
-                },
+        if self._field_prefix == "dnd_start":
+            self.coordinator.async_set_updated_data(
+                replace(data, dnd_start_hour=value.hour, dnd_start_minute=value.minute)
             )
-        )
+        else:
+            self.coordinator.async_set_updated_data(
+                replace(data, dnd_end_hour=value.hour, dnd_end_minute=value.minute)
+            )
 
 
 class DoNotDisturbStartTimeEntity(_DoNotDisturbTimeEntity):

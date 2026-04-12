@@ -113,7 +113,7 @@ class EufyHTTPClient:
                     try:
                         response_json = await response.json()
                     except Exception:
-                        _LOGGER.debug(
+                        _LOGGER.warning(
                             "Failed to parse login response as JSON", exc_info=True
                         )
 
@@ -135,6 +135,7 @@ class EufyHTTPClient:
     async def get_user_info(self) -> dict[str, Any] | None:
         """Get User details."""
         if not self.session:
+            _LOGGER.warning("get_user_info called without active session")
             return None
 
         try:
@@ -167,6 +168,10 @@ class EufyHTTPClient:
                         raise EufyAuthError("Authentication failed")
 
                     _LOGGER.error("get user center info failed")
+                    _LOGGER.warning(
+                        "get_user_info returning None due to unexpected status %s",
+                        response.status,
+                    )
                     return None
         except (aiohttp.ClientError, asyncio.TimeoutError) as err:
             raise EufyConnectionError(str(err)) from err
@@ -197,6 +202,7 @@ class EufyHTTPClient:
                         data = await response.json()
                         devices = data.get("data", {}).get("devices")
                         if not devices:
+                            _LOGGER.warning("get_device_list returned no devices")
                             return []
                         return [device["device"] for device in devices]
                     if response.status in (401, 403):
@@ -302,7 +308,12 @@ class EufyHTTPClient:
                 ) as response:
                     if response.status == 200:
                         data = _as_dict(await response.json()).get("data")
-                        return _as_dict(data) if isinstance(data, dict) else None
+                        if isinstance(data, dict):
+                            return _as_dict(data)
+                        _LOGGER.warning(
+                            "get_mqtt_credentials returned no credential payload"
+                        )
+                        return None
                     if response.status in (401, 403):
                         raise EufyAuthError("Authentication failed")
                     _LOGGER.warning(

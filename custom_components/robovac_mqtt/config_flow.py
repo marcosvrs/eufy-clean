@@ -153,8 +153,10 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             if not login_resp.get("session"):
                 errors["base"] = "invalid_auth"
         except EufyAuthError:
+            _LOGGER.warning("Authentication failed for %s", username)
             errors["base"] = "invalid_auth"
         except EufyConnectionError:
+            _LOGGER.warning("Connection to Eufy servers failed for %s", username)
             errors["base"] = "cannot_connect"
         except Exception as e:
             _LOGGER.exception("Unexpected exception: %s", e)

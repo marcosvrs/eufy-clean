@@ -327,7 +327,7 @@ def _log_proto_novelty(
             raw = raw[pos:]
         _scan_unknown_tags_recursive(dps_key, proto_msg, raw)
     except Exception:
-        _LOGGER.debug(
+        _LOGGER.warning(
             "Proto novelty detection failed for dps=%s", dps_key, exc_info=True
         )
 
@@ -535,6 +535,7 @@ def _process_work_status(
             mode_val = work_status.mode.value
             if mode_val in EUFY_CLEAN_APP_TRIGGER_MODES:
                 trigger_source = "app"
+                _LOGGER.debug("Trigger source inferred from mode: %s", trigger_source)
 
         changes["trigger_source"] = trigger_source
 
@@ -995,7 +996,7 @@ def _process_other_dps(
                             changes[field_name] = getattr(settings, field_name).value
                             _track_field(state, changes, field_name)
                     except Exception:
-                        _LOGGER.debug(
+                        _LOGGER.warning(
                             "Error parsing unisetting field %s",
                             field_name,
                             exc_info=True,
@@ -1007,7 +1008,7 @@ def _process_other_dps(
                         changes["dust_full_remind"] = settings.dust_full_remind.value
                         _track_field(state, changes, "dust_full_remind")
                 except Exception:
-                    _LOGGER.debug("Error parsing dust_full_remind", exc_info=True)
+                    _LOGGER.warning("Error parsing dust_full_remind", exc_info=True)
 
                 # Unistate sub-fields
                 try:
@@ -1037,7 +1038,7 @@ def _process_other_dps(
                             changes["custom_clean_mode"] = uni.custom_clean_mode.value
                             _track_field(state, changes, "custom_clean_mode")
                 except Exception:
-                    _LOGGER.debug("Error parsing unistate", exc_info=True)
+                    _LOGGER.warning("Error parsing unistate", exc_info=True)
 
                 # WiFi data
                 try:
@@ -1059,7 +1060,7 @@ def _process_other_dps(
                             _track_field(state, changes, "wifi_connection_result")
                             _track_field(state, changes, "wifi_connection_timestamp")
                 except Exception:
-                    _LOGGER.debug("Error parsing wifi_data", exc_info=True)
+                    _LOGGER.warning("Error parsing wifi_data", exc_info=True)
 
             elif key == dps_map["UNDISTURBED"]:
                 undisturbed = decode(UndisturbedResponse, value)

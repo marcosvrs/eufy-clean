@@ -33,8 +33,19 @@ class EufyLogin:
         self.eufy_api_devices: list[dict[str, Any]] = []
 
     async def init(self) -> None:
-        await self.login({"mqtt": True})
-        await self.getDevices()
+        _LOGGER.debug("Initializing Eufy cloud login for %s", self.eufyApi.username)
+        try:
+            await self.login({"mqtt": True})
+            _LOGGER.info("Eufy cloud login successful for %s", self.eufyApi.username)
+            await self.getDevices()
+            _LOGGER.info("Discovered %d MQTT device(s)", len(self.mqtt_devices))
+        except Exception as err:
+            _LOGGER.error(
+                "Failed to initialize Eufy cloud login for %s: %s",
+                self.eufyApi.username,
+                err,
+            )
+            raise
 
     async def login(self, config: dict[str, bool]) -> None:
         if not config["mqtt"]:
@@ -46,14 +57,30 @@ class EufyLogin:
             raise EufyLoginError("Login failed")
 
         self.mqtt_credentials = eufy_login["mqtt"]
+        creds = self.mqtt_credentials or {}
+        _LOGGER.debug(
+            "Retrieved MQTT credentials (endpoint: %s)",
+            creds.get("endpoint_addr", "unknown"),
+        )
 
     async def checkLogin(self) -> None:
+        _LOGGER.debug("Re-checking Eufy cloud login")
         if not self.mqtt_credentials:
-            await self.login({"mqtt": True})
+            try:
+                await self.login({"mqtt": True})
+            except Exception as err:
+                _LOGGER.error("Eufy cloud re-login failed: %s", err)
+                raise
+            _LOGGER.info("Eufy cloud re-login successful")
 
     async def getDevices(self) -> None:
-        self.eufy_api_devices = await self.eufyApi.get_cloud_device_list()
-        raw_devices = await self.eufyApi.get_device_list()
+        _LOGGER.debug("Fetching device list from Eufy cloud")
+        try:
+            self.eufy_api_devices = await self.eufyApi.get_cloud_device_list()
+            raw_devices = await self.eufyApi.get_device_list()
+        except Exception as err:
+            _LOGGER.error("Failed to fetch device list from Eufy cloud: %s", err)
+            raise
 
         product_codes: set[str] = set()
         device_models: dict[str, str] = {}
@@ -70,7 +97,7 @@ class EufyLogin:
             try:
                 catalogs[code] = await self.eufyApi.get_product_data_points(code)
             except Exception as exc:
-                _LOGGER.debug("Unexpected error fetching catalog for %s: %s", code, exc)
+                _LOGGER.warning("Unexpected error fetching catalog for %s: %s", code, exc)
                 catalogs[code] = []
 
         devices: list[EufyDeviceInfo] = []
@@ -92,6 +119,11 @@ class EufyLogin:
             )
 
         self.mqtt_devices = [d for d in devices if not d["invalid"]]
+        _LOGGER.debug(
+            "Cloud returned %d device(s), %d MQTT-capable",
+            len(raw_devices),
+            len(self.mqtt_devices),
+        )
 
     async def getMqttDevice(self, deviceId: str) -> dict[str, Any] | None:
         devices = await self.eufyApi.get_device_list()

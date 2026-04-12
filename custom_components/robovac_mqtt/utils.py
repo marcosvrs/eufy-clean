@@ -1,7 +1,8 @@
 from __future__ import annotations
 
+import logging
 from base64 import b64decode, b64encode
-from typing import Any, TypeVar, cast
+from typing import Any, TypeVar
 
 from google.protobuf.message import Message
 
@@ -9,23 +10,29 @@ from google.protobuf.message import Message
 
 T = TypeVar("T", bound=Message)
 
+_LOGGER = logging.getLogger(__name__)
+
 
 def decode(to_type: type[T], b64_data: str, has_length: bool = True) -> T:
-    data = b64decode(b64_data)
+    try:
+        data = b64decode(b64_data)
 
-    if has_length:
-        # Skip varint length prefix
-        if not data:
-            raise ValueError("Cannot decode empty data")
-        pos = 0
-        while pos < len(data) and data[pos] & 0x80:
+        if has_length:
+            # Skip varint length prefix
+            if not data:
+                raise ValueError("Cannot decode empty data")
+            pos = 0
+            while pos < len(data) and data[pos] & 0x80:
+                pos += 1
+            if pos >= len(data):
+                raise ValueError("Truncated varint in data")
             pos += 1
-        if pos >= len(data):
-            raise ValueError("Truncated varint in data")
-        pos += 1
-        data = data[pos:]
+            data = data[pos:]
 
-    return cast(T, to_type().FromString(data))
+        return to_type().FromString(data)
+    except Exception as err:
+        _LOGGER.warning("Failed to decode protobuf %s: %s", to_type.__name__, err)
+        raise
 
 
 def encode(
@@ -72,9 +79,13 @@ def deduplicate_names(names: list[str]) -> list[str]:
 
 
 def encode_message(message: Message, has_length: bool = True) -> str:
-    out = message.SerializeToString(deterministic=False)
+    try:
+        out = message.SerializeToString(deterministic=False)
 
-    if has_length:
-        out = encode_varint(len(out)) + out
+        if has_length:
+            out = encode_varint(len(out)) + out
 
-    return b64encode(out).decode("utf-8")
+        return b64encode(out).decode("utf-8")
+    except Exception as err:
+        _LOGGER.warning("Failed to encode protobuf message: %s", err)
+        raise

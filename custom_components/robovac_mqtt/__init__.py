@@ -48,6 +48,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: EufyCleanConfigEntry) ->
     eufy_login = EufyLogin(username, password, openudid, session=session)
     try:
         await eufy_login.init()
+        _LOGGER.info("Eufy cloud login successful")
     except EufyAuthError as err:
         raise ConfigEntryAuthFailed from err
     except EufyConnectionError as err:
@@ -62,6 +63,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: EufyCleanConfigEntry) ->
     # eufy_login.mqtt_devices populated by init/getDevices
     # mqtt_devices is a list of dicts with device info
     mqtt_devices = eufy_login.mqtt_devices
+    device_count = len(mqtt_devices)
     is_multi_device = len(mqtt_devices) > 1
 
     for device_info in mqtt_devices:
@@ -98,6 +100,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: EufyCleanConfigEntry) ->
             coordinators[device_id] = coordinator
         except Exception as e:
             _LOGGER.warning("Failed to initialize coordinator for %s: %s", device_id, e)
+
+    _LOGGER.info(
+        "Initialized %d coordinator(s) for %d device(s)",
+        len(coordinators),
+        device_count,
+    )
 
     if not coordinators:
         _LOGGER.warning("No Eufy Clean devices found or initialized.")
@@ -149,6 +157,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: EufyCleanConfigEntry) ->
     )
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
+    _LOGGER.info("Eufy Clean setup complete for %s", entry.title)
 
     return True
 

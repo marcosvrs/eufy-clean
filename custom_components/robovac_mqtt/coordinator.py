@@ -68,13 +68,29 @@ class EufyCleanCoordinator(DataUpdateCoordinator[VacuumState]):
     @callback
     def async_set_updated_data(self, data: VacuumState) -> None:
         """Update data and notify listeners without noisy debug logging."""
+        was_available = self.last_update_success
         self._async_unsub_refresh()
         self._debounced_refresh.async_cancel()
         self.data = data
         self.last_update_success = True
+        if not self._has_received_first_state:
+            self._has_received_first_state = True
+            _LOGGER.info("First state received for %s", self.device_name)
+        if not was_available:
+            _LOGGER.info("Device available again for %s", self.device_name)
         if self._listeners:
             self._schedule_refresh()
         self.async_update_listeners()
+
+    @callback
+    def async_set_update_error(self, err: Exception) -> None:
+        """Mark coordinator unavailable and log non-MQTT availability flips."""
+        was_available = self.last_update_success
+        if was_available and str(err) != "MQTT disconnected":
+            _LOGGER.warning(
+                "Device unavailable for %s: %s", self.device_name, err
+            )
+        super().async_set_update_error(err)
 
     def __init__(
         self,
@@ -114,6 +130,7 @@ class EufyCleanCoordinator(DataUpdateCoordinator[VacuumState]):
         self._current_session: CleaningSession | None = None
         self._cleaning_history: list[dict[str, object]] = []
         self._prev_task_status: str = ""
+        self._has_received_first_state = False
         self._store_lock = asyncio.Lock()
         self._pending_dock_status: str | None = None
         self.last_seen_segments: list[dict[str, Any]] | None = None
@@ -324,6 +341,14 @@ class EufyCleanCoordinator(DataUpdateCoordinator[VacuumState]):
                     new_state, dock_status=effective_current_status
                 )
 
+                if "activity" in changes and self.data.activity != state_to_publish.activity:
+                    _LOGGER.info(
+                        "Activity transition for %s: %s → %s",
+                        self.device_name,
+                        self.data.activity,
+                        state_to_publish.activity,
+                    )
+
                 if any(
                     key in changes
                     for key in (
@@ -379,6 +404,10 @@ class EufyCleanCoordinator(DataUpdateCoordinator[VacuumState]):
 
         device_entry = dev_reg.async_get_device(identifiers={(DOMAIN, self.device_id)})
         if not device_entry:
+            _LOGGER.debug(
+                "Cannot enable new entity: device entry not found for %s",
+                self.device_id,
+            )
             return
 
         received = state.received_fields
@@ -413,6 +442,7 @@ class EufyCleanCoordinator(DataUpdateCoordinator[VacuumState]):
 
         # Apply the final dock status to the current data
         committed_state = replace(self.data, dock_status=final_dock)
+        _LOGGER.info("Dock status committed: %s for %s", final_dock, self.device_name)
         self.async_set_updated_data(committed_state)
 
     @callback
@@ -498,6 +528,11 @@ class EufyCleanCoordinator(DataUpdateCoordinator[VacuumState]):
                 existing = await self._store.async_load() or {}
                 existing["cleaning_history"] = self._cleaning_history
                 await self._store.async_save(existing)
+            _LOGGER.debug(
+                "Saved %d cleaning history records for %s",
+                len(self._cleaning_history),
+                self.device_name,
+            )
         except Exception:
             _LOGGER.exception(
                 "Failed to save cleaning history for %s", self.device_name
@@ -656,6 +691,13 @@ class EufyCleanCoordinator(DataUpdateCoordinator[VacuumState]):
             max_history = self.config_entry.options.get("max_cleaning_history", 100) if self.config_entry else 100
             self._cleaning_history = self._cleaning_history[-max_history:]
             _LOGGER.debug(
+                "Loaded storage for %s: segments=%s, catalog=%s, history=%d",
+                self.device_name,
+                bool(self.last_seen_segments),
+                bool(self._raw_catalog),
+                len(self._cleaning_history),
+            )
+            _LOGGER.debug(
                 "Loaded %d cleaning history records for %s",
                 len(self._cleaning_history),
                 self.device_name,
@@ -667,6 +709,11 @@ class EufyCleanCoordinator(DataUpdateCoordinator[VacuumState]):
             existing["novelty_caches"] = get_novelty_caches()
             existing["received_fields"] = list(self.data.received_fields)
             await self._store.async_save(existing)
+        _LOGGER.debug(
+            "Saved novelty + received_fields for %s (%d fields)",
+            self.device_name,
+            len(self.data.received_fields),
+        )
         clear_novelty_dirty()
 
     async def async_save_segments(self, segments_payload: list[dict[str, Any]]) -> None:

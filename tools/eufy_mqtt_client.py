@@ -20,6 +20,7 @@ Environment variables:
 """
 
 import argparse
+import asyncio
 import base64
 import hashlib
 import json
@@ -31,13 +32,8 @@ import time
 import types as _types
 import uuid
 
+import aiomqtt
 import requests
-
-try:
-    import paho.mqtt.client as mqtt
-except ImportError:
-    print("pip install paho-mqtt")
-    sys.exit(1)
 
 
 _PROTOS_AVAILABLE = False
@@ -375,11 +371,14 @@ class EufyMqttClient:
         self._msg_seq = 0
         self._cert_dir = tempfile.mkdtemp(prefix="eufy_mqtt_")
         self._client = None
+        self._listener_task: asyncio.Task | None = None
+        self._connected_event = asyncio.Event()
+        self._shutdown = False
         self.last_dps = {}
         self._capture_dir = capture_dir
         self._mqtt_capture_count = 0
 
-    def connect(self):
+    async def connect(self):
         ca_path = os.path.join(self._cert_dir, "ca.pem")
         cert_path = os.path.join(self._cert_dir, "cert.pem")
         key_path = os.path.join(self._cert_dir, "key.pem")
@@ -392,34 +391,50 @@ class EufyMqttClient:
             f.write(self.mqtt_info["private_key"])
 
         thing = self.mqtt_info["thing_name"]
-        client_id = f"{thing}_{int(time.time()) % 99999:05}"
-
-        self._client = mqtt.Client(
-            client_id=client_id,
-            protocol=mqtt.MQTTv311,
-        )
-        self._client.on_connect = self._on_connect
-        self._client.on_message = self._on_message
-        self._client.on_disconnect = self._on_disconnect
-
-        self._client.tls_set(
+        self._client_id = f"{thing}_{int(time.time()) % 99999:05}"
+        self._tls_params = aiomqtt.TLSParameters(
             ca_certs=ca_path,
             certfile=cert_path,
             keyfile=key_path,
             cert_reqs=ssl.CERT_REQUIRED,
             tls_version=ssl.PROTOCOL_TLS,
         )
+        self._shutdown = False
+        self._listener_task = asyncio.create_task(self._listen())
+        await asyncio.wait_for(self._connected_event.wait(), timeout=10)
 
+    async def _listen(self):
         endpoint = self.mqtt_info["endpoint_addr"]
-        self._client.connect(endpoint, 8883, keepalive=60)
-        self._client.loop_start()
+        async with aiomqtt.Client(
+            hostname=endpoint,
+            port=8883,
+            identifier=self._client_id,
+            username=self.mqtt_info["thing_name"],
+            tls_params=self._tls_params,
+        ) as client:
+            self._client = client
+            self._connected_event.set()
+            print(f"Connected to {endpoint}")
+            await client.subscribe(f"cmd/eufy_home/{self.device_model}/{self.device_sn}/res")
+            await client.subscribe(f"smart/mb/in/{self.device_sn}")
+            async for msg in client.messages:
+                await self._on_message(msg)
+                if self._shutdown:
+                    break
 
-    def disconnect(self):
-        if self._client:
-            self._client.loop_stop()
-            self._client.disconnect()
+    async def disconnect(self):
+        self._shutdown = True
+        self._connected_event.clear()
+        if self._listener_task:
+            self._listener_task.cancel()
+            try:
+                await self._listener_task
+            except asyncio.CancelledError:
+                pass
+            self._listener_task = None
+        self._client = None
 
-    def send_command(self, dps_data: dict):
+    async def send_command(self, dps_data: dict):
         self._msg_seq += 1
         payload_inner = json.dumps(
             {
@@ -445,33 +460,24 @@ class EufyMqttClient:
         )
         topic = f"cmd/eufy_home/{self.device_model}/{self.device_sn}/req"
         if self._client is not None:
-            self._client.publish(topic, message)
+            await self._client.publish(topic, message)
 
-    def start_clean(self):
-        self.send_command({"152": True})
+    async def start_clean(self):
+        await self.send_command({"152": True})
 
-    def pause(self):
-        self.send_command({"152": False})
+    async def pause(self):
+        await self.send_command({"152": False})
 
-    def go_home(self):
-        self.send_command({"173": True})
+    async def go_home(self):
+        await self.send_command({"173": True})
 
-    def locate(self):
-        self.send_command({"160": True})
+    async def locate(self):
+        await self.send_command({"160": True})
 
-    def set_speed(self, speed: int):
-        self.send_command({"158": speed})
+    async def set_speed(self, speed: int):
+        await self.send_command({"158": speed})
 
-    def _on_connect(self, client, userdata, flags, rc, *args):
-        if rc != 0:
-            print(f"Connection failed: rc={rc}")
-            return
-
-        print(f"Connected to {self.mqtt_info['endpoint_addr']}")
-        client.subscribe(f"cmd/eufy_home/{self.device_model}/{self.device_sn}/res")
-        client.subscribe(f"smart/mb/in/{self.device_sn}")
-
-    def _on_message(self, client, userdata, msg):
+    async def _on_message(self, msg):
         try:
             raw_payload = msg.payload.decode()
             data = json.loads(raw_payload)
@@ -515,11 +521,6 @@ class EufyMqttClient:
             json.dump(data, f, indent=2)
         self._mqtt_capture_count += 1
 
-    def _on_disconnect(self, client, userdata, *args):
-        rc = args[0] if args else 0
-        if rc != 0:
-            print(f"Unexpected disconnect: rc={rc}")
-
 
 def print_status(dps: dict):
     for k, v in sorted(dps.items(), key=lambda x: int(x[0])):
@@ -536,7 +537,7 @@ def _save_http_response(capture_dir: str, method_name: str, data):
         json.dump(data, f, indent=2)
 
 
-def main():
+async def main_async():
     parser = argparse.ArgumentParser(description="Eufy X10 Pro Omni MQTT client")
     parser.add_argument(
         "--email",
@@ -652,26 +653,26 @@ def main():
         on_status=print_status,
         capture_dir=args.capture_dir,
     )
-    client.connect()
-    time.sleep(3)
+    await client.connect()
+    await asyncio.sleep(3)
 
     speed_map = {"quiet": 0, "standard": 1, "turbo": 2, "max": 3}
 
     if args.command == "start":
         print("Starting clean...")
-        client.start_clean()
+        await client.start_clean()
     elif args.command == "pause":
         print("Pausing...")
-        client.pause()
+        await client.pause()
     elif args.command == "dock":
         print("Returning to dock...")
-        client.go_home()
+        await client.go_home()
     elif args.command == "locate":
         print("Locating robot...")
-        client.locate()
+        await client.locate()
     elif args.command in speed_map:
         print(f"Setting speed: {args.command}")
-        client.set_speed(speed_map[args.command])
+        await client.set_speed(speed_map[args.command])
 
     listen_seconds = args.duration if args.duration is not None else args.listen
     print(
@@ -681,10 +682,10 @@ def main():
     )
     try:
         if listen_seconds:
-            time.sleep(listen_seconds)
+            await asyncio.sleep(listen_seconds)
         else:
             while True:
-                time.sleep(1)
+                await asyncio.sleep(1)
     except KeyboardInterrupt:
         pass
 
@@ -698,7 +699,11 @@ def main():
             f"{mqtt_count} MQTT messages to {args.capture_dir}"
         )
 
-    client.disconnect()
+    await client.disconnect()
+
+
+def main():
+    asyncio.run(main_async())
 
 
 if __name__ == "__main__":

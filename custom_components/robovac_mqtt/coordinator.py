@@ -110,8 +110,9 @@ class EufyCleanCoordinator(DataUpdateCoordinator[VacuumState]):
         )
         self._catalog_refresh_cancel: CALLBACK_TYPE | None = None
         self._timer_inquiry_cancel: CALLBACK_TYPE | None = None
+        self._enable_new_entities_cancel: CALLBACK_TYPE | None = None
         self._current_session: CleaningSession | None = None
-        self._cleaning_history: list[dict] = []
+        self._cleaning_history: list[dict[str, object]] = []
         self._prev_task_status: str = ""
         self._store_lock = asyncio.Lock()
         self._pending_dock_status: str | None = None
@@ -119,7 +120,7 @@ class EufyCleanCoordinator(DataUpdateCoordinator[VacuumState]):
         self._store = Store(hass, 1, f"{DOMAIN}.{self.device_id}")
 
         catalog = device_info.get("dps_catalog", [])
-        self._raw_catalog: list[dict] = catalog
+        self._raw_catalog: list[dict[str, object]] = catalog
         if catalog:
             self.dps_map: dict[str, str] = build_dps_map_from_catalog(catalog)
             _LOGGER.info(
@@ -133,7 +134,7 @@ class EufyCleanCoordinator(DataUpdateCoordinator[VacuumState]):
                 "Using default DPS map for %s — no catalog yet", self.device_name
             )
         self.supported_dps: frozenset[str] = supported_dps_from_catalog(catalog)
-        self.dps_catalog: dict[str, dict] = (
+        self.dps_catalog: dict[str, dict[str, object]] = (
             {str(item.get("dp_id", "")): item for item in catalog} if catalog else {}
         )
         self.catalog_types: dict[str, str] = (
@@ -166,7 +167,7 @@ class EufyCleanCoordinator(DataUpdateCoordinator[VacuumState]):
         return info
 
     @property
-    def cleaning_history(self) -> list[dict]:
+    def cleaning_history(self) -> list[dict[str, object]]:
         """Return list of past cleaning sessions."""
         return self._cleaning_history
 
@@ -200,6 +201,8 @@ class EufyCleanCoordinator(DataUpdateCoordinator[VacuumState]):
             )
 
             self.client.set_on_message(self._handle_mqtt_message)
+            self.client.set_on_disconnect(self._on_mqtt_disconnect)
+            self.client.set_on_connect(self._on_mqtt_reconnect)
             await self.async_load_storage()
 
             if self._initial_dps:
@@ -215,7 +218,9 @@ class EufyCleanCoordinator(DataUpdateCoordinator[VacuumState]):
 
             await self.client.connect()
 
-            async_call_later(self.hass, 2.0, self._async_enable_new_entities_cb)
+            self._enable_new_entities_cancel = async_call_later(
+                self.hass, 2.0, self._async_enable_new_entities_cb
+            )
 
             if self._raw_catalog:
                 async with self._store_lock:
@@ -239,6 +244,18 @@ class EufyCleanCoordinator(DataUpdateCoordinator[VacuumState]):
                 "Failed to initialize coordinator for %s: %s", self.device_name, e
             )
             raise
+
+    @callback
+    def _on_mqtt_disconnect(self) -> None:
+        """Handle MQTT disconnect and mark entities unavailable."""
+        _LOGGER.warning("MQTT disconnected for %s; marking device unavailable", self.device_name)
+        self.async_set_update_error(ConnectionError("MQTT disconnected"))
+
+    @callback
+    def _on_mqtt_reconnect(self) -> None:
+        """Handle MQTT reconnect and restore entity availability."""
+        _LOGGER.info("MQTT reconnected for %s; restoring device availability", self.device_name)
+        self.async_set_updated_data(self.data)
 
     @callback
     def _handle_mqtt_message(self, payload: bytes) -> None:
@@ -372,6 +389,7 @@ class EufyCleanCoordinator(DataUpdateCoordinator[VacuumState]):
 
     @callback
     def _async_enable_new_entities_cb(self, _now: Any) -> None:
+        self._enable_new_entities_cancel = None
         self._async_enable_new_entities(self.data)
 
     @callback
@@ -491,6 +509,9 @@ class EufyCleanCoordinator(DataUpdateCoordinator[VacuumState]):
         if self._timer_inquiry_cancel:
             self._timer_inquiry_cancel()
             self._timer_inquiry_cancel = None
+        if self._enable_new_entities_cancel:
+            self._enable_new_entities_cancel()
+            self._enable_new_entities_cancel = None
 
     @callback
     def _async_request_schedules(self, _now: Any) -> None:

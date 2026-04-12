@@ -37,8 +37,16 @@ def _make_client():
     def _set_on_message(cb):
         client.on_message = cb
 
+    def _set_on_disconnect(_cb):
+        return None
+
+    def _set_on_connect(_cb):
+        return None
+
     client.send_command = AsyncMock(side_effect=_send_command)
     client.set_on_message = MagicMock(side_effect=_set_on_message)
+    client.set_on_disconnect = MagicMock(side_effect=_set_on_disconnect)
+    client.set_on_connect = MagicMock(side_effect=_set_on_connect)
     client.connect = AsyncMock()
     client.disconnect = AsyncMock()
     return client

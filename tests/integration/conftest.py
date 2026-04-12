@@ -106,8 +106,16 @@ def mock_mqtt_client() -> MagicMock:
     def _set_on_message(callback: Any) -> None:
         client.on_message = callback
 
+    def _set_on_disconnect(_callback: Any) -> None:
+        return None
+
+    def _set_on_connect(_callback: Any) -> None:
+        return None
+
     client.send_command = AsyncMock(side_effect=_send_command)
     client.set_on_message = MagicMock(side_effect=_set_on_message)
+    client.set_on_disconnect = MagicMock(side_effect=_set_on_disconnect)
+    client.set_on_connect = MagicMock(side_effect=_set_on_connect)
     client.connect = AsyncMock()
     client.disconnect = AsyncMock()
     return client

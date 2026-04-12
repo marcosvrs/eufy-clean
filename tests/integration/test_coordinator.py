@@ -308,6 +308,7 @@ async def test_coordinator_init_with_dps(hass, mock_eufy_login):
         await coordinator.initialize()
 
     assert coordinator.data.battery_level == 77
+    coordinator.async_shutdown_timers()
 
 
 @pytest.mark.asyncio

@@ -8,52 +8,11 @@ import ssl
 import tempfile
 import time
 from collections.abc import Callable
-from functools import partial
-from os import unlink
 from typing import Any
 
-from paho.mqtt import client as mqtt
+import aiomqtt
 
 _LOGGER = logging.getLogger(__name__)
-
-
-def get_blocking_mqtt_client(
-    client_id: str,
-    username: str,
-    certificate_pem: str,
-    private_key: str,
-) -> tuple[mqtt.Client, str, str]:
-    """Create a blocking Paho MQTT client with specific TLS settings.
-
-    Returns:
-        Tuple of (client, cert_path, key_path) - caller must clean up cert files
-    """
-    client = mqtt.Client(
-        client_id=client_id,
-        transport="tcp",
-    )
-    client.username_pw_set(username)
-
-    # Create persistent temp files for certs
-    # IMPORTANT: Paho MQTT keeps file path references and reads them on reconnect
-    # These files MUST persist for the lifetime of the MQTT client
-    with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".pem") as ca_file:
-        ca_file.write(certificate_pem)
-        ca_path = ca_file.name
-
-    with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".key") as key_file:
-        key_file.write(private_key)
-        key_path = key_file.name
-    os.chmod(key_path, 0o600)
-
-    client.tls_set(
-        certfile=ca_path,
-        keyfile=key_path,
-        cert_reqs=ssl.CERT_REQUIRED,
-        tls_version=ssl.PROTOCOL_TLSv1_2,
-    )
-
-    return client, ca_path, key_path
 
 
 class EufyCleanClient:
@@ -65,8 +24,8 @@ class EufyCleanClient:
         user_id: str,
         app_name: str,
         thing_name: str,
-        access_key: str,  # Unused in MQTT connecting but part of credential set
-        ticket: str,  # Unused in MQTT connecting
+        access_key: str,
+        ticket: str,
         openudid: str,
         certificate_pem: str,
         private_key: str,
@@ -83,28 +42,87 @@ class EufyCleanClient:
         self.device_model = device_model
         self.endpoint = endpoint
 
-        self._mqtt_client: mqtt.Client | None = None
+        self._client: aiomqtt.Client | None = None
         self._cert_path: str | None = None
         self._key_path: str | None = None
         self._client_id: str | None = None
         self._on_message_callback: Callable[[bytes], None] | None = None
-        self._loop: asyncio.AbstractEventLoop | None = None
+        self._listener_task: asyncio.Task[None] | None = None
+        self._connected = False
         self._connected_event = asyncio.Event()
+        self._shutdown = False
+        self._on_disconnect_callback: Callable[[], None] | None = None
+        self._on_connect_callback: Callable[[], None] | None = None
 
-    def set_on_message(self, callback: Callable[[bytes], None]):
+        del access_key
+        del ticket
+
+    @property
+    def connected(self) -> bool:
+        """Return whether the MQTT client is connected."""
+        return self._connected
+
+    def set_on_message(self, callback: Callable[[bytes], None]) -> None:
         """Set callback for incoming raw MQTT payloads."""
         self._on_message_callback = callback
 
+    def set_on_disconnect(self, callback: Callable[[], None]) -> None:
+        """Set callback for disconnect events."""
+        self._on_disconnect_callback = callback
+
+    def set_on_connect(self, callback: Callable[[], None]) -> None:
+        """Set callback for connect events."""
+        self._on_connect_callback = callback
+
+    def _write_cert_files(self) -> tuple[str, str]:
+        """Write certificate and key to temp files."""
+        with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".pem") as f:
+            f.write(self.certificate_pem)
+            cert_path = f.name
+
+        with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".key") as f:
+            f.write(self.private_key)
+            key_path = f.name
+
+        os.chmod(key_path, 0o600)
+        return cert_path, key_path
+
+    def _cleanup_cert_files(self) -> None:
+        """Remove temporary certificate files."""
+        for path_attr in ("_cert_path", "_key_path"):
+            path = getattr(self, path_attr)
+            if path:
+                try:
+                    os.unlink(path)
+                except OSError as err:
+                    _LOGGER.warning("Failed to delete %s: %s", path, err)
+                setattr(self, path_attr, None)
+
+    def _build_tls_params(self) -> aiomqtt.TLSParameters:
+        """Build TLS parameters for aiomqtt connection."""
+        self._cert_path, self._key_path = self._write_cert_files()
+        return aiomqtt.TLSParameters(
+            certfile=self._cert_path,
+            keyfile=self._key_path,
+            cert_reqs=ssl.CERT_REQUIRED,
+            tls_version=ssl.PROTOCOL_TLSv1_2,
+        )
+
     async def send_command(self, data_payload: dict[str, Any]) -> None:
         """Send a formatted command to the device."""
-        if not self._mqtt_client or not self._mqtt_client.is_connected():
-            _LOGGER.error("Cannot send command: MQTT client not connected")
+        if not self._connected:
+            try:
+                await asyncio.wait_for(self._connected_event.wait(), timeout=5.0)
+            except asyncio.TimeoutError:
+                _LOGGER.error("Cannot send command: MQTT not connected (timeout)")
+                return
+
+        if not self._client:
+            _LOGGER.error("Cannot send command: MQTT client not available")
             return
 
         try:
             timestamp = int(time.time() * 1000)
-
-            # Inner payload
             payload = json.dumps(
                 {
                     "account_id": self.user_id,
@@ -115,8 +133,6 @@ class EufyCleanClient:
                 }
             )
 
-            # Outer wrapper
-            # Use the actual client_id from connection if available, fallback to generated
             client_id = (
                 self._client_id
                 or f"android-{self.app_name}-eufy_android_{self.openudid}_{self.user_id}"
@@ -139,111 +155,136 @@ class EufyCleanClient:
 
             topic = f"cmd/eufy_home/{self.device_model}/{self.device_id}/req"
             _LOGGER.debug("Sending command to %s: %s", topic, data_payload)
-
             await self.send_bytes(topic, json.dumps(mqtt_val).encode())
+        except Exception as err:
+            _LOGGER.error("Error sending command: %s", err)
 
-        except Exception as e:
-            _LOGGER.error("Error sending command: %s", e)
-
-    async def connect(self):
-        """Connect to MQTT broker."""
-        self._loop = asyncio.get_running_loop()
-
-        client_id = (
+    async def connect(self) -> None:
+        """Start the MQTT listener task with auto-reconnect."""
+        self._shutdown = False
+        self._connected = False
+        self._connected_event.clear()
+        self._client_id = (
             f"android-{self.app_name}-eufy_android_{self.openudid}_{self.user_id}"
             f"-{int(time.time() * 1000)}"
         )
-        self._client_id = client_id
 
-        _LOGGER.debug("Initializing MQTT client with ID: %s", client_id)
-
-        if self._mqtt_client:
+        if self._listener_task:
             await self.disconnect()
+            self._shutdown = False
+            self._connected = False
+            self._connected_event.clear()
 
-        # get_blocking_mqtt_client now returns (client, cert_path, key_path)
-        result = await self._loop.run_in_executor(
-            None,
-            partial(
-                get_blocking_mqtt_client,
-                client_id=client_id,
-                username=self.thing_name,
-                certificate_pem=self.certificate_pem,
-                private_key=self.private_key,
-            ),
-        )
-        self._mqtt_client, self._cert_path, self._key_path = result
-
-        self._mqtt_client.on_connect = self._on_connect
-        self._mqtt_client.on_message = self._on_message
-        self._mqtt_client.on_disconnect = self._on_disconnect
-
-        # Async connect
-        _LOGGER.debug("Connecting to MQTT broker at %s...", self.endpoint)
-        await self._loop.run_in_executor(
-            None, partial(self._mqtt_client.connect, self.endpoint, 8883, 60)
-        )
-        self._mqtt_client.loop_start()
-
-    async def disconnect(self):
-        """Disconnect from MQTT and clean up certificate files."""
-        if self._mqtt_client:
-            _LOGGER.debug("Disconnecting MQTT client...")
-            self._mqtt_client.loop_stop()
-            loop = self._loop or asyncio.get_running_loop()
-            await loop.run_in_executor(None, self._mqtt_client.disconnect)
-            self._mqtt_client = None
-
-        # Clean up temporary certificate files
-        if self._cert_path:
-            try:
-                unlink(self._cert_path)
-                _LOGGER.debug("Cleaned up certificate file: %s", self._cert_path)
-            except OSError as e:
-                _LOGGER.warning("Failed to delete cert file %s: %s", self._cert_path, e)
-            self._cert_path = None
-
-        if self._key_path:
-            try:
-                unlink(self._key_path)
-                _LOGGER.debug("Cleaned up key file: %s", self._key_path)
-            except OSError as e:
-                _LOGGER.warning("Failed to delete key file %s: %s", self._key_path, e)
-            self._key_path = None
-
-    def _on_connect(self, client, userdata, flags, rc):
-        if rc == 0:
-            _LOGGER.info("Connected to MQTT Broker!")
-            if self._loop:
-                self._loop.call_soon_threadsafe(self._connected_event.set)
-            # Subscribe to specific device topic
-            if self.device_id:
-                topic = f"cmd/eufy_home/{self.device_model}/{self.device_id}/res"
-                _LOGGER.debug("Subscribing to %s", topic)
-                client.subscribe(topic)
-        else:
-            _LOGGER.error("Failed to connect to MQTT, return code %d", rc)
-
-    def _on_disconnect(self, client, userdata, rc):
-        _LOGGER.warning("Disconnected from MQTT broker, rc=%d", rc)
-        if self._loop:
-            self._loop.call_soon_threadsafe(self._connected_event.clear)
-
-    def _on_message(self, client, userdata, msg):
-        """Handle incoming MQTT messages."""
+        self._listener_task = asyncio.create_task(self._run_listener())
         try:
-            payload = msg.payload
-            if self._on_message_callback:
-                if self._loop:
-                    self._loop.call_soon_threadsafe(self._on_message_callback, payload)
-        except Exception as e:
-            _LOGGER.exception("Error handling MQTT message: %s", e)
+            await asyncio.wait_for(self._connected_event.wait(), timeout=30.0)
+        except asyncio.TimeoutError:
+            _LOGGER.error("Initial MQTT connection timed out after 30s")
+            raise
 
-    async def send_bytes(self, topic: str, payload: bytes):
+    async def _run_listener(self) -> None:
+        """Long-lived task: connect, listen, reconnect on failure."""
+        response_topic = f"cmd/eufy_home/{self.device_model}/{self.device_id}/res"
+        tls_params = self._build_tls_params()
+
+        try:
+            while not self._shutdown:
+                try:
+                    async with aiomqtt.Client(
+                        hostname=self.endpoint,
+                        port=8883,
+                        tls_params=tls_params,
+                        identifier=self._client_id,
+                        username=self.thing_name,
+                    ) as client:
+                        self._client = client
+                        self._connected = True
+                        self._connected_event.set()
+                        _LOGGER.info("Connected to MQTT broker at %s", self.endpoint)
+                        if self._on_connect_callback:
+                            self._on_connect_callback()
+
+                        await client.subscribe(response_topic)
+                        _LOGGER.debug("Subscribed to %s", response_topic)
+
+                        async for message in client.messages:
+                            if self._on_message_callback:
+                                try:
+                                    self._on_message_callback(bytes(message.payload))
+                                except Exception:
+                                    _LOGGER.exception("Error handling MQTT message")
+
+                        self._mark_disconnected("MQTT message stream ended")
+                except aiomqtt.MqttError as err:
+                    if self._shutdown:
+                        break
+                    self._mark_disconnected(
+                        f"MQTT disconnected: {err} — reconnecting in 5s..."
+                    )
+                    await asyncio.sleep(5)
+                except Exception as err:
+                    if self._shutdown:
+                        break
+                    self._mark_disconnected(
+                        f"Unexpected MQTT error: {err} — reconnecting in 10s...",
+                        unexpected=True,
+                    )
+                    await asyncio.sleep(10)
+        except asyncio.CancelledError:
+            raise
+        finally:
+            self._client = None
+            self._connected = False
+            self._connected_event.clear()
+            self._cleanup_cert_files()
+
+    def _mark_disconnected(self, message: str, unexpected: bool = False) -> None:
+        """Clear connection state and notify listeners if needed."""
+        was_connected = self._connected
+        self._connected = False
+        self._connected_event.clear()
+        self._client = None
+
+        if was_connected:
+            if unexpected:
+                _LOGGER.error(message)
+            else:
+                _LOGGER.warning(message)
+            if self._on_disconnect_callback:
+                self._on_disconnect_callback()
+        elif unexpected:
+            _LOGGER.error(message)
+        else:
+            _LOGGER.debug(message)
+
+    async def disconnect(self) -> None:
+        """Disconnect and clean up."""
+        self._shutdown = True
+        self._connected = False
+        self._connected_event.clear()
+
+        if self._listener_task:
+            self._listener_task.cancel()
+            try:
+                await self._listener_task
+            except asyncio.CancelledError:
+                pass
+            self._listener_task = None
+
+        self._client = None
+        self._cleanup_cert_files()
+
+    async def send_bytes(self, topic: str, payload: bytes) -> None:
         """Send raw bytes to the device."""
-        if not self._mqtt_client or not self._loop:
+        if not self._connected:
+            try:
+                await asyncio.wait_for(self._connected_event.wait(), timeout=5.0)
+            except asyncio.TimeoutError:
+                _LOGGER.error("Cannot send message: MQTT not connected (timeout)")
+                return
+
+        if not self._client:
             _LOGGER.error("Cannot send message: MQTT client not connected")
             return
 
-        await self._loop.run_in_executor(
-            None, partial(self._mqtt_client.publish, topic, payload)
-        )
+        await self._client.publish(topic, payload)

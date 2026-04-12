@@ -7,13 +7,11 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from custom_components.robovac_mqtt.api.client import (
-    EufyCleanClient,
-)
+from custom_components.robovac_mqtt.api.client import EufyCleanClient
 
 
 def _make_client() -> EufyCleanClient:
-    """Create a EufyCleanClient instance for testing (no real connection)."""
+    """Create a EufyCleanClient instance for testing."""
     return EufyCleanClient(
         device_id="TEST123",
         user_id="user1",
@@ -29,75 +27,84 @@ def _make_client() -> EufyCleanClient:
     )
 
 
-def test_on_connect_thread_safe_event():
-    """Test _on_connect with rc=0 fires connected event via call_soon_threadsafe."""
-    client = _make_client()
-    mock_loop = MagicMock()
-    client._loop = mock_loop
-
-    mock_mqtt = MagicMock()
-    client._on_connect(mock_mqtt, None, {}, 0)
-
-    mock_loop.call_soon_threadsafe.assert_called_once_with(client._connected_event.set)
-    expected_topic = "cmd/eufy_home/T2320/TEST123/res"
-    mock_mqtt.subscribe.assert_called_once_with(expected_topic)
-
-
-def test_on_disconnect_thread_safe_event():
-    """Test _on_disconnect clears connected event via call_soon_threadsafe."""
-    client = _make_client()
-    mock_loop = MagicMock()
-    client._loop = mock_loop
-
-    client._on_disconnect(MagicMock(), None, 0)
-
-    mock_loop.call_soon_threadsafe.assert_called_once_with(
-        client._connected_event.clear
-    )
-
-
-def test_on_connect_failure_no_event():
-    """Test _on_connect with rc != 0 does NOT fire the connected event."""
-    client = _make_client()
-    mock_loop = MagicMock()
-    client._loop = mock_loop
-
-    mock_mqtt = MagicMock()
-    client._on_connect(mock_mqtt, None, {}, 1)
-
-    mock_loop.call_soon_threadsafe.assert_not_called()
-    mock_mqtt.subscribe.assert_not_called()
-
-
 @pytest.mark.asyncio
-async def test_send_command_not_connected():
-    """Test send_command when _mqtt_client is None returns without error."""
+async def test_send_command_not_connected_times_out() -> None:
+    """send_command exits when MQTT does not reconnect in time."""
     client = _make_client()
-    assert client._mqtt_client is None
 
-    # Should not raise
     await client.send_command({"test": "value"})
 
 
 @pytest.mark.asyncio
-async def test_send_command_disconnected_client():
-    """Test send_command when client reports is_connected()=False skips publish."""
+async def test_send_command_connected_publishes_expected_payload() -> None:
+    """send_command publishes to the expected topic and payload shape."""
     client = _make_client()
-    mock_mqtt = MagicMock()
-    mock_mqtt.is_connected.return_value = False
-    client._mqtt_client = mock_mqtt
+    client._connected = True
+    client._connected_event.set()
+    client._client_id = "client-123"
+    client._client = MagicMock()
+    client._client.publish = AsyncMock()
 
     await client.send_command({"test": "value"})
 
-    mock_mqtt.publish.assert_not_called()
+    client._client.publish.assert_awaited_once()
+    topic, payload = client._client.publish.await_args.args
+    assert topic == "cmd/eufy_home/T2320/TEST123/req"
+    assert b'"client_id": "client-123"' in payload
+    assert b'\\"device_sn\\": \\"TEST123\\"' in payload
+    assert b'\\"test\\": \\"value\\"' in payload
 
 
 @pytest.mark.asyncio
-async def test_disconnect_cleans_temp_files():
-    """Test disconnect() removes temporary certificate and key files."""
+async def test_send_bytes_not_connected_times_out() -> None:
+    """send_bytes exits when MQTT does not reconnect in time."""
     client = _make_client()
 
-    # Create real temp files to verify deletion
+    await client.send_bytes("topic", b"payload")
+
+
+def test_mark_disconnected_calls_callback_only_after_connection() -> None:
+    """Disconnect callback is only fired after an established connection."""
+    client = _make_client()
+    callback = MagicMock()
+    client.set_on_disconnect(callback)
+
+    client._mark_disconnected("first")
+    callback.assert_not_called()
+
+    client._connected = True
+    client._connected_event.set()
+    client._client = MagicMock()
+
+    client._mark_disconnected("second")
+
+    callback.assert_called_once()
+    assert not client._connected
+    assert client._client is None
+    assert not client._connected_event.is_set()
+
+
+def test_build_tls_params_writes_temp_files() -> None:
+    """TLS parameters reuse temp cert and key files."""
+    client = _make_client()
+
+    tls_params = client._build_tls_params()
+
+    assert tls_params.certfile == client._cert_path
+    assert tls_params.keyfile == client._key_path
+    assert client._cert_path is not None
+    assert client._key_path is not None
+    assert os.path.exists(client._cert_path)
+    assert os.path.exists(client._key_path)
+
+    client._cleanup_cert_files()
+
+
+@pytest.mark.asyncio
+async def test_disconnect_cleans_temp_files_and_cancels_listener() -> None:
+    """disconnect removes temp files and cancels active listener task."""
+    client = _make_client()
+
     cert_fd, cert_path = tempfile.mkstemp(suffix=".pem")
     key_fd, key_path = tempfile.mkstemp(suffix=".key")
     os.close(cert_fd)
@@ -106,12 +113,17 @@ async def test_disconnect_cleans_temp_files():
     client._cert_path = cert_path
     client._key_path = key_path
 
-    mock_mqtt = MagicMock()
-    client._mqtt_client = mock_mqtt
-    client._loop = asyncio.get_running_loop()
+    async def _sleep_forever() -> None:
+        await asyncio.sleep(3600)
+
+    client._listener_task = asyncio.create_task(_sleep_forever())
 
     await client.disconnect()
 
+    assert client._listener_task is None
+    assert client._client is None
+    assert not client._connected
+    assert not client._connected_event.is_set()
     assert not os.path.exists(cert_path)
     assert not os.path.exists(key_path)
     assert client._cert_path is None
@@ -119,20 +131,17 @@ async def test_disconnect_cleans_temp_files():
 
 
 @pytest.mark.asyncio
-async def test_disconnect_no_loop_uses_running_loop():
-    """Test disconnect() falls back to asyncio.get_running_loop() when _loop is None."""
+async def test_connect_starts_listener_and_waits_for_connection() -> None:
+    """connect spawns the listener and waits for initial connection."""
     client = _make_client()
-    assert client._loop is None
 
-    mock_mqtt = MagicMock()
-    client._mqtt_client = mock_mqtt
+    async def _fake_run_listener() -> None:
+        client._connected = True
+        client._connected_event.set()
 
-    with patch("asyncio.get_running_loop") as mock_get_loop:
-        mock_loop = MagicMock()
-        mock_loop.run_in_executor = AsyncMock()
-        mock_get_loop.return_value = mock_loop
+    with patch.object(client, "_run_listener", new=AsyncMock(side_effect=_fake_run_listener)):
+        await client.connect()
 
-        await client.disconnect()
-
-        mock_get_loop.assert_called_once()
-        mock_loop.run_in_executor.assert_called_once()
+    assert client._listener_task is not None
+    await client._listener_task
+    assert client._client_id is not None

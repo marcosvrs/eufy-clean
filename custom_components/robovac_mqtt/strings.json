@@ -50,8 +50,12 @@
     "step": {
       "init": {
         "title": "Eufy Clean Options",
-        "description": "Options for Eufy Clean will appear here.",
-        "data": {}
+        "data": {
+          "max_cleaning_history": "Max cleaning history records"
+        },
+        "data_description": {
+          "max_cleaning_history": "Maximum number of cleaning history records to keep (10-500, default: 100)"
+        }
       }
     }
   },

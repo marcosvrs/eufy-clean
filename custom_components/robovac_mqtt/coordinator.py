@@ -167,7 +167,7 @@ class EufyCleanCoordinator(DataUpdateCoordinator[VacuumState]):
 
     @property
     def cleaning_history(self) -> list[dict]:
-        """Return list of past cleaning sessions (max 100)."""
+        """Return list of past cleaning sessions."""
         return self._cleaning_history
 
     @property
@@ -438,7 +438,8 @@ class EufyCleanCoordinator(DataUpdateCoordinator[VacuumState]):
                 self._current_session.dock_visits,
             )
             self._cleaning_history.append(asdict(self._current_session))
-            self._cleaning_history = self._cleaning_history[-100:]
+            max_history = self.config_entry.options.get("max_cleaning_history", 100) if self.config_entry else 100
+            self._cleaning_history = self._cleaning_history[-max_history:]
             self._current_session = None
             self.hass.async_create_task(self._async_save_cleaning_history())
             return
@@ -459,7 +460,8 @@ class EufyCleanCoordinator(DataUpdateCoordinator[VacuumState]):
                 state.cleaning_area,
             )
             self._cleaning_history.append(asdict(self._current_session))
-            self._cleaning_history = self._cleaning_history[-100:]
+            max_history = self.config_entry.options.get("max_cleaning_history", 100) if self.config_entry else 100
+            self._cleaning_history = self._cleaning_history[-max_history:]
             self._current_session = None
             self.hass.async_create_task(self._async_save_cleaning_history())
 
@@ -615,6 +617,8 @@ class EufyCleanCoordinator(DataUpdateCoordinator[VacuumState]):
                             entry,
                         )
                 self._cleaning_history = valid
+            max_history = self.config_entry.options.get("max_cleaning_history", 100) if self.config_entry else 100
+            self._cleaning_history = self._cleaning_history[-max_history:]
             _LOGGER.debug(
                 "Loaded %d cleaning history records for %s",
                 len(self._cleaning_history),

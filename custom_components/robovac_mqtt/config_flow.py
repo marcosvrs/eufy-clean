@@ -7,10 +7,11 @@ from typing import Any
 
 import homeassistant.helpers.config_validation as cv
 from homeassistant import config_entries
-from homeassistant.config_entries import ConfigFlowResult
+from homeassistant.config_entries import ConfigFlowResult, OptionsFlow
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
+from homeassistant.core import callback
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
-from voluptuous import Required, Schema
+from voluptuous import All, Optional, Range, Required, Schema
 
 from .api.http import EufyAuthError, EufyConnectionError, EufyHTTPClient
 from .const import DOMAIN, VACS
@@ -30,6 +31,13 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
 
     VERSION = 1
     data: dict[str, Any] | None
+
+    @staticmethod
+    @callback
+    def async_get_options_flow(
+        config_entry: config_entries.ConfigEntry,
+    ) -> EufyCleanOptionsFlowHandler:
+        return EufyCleanOptionsFlowHandler()
 
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
@@ -153,3 +161,22 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
             errors["base"] = "unknown"
 
         return errors
+
+
+class EufyCleanOptionsFlowHandler(OptionsFlow):
+
+    async def async_step_init(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        if user_input is not None:
+            return self.async_create_entry(data=user_input)
+
+        current = self.config_entry.options.get("max_cleaning_history", 100)
+        schema = Schema(
+            {
+                Optional("max_cleaning_history", default=current): All(
+                    int, Range(min=10, max=500)
+                ),
+            }
+        )
+        return self.async_show_form(step_id="init", data_schema=schema)

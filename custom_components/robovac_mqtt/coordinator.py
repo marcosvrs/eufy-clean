@@ -37,7 +37,6 @@ from .const import (
     supported_dps_from_catalog,
 )
 from .models import CleaningSession, VacuumState
-from .typing_defs import EufyCleanConfigEntry, EufyDeviceInfo
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -81,8 +80,8 @@ class EufyCleanCoordinator(DataUpdateCoordinator[VacuumState]):
         self,
         hass: HomeAssistant,
         eufy_login: EufyLogin,
-        device_info: EufyDeviceInfo,
-        config_entry: EufyCleanConfigEntry | None = None,
+        device_info: Any,
+        config_entry: Any | None = None,
     ) -> None:
         """Initialize coordinator."""
         self.device_id = device_info["deviceId"]
@@ -350,8 +349,10 @@ class EufyCleanCoordinator(DataUpdateCoordinator[VacuumState]):
                     self._track_cleaning_session(state_to_publish)
 
                 # Auto-enable entities when device reports new fields
+                save_novelty = False
                 if "received_fields" in changes:
                     self._async_enable_new_entities(state_to_publish)
+                    save_novelty = True
 
                 # Check for segment changes if rooms were updated (debounced)
                 if "rooms" in changes:
@@ -362,6 +363,9 @@ class EufyCleanCoordinator(DataUpdateCoordinator[VacuumState]):
                     )
 
                 if is_novelty_dirty():
+                    save_novelty = True
+
+                if save_novelty:
                     self.hass.async_create_task(self._async_save_novelty())
 
         except Exception as e:
@@ -618,6 +622,13 @@ class EufyCleanCoordinator(DataUpdateCoordinator[VacuumState]):
             if novelty := data.get("novelty_caches"):
                 load_novelty_caches(novelty)
 
+            if stored_fields := data.get("received_fields"):
+                if isinstance(stored_fields, list):
+                    self.data = replace(
+                        self.data,
+                        received_fields=self.data.received_fields | set(stored_fields),
+                    )
+
             raw_history = data.get("cleaning_history", [])
             if not isinstance(raw_history, list):
                 _LOGGER.warning(
@@ -654,6 +665,7 @@ class EufyCleanCoordinator(DataUpdateCoordinator[VacuumState]):
         async with self._store_lock:
             existing = await self._store.async_load() or {}
             existing["novelty_caches"] = get_novelty_caches()
+            existing["received_fields"] = list(self.data.received_fields)
             await self._store.async_save(existing)
         clear_novelty_dirty()
 

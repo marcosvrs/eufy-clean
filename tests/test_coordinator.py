@@ -87,6 +87,47 @@ def test_async_shutdown_timers_noop_when_no_timers(mock_hass, mock_login):
     assert coordinator._dock_idle_cancel is None
     assert coordinator._segment_update_cancel is None
 
+
+@pytest.mark.asyncio
+async def test_async_load_storage_restores_received_fields(mock_hass, mock_login):
+    """Stored received_fields are merged into current state on load."""
+    device_info = {
+        "deviceId": "test_id",
+        "deviceModel": "T2118",
+        "deviceName": "Test Vac",
+    }
+    coordinator = EufyCleanCoordinator(mock_hass, mock_login, device_info)
+    coordinator.data = coordinator.data.__class__(received_fields={"battery_level"})
+    coordinator._store = MagicMock()
+    coordinator._store.async_load = AsyncMock(
+        return_value={"received_fields": ["work_status", "battery_level"]}
+    )
+
+    await coordinator.async_load_storage()
+
+    assert coordinator.data.received_fields == {"battery_level", "work_status"}
+
+
+@pytest.mark.asyncio
+async def test_async_save_novelty_persists_received_fields(mock_hass, mock_login):
+    """Saving novelty also persists received_fields."""
+    device_info = {
+        "deviceId": "test_id",
+        "deviceModel": "T2118",
+        "deviceName": "Test Vac",
+    }
+    coordinator = EufyCleanCoordinator(mock_hass, mock_login, device_info)
+    coordinator.data = coordinator.data.__class__(received_fields={"battery_level"})
+    coordinator._store = MagicMock()
+    coordinator._store.async_load = AsyncMock(return_value={"novelty_caches": {}})
+    coordinator._store.async_save = AsyncMock()
+
+    await coordinator._async_save_novelty()
+
+    coordinator._store.async_save.assert_awaited_once()
+    saved = coordinator._store.async_save.await_args.args[0]
+    assert saved["received_fields"] == ["battery_level"]
+
     coordinator.async_shutdown_timers()
 
     assert coordinator._dock_idle_cancel is None

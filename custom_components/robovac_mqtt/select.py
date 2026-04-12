@@ -94,7 +94,6 @@ async def async_setup_entry(
                 DockSelectEntity(
                     coordinator,
                     "wash_frequency_mode",
-                    "Wash Frequency Mode",
                     ["ByRoom", "ByTime"],
                     lambda cfg: (
                         "ByRoom"
@@ -113,7 +112,6 @@ async def async_setup_entry(
                 DockSelectEntity(
                     coordinator,
                     "dry_duration",
-                    "Dry Duration",
                     list(DRY_DURATION_MAP.values()),
                     _get_dry_duration,
                     _set_dry_duration,
@@ -125,7 +123,6 @@ async def async_setup_entry(
                 DockSelectEntity(
                     coordinator,
                     "auto_empty_mode",
-                    "Auto Empty Mode",
                     ["Smart", "15 min", "30 min", "45 min", "60 min"],
                     _get_collect_dust_mode,
                     _set_collect_dust_mode,
@@ -210,7 +207,6 @@ class DockSelectEntity(CoordinatorEntity[EufyCleanCoordinator], SelectEntity):
         self,
         coordinator: EufyCleanCoordinator,
         id_suffix: str,
-        name_suffix: str,
         options: list[str],
         getter: Callable[[dict[str, Any]], str],
         setter: Callable[[dict[str, Any], str], None],
@@ -224,7 +220,7 @@ class DockSelectEntity(CoordinatorEntity[EufyCleanCoordinator], SelectEntity):
         self._attr_options = options
         self._attr_unique_id = f"{coordinator.device_id}_{id_suffix}"
         self._attr_has_entity_name = True
-        self._attr_name = name_suffix
+        self._attr_translation_key = id_suffix
         self._attr_entity_category = EntityCategory.CONFIG
         if icon:
             self._attr_icon = icon
@@ -266,7 +262,7 @@ class SceneSelectEntity(CoordinatorEntity[EufyCleanCoordinator], SelectEntity):
         super().__init__(coordinator)
         self._attr_unique_id = f"{coordinator.device_id}_scene_select"
         self._attr_has_entity_name = True
-        self._attr_name = "Scene"
+        self._attr_translation_key = "scene_select"
         self._attr_icon = "mdi:play-circle-outline"
 
         self._attr_device_info = coordinator.device_info
@@ -321,7 +317,7 @@ class RoomSelectEntity(CoordinatorEntity[EufyCleanCoordinator], SelectEntity):
         super().__init__(coordinator)
         self._attr_unique_id = f"{coordinator.device_id}_room_select"
         self._attr_has_entity_name = True
-        self._attr_name = "Clean Room"
+        self._attr_translation_key = "room_select"
         self._attr_icon = "mdi:door-open"
 
         self._attr_device_info = coordinator.device_info
@@ -430,7 +426,7 @@ class CleaningModeSelectEntity(_StateBackedSelectEntity):
     """
 
     _attr_has_entity_name = True
-    _attr_name = "Cleaning Mode"
+    _attr_translation_key = "cleaning_mode"
     _attr_icon = "mdi:spray-bottle"
     _attr_entity_category = EntityCategory.CONFIG
     _attr_options = EUFY_CLEAN_CLEANING_MODES
@@ -456,7 +452,7 @@ class WaterLevelSelectEntity(_StateBackedSelectEntity):
     """
 
     _attr_has_entity_name = True
-    _attr_name = "Water Level"
+    _attr_translation_key = "water_level"
     _attr_icon = "mdi:water"
     _attr_entity_category = EntityCategory.CONFIG
     _attr_options = EUFY_CLEAN_WATER_LEVELS
@@ -481,7 +477,7 @@ class MopIntensitySelectEntity(_StateBackedSelectEntity):
     """
 
     _attr_has_entity_name = True
-    _attr_name = "Mop Intensity"
+    _attr_translation_key = "mop_intensity"
     _attr_icon = "mdi:water"
     _attr_options = ["Quiet", "Automatic", "Max"]
     _attr_entity_category = EntityCategory.CONFIG
@@ -510,7 +506,7 @@ class CleaningIntensitySelectEntity(_StateBackedSelectEntity):
     """Select entity for adjusting global cleaning intensity."""
 
     _attr_has_entity_name = True
-    _attr_name = "Cleaning Intensity"
+    _attr_translation_key = "cleaning_intensity"
     _attr_icon = "mdi:tune-vertical"
     _attr_entity_category = EntityCategory.CONFIG
     _attr_options = EUFY_CLEAN_CLEANING_INTENSITIES
@@ -529,7 +525,7 @@ class CarpetStrategySelectEntity(_StateBackedSelectEntity):
     """Select entity for adjusting carpet cleaning strategy."""
 
     _attr_has_entity_name = True
-    _attr_name = "Carpet Strategy"
+    _attr_translation_key = "carpet_strategy"
     _attr_icon = "mdi:rug"
     _attr_options = EUFY_CLEAN_CARPET_STRATEGIES
     _attr_entity_category = EntityCategory.CONFIG
@@ -547,7 +543,7 @@ class CarpetStrategySelectEntity(_StateBackedSelectEntity):
 class CornerCleaningSelectEntity(_StateBackedSelectEntity):
 
     _attr_has_entity_name = True
-    _attr_name = "Corner Cleaning"
+    _attr_translation_key = "corner_cleaning"
     _attr_icon = "mdi:rounded-corner"
     _attr_options = EUFY_CLEAN_CORNER_CLEANING_MODES
     _attr_entity_category = EntityCategory.CONFIG
@@ -564,7 +560,7 @@ class CornerCleaningSelectEntity(_StateBackedSelectEntity):
 class MediaRecordingResolutionSelectEntity(_StateBackedSelectEntity):
 
     _attr_has_entity_name = True
-    _attr_name = "Recording Resolution"
+    _attr_translation_key = "media_recording_resolution"
     _attr_icon = "mdi:video-high-definition"
     _attr_options = list(MEDIA_RESOLUTION_NAMES.values())
     _attr_entity_category = EntityCategory.CONFIG

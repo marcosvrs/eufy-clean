@@ -40,7 +40,6 @@ async def async_setup_entry(
                 DockNumberEntity(
                     coordinator,
                     "wash_frequency_value",
-                    "Wash Frequency Value (Time)",
                     15,
                     25,
                     1,  # step
@@ -58,7 +57,6 @@ async def async_setup_entry(
                 UnisettingNumber(
                     coordinator,
                     "dust_full_remind",
-                    "Dust Full Remind",
                     0,
                     100,
                     1,
@@ -91,7 +89,6 @@ class DockNumberEntity(CoordinatorEntity[EufyCleanCoordinator], NumberEntity):
         self,
         coordinator: EufyCleanCoordinator,
         id_suffix: str,
-        name: str,
         min_val: float,
         max_val: float,
         step_val: float,
@@ -104,7 +101,7 @@ class DockNumberEntity(CoordinatorEntity[EufyCleanCoordinator], NumberEntity):
         self._id_suffix = id_suffix
         self._attr_unique_id = f"{coordinator.device_id}_{id_suffix}"
         self._attr_has_entity_name = True
-        self._attr_name = name
+        self._attr_translation_key = id_suffix
         self._attr_native_min_value = min_val
         self._attr_native_max_value = max_val
         self._attr_native_step = step_val
@@ -150,7 +147,6 @@ class UnisettingNumber(CoordinatorEntity[EufyCleanCoordinator], NumberEntity):
         self,
         coordinator: EufyCleanCoordinator,
         field_name: str,
-        display_name: str,
         min_value: float,
         max_value: float,
         step: float = 1.0,
@@ -160,7 +156,7 @@ class UnisettingNumber(CoordinatorEntity[EufyCleanCoordinator], NumberEntity):
         self._field_name = field_name
         self._attr_unique_id = f"{coordinator.device_id}_{field_name}"
         self._attr_has_entity_name = True
-        self._attr_name = display_name
+        self._attr_translation_key = field_name
         self._attr_native_min_value = min_value
         self._attr_native_max_value = max_value
         self._attr_native_step = step

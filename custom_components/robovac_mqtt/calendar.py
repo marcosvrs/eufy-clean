@@ -305,7 +305,7 @@ class EufyCleanCalendar(CoordinatorEntity[EufyCleanCoordinator], CalendarEntity)
         super().__init__(coordinator)
         self._attr_unique_id = f"{coordinator.device_id}_cleaning_schedule"
         self._attr_has_entity_name = True
-        self._attr_name = "Cleaning Schedule"
+        self._attr_translation_key = "cleaning_schedule"
         self._attr_device_info = coordinator.device_info
         self._attr_entity_registry_enabled_default = True
         self._attr_entity_registry_visible_default = True

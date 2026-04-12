@@ -64,14 +64,13 @@ def test_dock_select_entity(mock_coordinator):
     entity = DockSelectEntity(
         mock_coordinator,
         "wash_frequency_mode",
-        "Wash Frequency Mode",
         ["ByRoom", "ByTime"],
         _get_wash_freq,
         _set_wash_freq,
         "mdi:calendar-sync",
     )
 
-    assert entity.name == "Wash Frequency Mode"
+    assert entity._attr_translation_key == "wash_frequency_mode"
     assert entity.unique_id == "test_device_wash_frequency_mode"
     assert entity.icon == "mdi:calendar-sync"
     assert entity.entity_category == EntityCategory.CONFIG

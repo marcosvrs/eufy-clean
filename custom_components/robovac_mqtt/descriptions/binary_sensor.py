@@ -29,14 +29,12 @@ class RoboVacBinarySensorDescription(BinarySensorEntityDescription):
 BINARY_SENSOR_DESCRIPTIONS: tuple[RoboVacBinarySensorDescription, ...] = (
     RoboVacBinarySensorDescription(
         key="charging",
-        name="Charging",
         device_class=BinarySensorDeviceClass.BATTERY_CHARGING,
         entity_category=None,
         value_fn=lambda s: s.charging,
     ),
     RoboVacBinarySensorDescription(
         key="upgrading",
-        name="Upgrading",
         icon="mdi:update",
         entity_category=EntityCategory.DIAGNOSTIC,
         value_fn=lambda s: s.upgrading,
@@ -44,7 +42,6 @@ BINARY_SENSOR_DESCRIPTIONS: tuple[RoboVacBinarySensorDescription, ...] = (
     ),
     RoboVacBinarySensorDescription(
         key="relocating",
-        name="Relocating",
         icon="mdi:crosshairs-gps",
         entity_category=EntityCategory.DIAGNOSTIC,
         value_fn=lambda s: s.relocating,
@@ -52,7 +49,6 @@ BINARY_SENSOR_DESCRIPTIONS: tuple[RoboVacBinarySensorDescription, ...] = (
     ),
     RoboVacBinarySensorDescription(
         key="breakpoint_available",
-        name="Breakpoint Available",
         icon="mdi:map-marker-check",
         entity_category=EntityCategory.DIAGNOSTIC,
         value_fn=lambda s: s.breakpoint_available,
@@ -60,7 +56,6 @@ BINARY_SENSOR_DESCRIPTIONS: tuple[RoboVacBinarySensorDescription, ...] = (
     ),
     RoboVacBinarySensorDescription(
         key="roller_brush_cleaning",
-        name="Roller Brush Cleaning",
         icon="mdi:brush",
         entity_category=EntityCategory.DIAGNOSTIC,
         value_fn=lambda s: s.roller_brush_cleaning,
@@ -68,21 +63,18 @@ BINARY_SENSOR_DESCRIPTIONS: tuple[RoboVacBinarySensorDescription, ...] = (
     ),
     RoboVacBinarySensorDescription(
         key="water_tank_clear_adding",
-        name="Water Tank Adding",
         entity_category=EntityCategory.DIAGNOSTIC,
         value_fn=lambda s: s.water_tank_clear_adding,
         availability_fn=lambda s: "water_tank_state" in s.received_fields,
     ),
     RoboVacBinarySensorDescription(
         key="water_tank_waste_recycling",
-        name="Water Tank Recycling",
         entity_category=EntityCategory.DIAGNOSTIC,
         value_fn=lambda s: s.water_tank_waste_recycling,
         availability_fn=lambda s: "water_tank_state" in s.received_fields,
     ),
     RoboVacBinarySensorDescription(
         key="dock_connected",
-        name="Dock Connected",
         device_class=BinarySensorDeviceClass.CONNECTIVITY,
         entity_category=EntityCategory.DIAGNOSTIC,
         value_fn=lambda s: s.dock_connected,
@@ -90,14 +82,12 @@ BINARY_SENSOR_DESCRIPTIONS: tuple[RoboVacBinarySensorDescription, ...] = (
     ),
     RoboVacBinarySensorDescription(
         key="dust_collect_result",
-        name="Last Dust Collection Success",
         entity_category=EntityCategory.DIAGNOSTIC,
         value_fn=lambda s: s.dust_collect_result,
         availability_fn=lambda s: "dust_collect_stats" in s.received_fields,
     ),
     RoboVacBinarySensorDescription(
         key="mop_holder_l",
-        name="Mop Holder Left",
         entity_category=EntityCategory.DIAGNOSTIC,
         exists_fn=lambda c: "UNSETTING" in c.supported_dps,
         value_fn=lambda s: s.mop_holder_state_l,
@@ -105,7 +95,6 @@ BINARY_SENSOR_DESCRIPTIONS: tuple[RoboVacBinarySensorDescription, ...] = (
     ),
     RoboVacBinarySensorDescription(
         key="mop_holder_r",
-        name="Mop Holder Right",
         entity_category=EntityCategory.DIAGNOSTIC,
         exists_fn=lambda c: "UNSETTING" in c.supported_dps,
         value_fn=lambda s: s.mop_holder_state_r,
@@ -113,7 +102,6 @@ BINARY_SENSOR_DESCRIPTIONS: tuple[RoboVacBinarySensorDescription, ...] = (
     ),
     RoboVacBinarySensorDescription(
         key="map_valid",
-        name="Map Valid",
         entity_category=EntityCategory.DIAGNOSTIC,
         exists_fn=lambda c: "UNSETTING" in c.supported_dps,
         value_fn=lambda s: s.map_valid,
@@ -121,7 +109,6 @@ BINARY_SENSOR_DESCRIPTIONS: tuple[RoboVacBinarySensorDescription, ...] = (
     ),
     RoboVacBinarySensorDescription(
         key="live_map",
-        name="Live Map",
         entity_category=EntityCategory.DIAGNOSTIC,
         exists_fn=lambda c: "UNSETTING" in c.supported_dps,
         value_fn=lambda s: bool(s.live_map_state_bits),

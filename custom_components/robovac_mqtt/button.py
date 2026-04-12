@@ -88,7 +88,7 @@ class RoboVacButton(CoordinatorEntity[EufyCleanCoordinator], ButtonEntity):
         super().__init__(coordinator)
         self._description = description
         self._attr_unique_id = f"{coordinator.device_id}_{description.key}"
-        self._attr_name = description.name
+        self._attr_translation_key = description.key
         self._attr_device_info = coordinator.device_info
         self._attr_entity_category = description.entity_category
         if description.icon:
@@ -115,7 +115,7 @@ class RestartButton(CoordinatorEntity[EufyCleanCoordinator], ButtonEntity):
         super().__init__(coordinator)
         self._attr_has_entity_name = True
         self._attr_unique_id = f"{coordinator.device_id}_restart"
-        self._attr_name = "Restart"
+        self._attr_translation_key = "restart"
         self._attr_icon = "mdi:restart"
         self._attr_device_info = coordinator.device_info
         self._attr_entity_category = EntityCategory.CONFIG
@@ -137,7 +137,7 @@ class ResumeFromBreakpointButton(CoordinatorEntity[EufyCleanCoordinator], Button
         super().__init__(coordinator)
         self._attr_has_entity_name = True
         self._attr_unique_id = f"{coordinator.device_id}_resume_from_breakpoint"
-        self._attr_name = "Resume from Breakpoint"
+        self._attr_translation_key = "resume_from_breakpoint"
         self._attr_icon = "mdi:play-circle"
         self._attr_device_info = coordinator.device_info
         self._attr_entity_category = None
@@ -193,12 +193,12 @@ class RCModeButton(CoordinatorEntity[EufyCleanCoordinator], ButtonEntity):
         self._attr_has_entity_name = True
         if enter:
             self._attr_unique_id = f"{coordinator.device_id}_rc_enter"
-            self._attr_name = "Enter RC Mode"
+            self._attr_translation_key = "rc_enter"
             self._attr_icon = "mdi:gamepad-variant"
             self._cmd = "start_rc"
         else:
             self._attr_unique_id = f"{coordinator.device_id}_rc_exit"
-            self._attr_name = "Exit RC Mode"
+            self._attr_translation_key = "rc_exit"
             self._attr_icon = "mdi:gamepad-variant-outline"
             self._cmd = "stop_rc"
         self._attr_device_info = coordinator.device_info

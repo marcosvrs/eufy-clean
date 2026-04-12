@@ -11,6 +11,7 @@ from homeassistant.components.vacuum import (
 )
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
+from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.issue_registry import (
@@ -22,6 +23,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .__init__ import EufyCleanConfigEntry
 from .api.commands import build_command
+from .api.http import EufyConnectionError
 from .const import DOMAIN, EUFY_CLEAN_NOVEL_CLEAN_SPEED
 from .coordinator import EufyCleanCoordinator
 
@@ -269,7 +271,10 @@ class RoboVacMQTTEntity(CoordinatorEntity[EufyCleanCoordinator], StateVacuumEnti
 
         command = build_command("room_clean", **command_kwargs)
         self.coordinator.set_active_cleaning_targets(room_ids=room_ids)
-        await self.coordinator.async_send_command(command)
+        try:
+            await self.coordinator.async_send_command(command)
+        except Exception as err:
+            self._raise_command_error(err)
 
     async def _async_send_room_custom(
         self,
@@ -284,7 +289,29 @@ class RoboVacMQTTEntity(CoordinatorEntity[EufyCleanCoordinator], StateVacuumEnti
             map_id=map_id,
             **kwargs,
         )
-        await self.coordinator.async_send_command(command)
+        try:
+            await self.coordinator.async_send_command(command)
+        except Exception as err:
+            self._raise_command_error(err)
+
+    def _raise_command_error(self, err: Exception) -> None:
+        """Raise a translated Home Assistant command error."""
+        device_name = str(self.name or "vacuum")
+        if isinstance(err, EufyConnectionError):
+            raise HomeAssistantError(
+                translation_domain=DOMAIN,
+                translation_key="not_connected",
+                translation_placeholders={"device_name": device_name},
+            ) from err
+
+        raise HomeAssistantError(
+            translation_domain=DOMAIN,
+            translation_key="command_failed",
+            translation_placeholders={
+                "device_name": device_name,
+                "error": str(err),
+            },
+        ) from err
 
     async def _async_handle_room_clean(self, params: dict[str, Any]) -> None:
         """Handle room_clean command with optional custom parameters."""
@@ -421,41 +448,69 @@ class RoboVacMQTTEntity(CoordinatorEntity[EufyCleanCoordinator], StateVacuumEnti
 
     async def async_return_to_base(self, **kwargs: Any) -> None:
         """Set the vacuum cleaner to return to the dock."""
-        await self.coordinator.async_send_command(build_command("return_to_base"))
+        try:
+            await self.coordinator.async_send_command(build_command("return_to_base"))
+        except Exception as err:
+            self._raise_command_error(err)
 
     async def async_start(self, **kwargs: Any) -> None:
         """Start or resume the cleaning task."""
-        if self.activity == VacuumActivity.PAUSED:
-            await self.coordinator.async_send_command(build_command("play"))
-        else:
-            await self.coordinator.async_send_command(build_command("start_auto"))
+        try:
+            if self.activity == VacuumActivity.PAUSED:
+                await self.coordinator.async_send_command(build_command("play"))
+            else:
+                await self.coordinator.async_send_command(build_command("start_auto"))
+        except Exception as err:
+            self._raise_command_error(err)
 
     async def async_pause(self, **kwargs: Any) -> None:
         """Pause the cleaning task."""
-        await self.coordinator.async_send_command(build_command("pause"))
+        try:
+            await self.coordinator.async_send_command(build_command("pause"))
+        except Exception as err:
+            self._raise_command_error(err)
 
     async def async_stop(self, **kwargs: Any) -> None:
         """Stop the cleaning task."""
-        await self.coordinator.async_send_command(build_command("stop"))
+        try:
+            await self.coordinator.async_send_command(build_command("stop"))
+        except Exception as err:
+            self._raise_command_error(err)
 
     async def async_clean_spot(self, **kwargs: Any) -> None:
         """Perform a spot clean-up."""
-        await self.coordinator.async_send_command(build_command("clean_spot"))
+        try:
+            await self.coordinator.async_send_command(build_command("clean_spot"))
+        except Exception as err:
+            self._raise_command_error(err)
 
     async def async_locate(self, **kwargs: Any) -> None:
         """Locate the vacuum cleaner."""
-        await self.coordinator.async_send_command(
-            build_command("find_robot", active=True)
-        )
+        try:
+            await self.coordinator.async_send_command(
+                build_command("find_robot", active=True)
+            )
+        except Exception as err:
+            self._raise_command_error(err)
 
     async def async_set_fan_speed(self, fan_speed: str, **kwargs: Any) -> None:
         """Set fan speed."""
-        if fan_speed not in self.fan_speed_list:
-            raise ValueError(f"Fan speed {fan_speed} not supported")
+        if fan_speed not in self._attr_fan_speed_list:
+            raise ServiceValidationError(
+                translation_domain=DOMAIN,
+                translation_key="invalid_fan_speed",
+                translation_placeholders={
+                    "speed": fan_speed,
+                    "valid_speeds": ", ".join(self._attr_fan_speed_list or []),
+                },
+            )
 
-        await self.coordinator.async_send_command(
-            build_command("set_fan_speed", fan_speed=fan_speed)
-        )
+        try:
+            await self.coordinator.async_send_command(
+                build_command("set_fan_speed", fan_speed=fan_speed)
+            )
+        except Exception as err:
+            self._raise_command_error(err)
 
     async def async_get_segments(self) -> list[Segment]:
         """Return list of cleanable segments."""
@@ -503,9 +558,12 @@ class RoboVacMQTTEntity(CoordinatorEntity[EufyCleanCoordinator], StateVacuumEnti
                     ),
                     None,
                 )
-                await self.coordinator.async_send_command(
-                    build_command("scene_clean", scene_id=scene_id)
-                )
+                try:
+                    await self.coordinator.async_send_command(
+                        build_command("scene_clean", scene_id=scene_id)
+                    )
+                except Exception as err:
+                    self._raise_command_error(err)
                 self.coordinator.set_active_scene(scene_id, scene_name)
             return
 
@@ -534,7 +592,10 @@ class RoboVacMQTTEntity(CoordinatorEntity[EufyCleanCoordinator], StateVacuumEnti
 
         command_dict = build_command(command, **command_kwargs)
         if command_dict:
-            await self.coordinator.async_send_command(command_dict)
+            try:
+                await self.coordinator.async_send_command(command_dict)
+            except Exception as err:
+                self._raise_command_error(err)
             return
 
         _LOGGER.warning(

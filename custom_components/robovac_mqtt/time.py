@@ -42,14 +42,13 @@ class _DoNotDisturbTimeEntity(CoordinatorEntity[EufyCleanCoordinator], TimeEntit
         self,
         coordinator: EufyCleanCoordinator,
         unique_id_suffix: str,
-        name: str,
         icon: str,
     ) -> None:
         """Initialize the DND time entity."""
         super().__init__(coordinator)
         self._attr_unique_id = f"{coordinator.device_id}_{unique_id_suffix}"
         self._attr_has_entity_name = True
-        self._attr_name = name
+        self._attr_translation_key = unique_id_suffix
         self._attr_icon = icon
         self._attr_entity_category = EntityCategory.CONFIG
         self._attr_device_info = coordinator.device_info
@@ -115,7 +114,6 @@ class DoNotDisturbStartTimeEntity(_DoNotDisturbTimeEntity):
         super().__init__(
             coordinator,
             "do_not_disturb_start",
-            "Do Not Disturb Start",
             "mdi:clock-start",
         )
 
@@ -130,6 +128,5 @@ class DoNotDisturbEndTimeEntity(_DoNotDisturbTimeEntity):
         super().__init__(
             coordinator,
             "do_not_disturb_end",
-            "Do Not Disturb End",
             "mdi:clock-end",
         )

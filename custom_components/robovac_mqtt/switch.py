@@ -44,7 +44,6 @@ async def async_setup_entry(
                 DockSwitchEntity(
                     coordinator,
                     "auto_empty",
-                    "Auto Empty",
                     lambda cfg: cfg.get("collectdust_v2", {})
                     .get("sw", {})
                     .get("value", False),
@@ -57,7 +56,6 @@ async def async_setup_entry(
                 DockSwitchEntity(
                     coordinator,
                     "auto_wash",
-                    "Auto Wash",
                     lambda cfg: cfg.get("wash", {}).get("cfg", "CLOSE") == "STANDARD",
                     set_wash_cfg,
                     icon="mdi:water-sync",
@@ -122,7 +120,6 @@ class DockSwitchEntity(CoordinatorEntity[EufyCleanCoordinator], SwitchEntity):
         self,
         coordinator: EufyCleanCoordinator,
         id_suffix: str,
-        name_suffix: str,
         getter: Callable[[dict[str, Any]], bool],
         setter: Callable[[dict[str, Any], bool], None],
         icon: str | None = None,
@@ -134,7 +131,7 @@ class DockSwitchEntity(CoordinatorEntity[EufyCleanCoordinator], SwitchEntity):
         self._setter = setter
         self._attr_unique_id = f"{coordinator.device_id}_{id_suffix}"
         self._attr_has_entity_name = True
-        self._attr_name = name_suffix
+        self._attr_translation_key = id_suffix
         self._attr_entity_category = EntityCategory.CONFIG
         if icon:
             self._attr_icon = icon
@@ -151,7 +148,7 @@ class DockSwitchEntity(CoordinatorEntity[EufyCleanCoordinator], SwitchEntity):
         try:
             return self._getter(cfg)
         except Exception as e:
-            _LOGGER.debug("Error getting switch state for %s: %s", self._attr_name, e)
+            _LOGGER.debug("Error getting switch state for %s: %s", self._id_suffix, e)
             return None
 
     async def async_turn_on(self, **kwargs: Any) -> None:
@@ -186,7 +183,7 @@ class ChildLockSwitchEntity(CoordinatorEntity[EufyCleanCoordinator], SwitchEntit
         super().__init__(coordinator)
         self._attr_unique_id = f"{coordinator.device_id}_child_lock"
         self._attr_has_entity_name = True
-        self._attr_name = "Child Lock"
+        self._attr_translation_key = "child_lock"
         self._attr_icon = "mdi:lock-outline"
         self._attr_entity_category = EntityCategory.CONFIG
         self._attr_device_info = coordinator.device_info
@@ -230,7 +227,7 @@ class DoNotDisturbSwitchEntity(CoordinatorEntity[EufyCleanCoordinator], SwitchEn
         super().__init__(coordinator)
         self._attr_unique_id = f"{coordinator.device_id}_do_not_disturb"
         self._attr_has_entity_name = True
-        self._attr_name = "Do Not Disturb"
+        self._attr_translation_key = "do_not_disturb"
         self._attr_icon = "mdi:minus-circle-off-outline"
         self._attr_entity_category = EntityCategory.CONFIG
         self._attr_device_info = coordinator.device_info
@@ -286,7 +283,7 @@ class SmartModeSwitchEntity(CoordinatorEntity[EufyCleanCoordinator], SwitchEntit
         super().__init__(coordinator)
         self._attr_unique_id = f"{coordinator.device_id}_smart_mode"
         self._attr_has_entity_name = True
-        self._attr_name = "Smart Mode"
+        self._attr_translation_key = "smart_mode"
         self._attr_icon = "mdi:brain"
         self._attr_entity_category = EntityCategory.CONFIG
         self._attr_device_info = coordinator.device_info
@@ -335,7 +332,7 @@ class UnisettingSwitch(CoordinatorEntity[EufyCleanCoordinator], SwitchEntity):
         self._field_name = description.field_name
         self._attr_unique_id = f"{coordinator.device_id}_{description.field_name}"
         self._attr_has_entity_name = True
-        self._attr_name = description.name
+        self._attr_translation_key = description.field_name
         self._attr_icon = description.icon
         self._attr_entity_category = EntityCategory.CONFIG
         self._attr_device_info = coordinator.device_info
@@ -376,7 +373,7 @@ class MediaRecordingSwitchEntity(CoordinatorEntity[EufyCleanCoordinator], Switch
         super().__init__(coordinator)
         self._attr_unique_id = f"{coordinator.device_id}_media_recording"
         self._attr_has_entity_name = True
-        self._attr_name = "Recording"
+        self._attr_translation_key = "media_recording"
         self._attr_icon = "mdi:record-rec"
         self._attr_entity_category = EntityCategory.CONFIG
         self._attr_device_info = coordinator.device_info

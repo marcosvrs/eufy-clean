@@ -58,13 +58,13 @@ def test_rc_direction_button_sends_generic_command() -> None:
 def test_rc_mode_button_enter() -> None:
     entity = RCModeButton(_mock_coordinator(), enter=True)
     assert entity.unique_id == "test_device_rc_enter"
-    assert entity.name == "Enter RC Mode"
+    assert entity._attr_translation_key == "rc_enter"
 
 
 def test_rc_mode_button_exit() -> None:
     entity = RCModeButton(_mock_coordinator(), enter=False)
     assert entity.unique_id == "test_device_rc_exit"
-    assert entity.name == "Exit RC Mode"
+    assert entity._attr_translation_key == "rc_exit"
 
 
 def test_rc_mode_enter_sends_start_rc() -> None:

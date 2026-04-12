@@ -29,7 +29,7 @@ class RoboVacNotificationEvent(CoordinatorEntity[EufyCleanCoordinator], EventEnt
     """Event entity for transient toast notifications."""
 
     _attr_has_entity_name = True
-    _attr_name = "Notification Event"
+    _attr_translation_key = "notification_event"
     _attr_event_types = ["notification"]
     _attr_entity_registry_enabled_default = False
     _attr_entity_registry_visible_default = False

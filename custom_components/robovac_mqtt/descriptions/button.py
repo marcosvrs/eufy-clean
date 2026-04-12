@@ -18,7 +18,6 @@ if TYPE_CHECKING:
 @dataclass(frozen=True, kw_only=True)
 class RoboVacButtonDescription:
     key: str
-    name: str
     command: str
     icon: str | None = None
     exists_fn: Callable[[EufyCleanCoordinator], bool] = field(default=lambda c: True)
@@ -28,7 +27,6 @@ class RoboVacButtonDescription:
 @dataclass(frozen=True, kw_only=True)
 class RoboVacResetButtonDescription:
     key: str
-    name: str
     consumable_type: int
     icon: str
     exists_fn: Callable[[EufyCleanCoordinator], bool] = field(default=lambda c: True)
@@ -38,25 +36,21 @@ class RoboVacResetButtonDescription:
 DOCK_BUTTON_DESCRIPTIONS: tuple[RoboVacButtonDescription, ...] = (
     RoboVacButtonDescription(
         key="dry_mop",
-        name="Dry Mop",
         command="go_dry",
         exists_fn=lambda c: "STATION_STATUS" in c.supported_dps,
     ),
     RoboVacButtonDescription(
         key="wash_mop",
-        name="Wash Mop",
         command="go_selfcleaning",
         exists_fn=lambda c: "STATION_STATUS" in c.supported_dps,
     ),
     RoboVacButtonDescription(
         key="empty_dust_bin",
-        name="Empty Dust Bin",
         command="collect_dust",
         exists_fn=lambda c: "STATION_STATUS" in c.supported_dps,
     ),
     RoboVacButtonDescription(
         key="stop_dry_mop",
-        name="Stop Dry Mop",
         command="stop_dry",
         exists_fn=lambda c: "STATION_STATUS" in c.supported_dps,
     ),
@@ -65,25 +59,21 @@ DOCK_BUTTON_DESCRIPTIONS: tuple[RoboVacButtonDescription, ...] = (
 GENERIC_BUTTON_DESCRIPTIONS: tuple[RoboVacButtonDescription, ...] = (
     RoboVacButtonDescription(
         key="stop_return",
-        name="Stop Return",
         command="stop_gohome",
         icon="mdi:home-off",
     ),
     RoboVacButtonDescription(
         key="map_then_clean",
-        name="Map Then Clean",
         command="mapping_then_clean",
         icon="mdi:map-plus",
     ),
     RoboVacButtonDescription(
         key="global_cruise",
-        name="Global Cruise",
         command="start_global_cruise",
         icon="mdi:map-marker-path",
     ),
     RoboVacButtonDescription(
         key="stop_smart_follow",
-        name="Stop Smart Follow",
         command="stop_smart_follow",
         icon="mdi:walk",
     ),
@@ -92,42 +82,36 @@ GENERIC_BUTTON_DESCRIPTIONS: tuple[RoboVacButtonDescription, ...] = (
 RESET_BUTTON_DESCRIPTIONS: tuple[RoboVacResetButtonDescription, ...] = (
     RoboVacResetButtonDescription(
         key="reset_filter",
-        name="Reset Filter",
         consumable_type=ConsumableRequest.FILTER_MESH,
         icon="mdi:air-filter",
         exists_fn=lambda c: "ACCESSORIES_STATUS" in c.supported_dps,
     ),
     RoboVacResetButtonDescription(
         key="reset_main_brush",
-        name="Reset Rolling Brush",
         consumable_type=ConsumableRequest.ROLLING_BRUSH,
         icon="mdi:broom",
         exists_fn=lambda c: "ACCESSORIES_STATUS" in c.supported_dps,
     ),
     RoboVacResetButtonDescription(
         key="reset_side_brush",
-        name="Reset Side Brush",
         consumable_type=ConsumableRequest.SIDE_BRUSH,
         icon="mdi:broom",
         exists_fn=lambda c: "ACCESSORIES_STATUS" in c.supported_dps,
     ),
     RoboVacResetButtonDescription(
         key="reset_sensors",
-        name="Reset Sensors",
         consumable_type=ConsumableRequest.SENSOR,
         icon="mdi:eye-outline",
         exists_fn=lambda c: "ACCESSORIES_STATUS" in c.supported_dps,
     ),
     RoboVacResetButtonDescription(
         key="reset_scrape",
-        name="Reset Cleaning Tray",
         consumable_type=ConsumableRequest.SCRAPE,
         icon="mdi:wiper",
         exists_fn=lambda c: "ACCESSORIES_STATUS" in c.supported_dps,
     ),
     RoboVacResetButtonDescription(
         key="reset_mop",
-        name="Reset Mopping Cloth",
         consumable_type=ConsumableRequest.MOP,
         icon="mdi:water",
         exists_fn=lambda c: "ACCESSORIES_STATUS" in c.supported_dps,
@@ -137,7 +121,6 @@ RESET_BUTTON_DESCRIPTIONS: tuple[RoboVacResetButtonDescription, ...] = (
 MEDIA_BUTTON_DESCRIPTIONS: tuple[RoboVacButtonDescription, ...] = (
     RoboVacButtonDescription(
         key="media_capture",
-        name="Capture Photo",
         command="media_capture",
         icon="mdi:camera",
         exists_fn=lambda c: "MEDIA_MANAGER" in c.supported_dps,

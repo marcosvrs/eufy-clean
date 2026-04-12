@@ -1,7 +1,10 @@
 """Tests for the Eufy HTTP client."""
 
+# pyright: reportAny=false, reportPrivateUsage=false, reportUnknownParameterType=false, reportUnknownMemberType=false, reportUnusedCallResult=false
+
 from __future__ import annotations
 
+import aiohttp
 import logging
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -40,6 +43,19 @@ def _mock_aiohttp_session(mock_response: AsyncMock) -> MagicMock:
     mock_session.get.return_value = ctx
 
     return mock_session
+
+
+def _make_injected_session(mock_response: AsyncMock) -> MagicMock:
+    """Build an injected session compatible with _session_ctx()."""
+    ctx = MagicMock()
+    ctx.__aenter__ = AsyncMock(return_value=mock_response)
+    ctx.__aexit__ = AsyncMock(return_value=False)
+
+    session = MagicMock(spec=aiohttp.ClientSession)
+    session.post.return_value = ctx
+    session.get.return_value = ctx
+    session.close = AsyncMock()
+    return session
 
 
 # --- None-guard tests (no HTTP calls) ---
@@ -314,3 +330,69 @@ def test_request_timeout_is_configured():
     """_REQUEST_TIMEOUT should exist and have a 30-second total."""
     assert _REQUEST_TIMEOUT is not None
     assert _REQUEST_TIMEOUT.total == 30
+
+
+@pytest.mark.asyncio
+async def test_login_uses_injected_session_without_creating_client_session():
+    """Injected sessions are reused instead of constructing a new ClientSession."""
+    login_response = AsyncMock()
+    login_response.status = 200
+    login_response.json = AsyncMock(return_value={"access_token": "tok"})
+
+    user_response = AsyncMock()
+    user_response.status = 200
+    user_response.json = AsyncMock(
+        return_value={"user_center_id": "user123", "user_center_token": "uctok"}
+    )
+
+    mqtt_response = AsyncMock()
+    mqtt_response.status = 200
+    mqtt_response.json = AsyncMock(return_value={"data": {"endpoint": "mqtt.example.com"}})
+
+    injected_session = _make_injected_session(login_response)
+    injected_session.get.return_value = _make_injected_session(user_response).get.return_value
+    injected_session.post.side_effect = [
+        _make_injected_session(login_response).post.return_value,
+        _make_injected_session(mqtt_response).post.return_value,
+    ]
+
+    client = EufyHTTPClient(
+        username="test@example.com",
+        password="secret",
+        openudid="abc123",
+        session=injected_session,
+    )
+
+    with patch("aiohttp.ClientSession") as mock_client_session:
+        result = await client.login()
+
+    mock_client_session.assert_not_called()
+    injected_session.close.assert_not_awaited()
+    assert result["session"]["access_token"] == "tok"
+    assert result["mqtt"] == {"endpoint": "mqtt.example.com"}
+
+
+@pytest.mark.asyncio
+async def test_session_ctx_closes_owned_session_only():
+    """Temporary sessions are closed, injected sessions are left open."""
+    client = _make_client()
+    owned_session = _make_injected_session(AsyncMock())
+
+    with patch("aiohttp.ClientSession", return_value=owned_session):
+        async with client._session_ctx() as session:
+            assert session is owned_session
+
+    owned_session.close.assert_awaited_once()
+
+    injected_session = _make_injected_session(AsyncMock())
+    injected_client = EufyHTTPClient(
+        username="test@example.com",
+        password="secret",
+        openudid="abc123",
+        session=injected_session,
+    )
+
+    async with injected_client._session_ctx() as session:
+        assert session is injected_session
+
+    injected_session.close.assert_not_awaited()

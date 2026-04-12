@@ -1,5 +1,8 @@
 """Unit tests for the cloud login module."""
 
+# pyright: reportUnknownParameterType=false, reportMissingParameterType=false, reportUnknownVariableType=false, reportUnknownMemberType=false, reportUnknownArgumentType=false, reportUnusedCallResult=false
+
+import aiohttp
 from typing import cast
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -11,12 +14,17 @@ from custom_components.robovac_mqtt.api.cloud import EufyLogin
 def _make_login(
     mqtt_credentials=None,
     eufy_api_devices=None,
+    session: aiohttp.ClientSession | None = None,
 ) -> EufyLogin:
     """Create an EufyLogin with a mocked eufyApi."""
     with patch(
         "custom_components.robovac_mqtt.api.cloud.EufyHTTPClient", autospec=True
-    ):
-        login = EufyLogin("user@example.com", "password123", "open-udid")
+    ) as mock_http_client:
+        login = EufyLogin("user@example.com", "password123", "open-udid", session=session)
+    if session is not None:
+        mock_http_client.assert_called_once_with(
+            "user@example.com", "password123", "open-udid", session=session
+        )
     login.eufyApi = MagicMock()
     login.eufyApi.login = AsyncMock(
         return_value={"mqtt": {"endpoint": "mqtt.example.com"}}
@@ -220,3 +228,10 @@ async def test_getDevices_catalog_exception_logs_debug(caplog):
 
     assert "Unexpected error fetching catalog" in caplog.text
     assert "T2261" in caplog.text
+
+
+def test_init_passes_injected_session_to_http_client():
+    """EufyLogin forwards the injected aiohttp session to EufyHTTPClient."""
+    session = MagicMock(spec=aiohttp.ClientSession)
+
+    _make_login(session=session)

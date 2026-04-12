@@ -1,10 +1,15 @@
 """Unit tests for the MQTT client (api/client.py)."""
 
+# pyright: reportAny=false, reportPrivateUsage=false, reportUnknownVariableType=false, reportUnknownArgumentType=false, reportAttributeAccessIssue=false, reportUnannotatedClassAttribute=false, reportUnknownParameterType=false
+
 import asyncio
 import os
+from collections.abc import AsyncIterator
+from types import SimpleNamespace
 import tempfile
 from unittest.mock import AsyncMock, MagicMock, patch
 
+import aiomqtt
 import pytest
 
 from custom_components.robovac_mqtt.api.client import EufyCleanClient
@@ -25,6 +30,36 @@ def _make_client() -> EufyCleanClient:
         device_model="T2320",
         endpoint="mqtt.example.com",
     )
+
+
+class _FakeMessages:
+    """Async iterable wrapper for fake MQTT messages."""
+
+    def __init__(self, payloads: list[bytes]) -> None:
+        self._payloads = payloads
+
+    def __aiter__(self) -> AsyncIterator[SimpleNamespace]:
+        return self._iterator()
+
+    async def _iterator(self) -> AsyncIterator[SimpleNamespace]:
+        for payload in self._payloads:
+            yield SimpleNamespace(payload=payload)
+
+
+class _FakeAiomqttClient:
+    """Minimal aiomqtt client context manager for listener tests."""
+
+    def __init__(self, payloads: list[bytes] | None = None) -> None:
+        self.payloads = payloads or []
+        self.messages = _FakeMessages(self.payloads)
+        self.subscribe = AsyncMock()
+        self.publish = AsyncMock()
+
+    async def __aenter__(self):
+        return self
+
+    async def __aexit__(self, exc_type, exc, tb):
+        return False
 
 
 @pytest.mark.asyncio
@@ -145,3 +180,95 @@ async def test_connect_starts_listener_and_waits_for_connection() -> None:
     assert client._listener_task is not None
     await client._listener_task
     assert client._client_id is not None
+
+
+@pytest.mark.asyncio
+async def test_build_tls_params_passes_expected_tls_settings() -> None:
+    """TLS parameters use client cert/key with TLS 1.2 required."""
+    client = _make_client()
+
+    tls_params = client._build_tls_params()
+
+    assert tls_params.certfile == client._cert_path
+    assert tls_params.keyfile == client._key_path
+    assert tls_params.cert_reqs is not None
+    assert tls_params.tls_version is not None
+    client._cleanup_cert_files()
+
+
+@pytest.mark.asyncio
+async def test_run_listener_connects_subscribes_and_receives_messages() -> None:
+    """Listener configures aiomqtt, subscribes, and forwards payloads."""
+    client = _make_client()
+    on_message = MagicMock(side_effect=lambda payload: setattr(client, "_shutdown", True))
+    on_connect = MagicMock()
+    client.set_on_message(on_message)
+    client.set_on_connect(on_connect)
+
+    fake_mqtt_client = _FakeAiomqttClient([b"hello"])
+
+    with (
+        patch.object(client, "_build_tls_params", return_value="tls-params"),
+        patch("custom_components.robovac_mqtt.api.client.aiomqtt.Client", return_value=fake_mqtt_client) as mock_client,
+    ):
+        await client._run_listener()
+
+    mock_client.assert_called_once()
+    kwargs = mock_client.call_args.kwargs
+    assert kwargs["hostname"] == "mqtt.example.com"
+    assert kwargs["port"] == 8883
+    assert kwargs["tls_params"] == "tls-params"
+    assert kwargs["username"] == "thing1"
+    fake_mqtt_client.subscribe.assert_awaited_once_with(
+        "cmd/eufy_home/T2320/TEST123/res"
+    )
+    on_connect.assert_called_once()
+    on_message.assert_called_once_with(b"hello")
+
+
+@pytest.mark.asyncio
+async def test_send_bytes_publishes_when_connected() -> None:
+    """send_bytes publishes directly through the aiomqtt client."""
+    client = _make_client()
+    mqtt_client = _FakeAiomqttClient()
+    client._client = mqtt_client
+    client._connected = True
+    client._connected_event.set()
+
+    await client.send_bytes("topic/test", b"payload")
+
+    mqtt_client.publish.assert_awaited_once_with("topic/test", b"payload")
+
+
+@pytest.mark.asyncio
+async def test_run_listener_marks_disconnected_and_reconnects_after_mqtt_error() -> None:
+    """MQTT errors clear connection state and trigger reconnect delay."""
+    client = _make_client()
+    client._client_id = "client-123"
+    mqtt_error = aiomqtt.MqttError("boom")
+
+    with (
+        patch.object(client, "_build_tls_params", return_value="tls-params"),
+        patch(
+            "custom_components.robovac_mqtt.api.client.aiomqtt.Client",
+            side_effect=[mqtt_error, asyncio.CancelledError()],
+        ),
+        patch("custom_components.robovac_mqtt.api.client.asyncio.sleep", new=AsyncMock()) as mock_sleep,
+        patch.object(client, "_mark_disconnected") as mock_mark,
+    ):
+        with pytest.raises(asyncio.CancelledError):
+            await client._run_listener()
+
+    mock_mark.assert_called_once()
+    assert "reconnecting in 5s" in mock_mark.call_args.args[0]
+    mock_sleep.assert_awaited_once_with(5)
+
+
+@pytest.mark.asyncio
+async def test_connect_times_out_when_initial_connection_never_happens() -> None:
+    """connect raises TimeoutError when no connection is established."""
+    client = _make_client()
+
+    with patch.object(client, "_run_listener", new=AsyncMock()):
+        with pytest.raises(asyncio.TimeoutError):
+            await client.connect()

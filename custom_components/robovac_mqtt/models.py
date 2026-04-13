@@ -114,6 +114,7 @@ class VacuumState:
     clean_times: int = 1
 
     # Plain-value DPS fields (not protobuf-wrapped)
+    power: bool = False  # DPS 151: device powered on/responding
     boost_iq: bool = False  # DPS 159: auto-boost suction on carpet
     volume: int = 50  # DPS 161: voice volume 0-100
 
@@ -174,6 +175,19 @@ class VacuumState:
     notification_codes: list[int] = field(default_factory=list)
     notification_message: str = ""
     notification_time: int = 0
+
+    # Map edit / multi-map diagnostics (DPS 170/171/172)
+    map_edit_method: str = ""
+    map_edit_seq: int = 0
+    map_edit_map_id: int = 0
+    multi_map_ctrl_method: int = 0
+    multi_map_ctrl_seq: int = 0
+    multi_map_method: str = ""
+    multi_map_result: str = ""
+    multi_map_seq: int = 0
+    multi_map_selected_id: int = 0
+    multi_map_name: str = ""
+    multi_map_count: int = 0
 
     # Media manager (DPS 174)
     media_recording: bool = False

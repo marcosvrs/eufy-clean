@@ -73,6 +73,9 @@
       "last_notification": {
         "default": "mdi:bell"
       },
+      "map_edit_state": {
+        "default": "mdi:map-edit"
+      },
       "cleaning_time": {
         "default": "mdi:clock-outline"
       },
@@ -288,6 +291,9 @@
     "binary_sensor": {
       "charging": {
         "default": "mdi:battery-charging"
+      },
+      "power": {
+        "default": "mdi:power"
       },
       "upgrading": {
         "default": "mdi:update"

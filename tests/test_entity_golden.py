@@ -42,6 +42,7 @@ EXPECTED_SENSOR_SUFFIXES = {
     "station_work_status",
     "dust_collect_start_time",
     "last_notification",
+    "map_edit_state",
     "cleaning_time",
     "cleaning_area",
     "total_cleaning_time",
@@ -81,6 +82,7 @@ EXPECTED_SENSOR_SUFFIXES = {
 
 EXPECTED_BINARY_SENSOR_SUFFIXES = {
     "charging",
+    "power",
     "upgrading",
     "relocating",
     "breakpoint_available",
@@ -270,6 +272,7 @@ def mock_coordinator() -> MagicMock:
         {
             "CLEANING_STATISTICS",
             "STATION_STATUS",
+            "MAP_EDIT_REQUEST",
             "MULTI_MAP_MANAGE",
             "UNSETTING",
             "APP_DEV_INFO",
@@ -316,6 +319,7 @@ def mock_coordinator() -> MagicMock:
             "media_last_capture",
             "accessories",
             "notification",
+            "map_edit_method",
             "water_tank_state",
             "dock_connected",
             "upgrading",
@@ -325,6 +329,7 @@ def mock_coordinator() -> MagicMock:
             "mop_holder_state_l",
             "mop_holder_state_r",
             "map_valid",
+            "power",
             "child_lock",
             "smart_mode",
             "media_status",
@@ -392,16 +397,20 @@ async def test_golden_sensor_unique_ids(
     hass, entry = mock_hass_data
     captured: list[Any] = []
 
+    def async_add_entities(
+        new_entities: Iterable[Any], update_before_add: bool = False
+    ) -> None:
+        del update_before_add
+        captured.extend(new_entities)
+
     with patch(
         "custom_components.robovac_mqtt.sensor.get_auto_sensors", return_value=[]
     ):
-        await sensor_setup(
-            hass, entry, lambda entities, *args, **kwargs: captured.extend(entities)
-        )
+        await sensor_setup(hass, entry, async_add_entities)
 
     _assert_snapshot(
         captured,
-        expected_count=60,
+        expected_count=61,
         expected_suffixes=EXPECTED_SENSOR_SUFFIXES,
         suffix_extractor=_sensor_suffix,
         metadata_map=EXPECTED_SENSOR_METADATA,
@@ -416,17 +425,21 @@ async def test_golden_binary_sensor_unique_ids(
     hass, entry = mock_hass_data
     captured: list[Any] = []
 
+    def async_add_entities(
+        new_entities: Iterable[Any], update_before_add: bool = False
+    ) -> None:
+        del update_before_add
+        captured.extend(new_entities)
+
     with patch(
         "custom_components.robovac_mqtt.binary_sensor.get_auto_binary_sensors",
         return_value=[],
     ):
-        await binary_sensor_setup(
-            hass, entry, lambda entities, *args, **kwargs: captured.extend(entities)
-        )
+        await binary_sensor_setup(hass, entry, async_add_entities)
 
     _assert_snapshot(
         captured,
-        expected_count=14,
+        expected_count=15,
         expected_suffixes=EXPECTED_BINARY_SENSOR_SUFFIXES,
         suffix_extractor=_sensor_suffix,
         metadata_map=EXPECTED_BINARY_SENSOR_METADATA,
@@ -441,12 +454,16 @@ async def test_golden_switch_unique_ids(
     hass, entry = mock_hass_data
     captured: list[Any] = []
 
+    def async_add_entities(
+        new_entities: Iterable[Any], update_before_add: bool = False
+    ) -> None:
+        del update_before_add
+        captured.extend(new_entities)
+
     with patch(
         "custom_components.robovac_mqtt.switch.get_auto_switches", return_value=[]
     ):
-        await switch_setup(
-            hass, entry, lambda entities, *args, **kwargs: captured.extend(entities)
-        )
+        await switch_setup(hass, entry, async_add_entities)
 
     _assert_snapshot(
         captured,
@@ -465,9 +482,13 @@ async def test_golden_button_unique_ids(
     hass, entry = mock_hass_data
     captured: list[Any] = []
 
-    await button_setup(
-        hass, entry, lambda entities, *args, **kwargs: captured.extend(entities)
-    )
+    def async_add_entities(
+        new_entities: Iterable[Any], update_before_add: bool = False
+    ) -> None:
+        del update_before_add
+        captured.extend(new_entities)
+
+    await button_setup(hass, entry, async_add_entities)
 
     _assert_snapshot(
         captured,
@@ -486,12 +507,16 @@ async def test_golden_sensor_enabled_defaults(
     hass, entry = mock_hass_data
     captured: list[Any] = []
 
+    def async_add_entities(
+        new_entities: Iterable[Any], update_before_add: bool = False
+    ) -> None:
+        del update_before_add
+        captured.extend(new_entities)
+
     with patch(
         "custom_components.robovac_mqtt.sensor.get_auto_sensors", return_value=[]
     ):
-        await sensor_setup(
-            hass, entry, lambda entities, *args, **kwargs: captured.extend(entities)
-        )
+        await sensor_setup(hass, entry, async_add_entities)
 
     by_suffix = {
         _sensor_suffix(entity, mock_coordinator.device_id): entity
@@ -511,12 +536,16 @@ async def test_golden_sensor_snapshot_detects_suffix_change(
     hass, entry = mock_hass_data
     captured: list[Any] = []
 
+    def async_add_entities(
+        new_entities: Iterable[Any], update_before_add: bool = False
+    ) -> None:
+        del update_before_add
+        captured.extend(new_entities)
+
     with patch(
         "custom_components.robovac_mqtt.sensor.get_auto_sensors", return_value=[]
     ):
-        await sensor_setup(
-            hass, entry, lambda entities, *args, **kwargs: captured.extend(entities)
-        )
+        await sensor_setup(hass, entry, async_add_entities)
 
     tampered = dict(EXPECTED_SENSOR_METADATA)
     tampered["error_message_renamed"] = tampered.pop("error_message")
@@ -524,7 +553,7 @@ async def test_golden_sensor_snapshot_detects_suffix_change(
     with pytest.raises(AssertionError):
         _assert_snapshot(
             captured,
-            expected_count=60,
+            expected_count=61,
             expected_suffixes=(EXPECTED_SENSOR_SUFFIXES - {"error_message"})
             | {"error_message_renamed"},
             suffix_extractor=_sensor_suffix,

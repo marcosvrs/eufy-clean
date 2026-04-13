@@ -32,14 +32,23 @@ by the integration suite."""
 
 from unittest.mock import MagicMock
 
+import pytest
+
 from custom_components.robovac_mqtt.api.parser import (
     _deduplicate_room_names,
     _log_proto_novelty,
     _map_task_status,
+    _process_other_dps,
     update_state,
 )
 from custom_components.robovac_mqtt.const import DEFAULT_DPS_MAP, WORK_MODE_NAMES
 from custom_components.robovac_mqtt.models import VacuumState
+from custom_components.robovac_mqtt.proto.cloud.map_edit_pb2 import MapEditRequest
+from custom_components.robovac_mqtt.proto.cloud.multi_maps_pb2 import (
+    MultiMapsManageRequest,
+    MultiMapsManageResponse,
+)
+from custom_components.robovac_mqtt.utils import encode_message
 
 
 def test_map_task_status_emptying_dust():
@@ -121,3 +130,64 @@ def test_update_state_consumable_runtime_exception_logs_warning(caplog):
             update_state(base_state, {dps_key: "AAAA"})
 
     assert "Failed to parse consumable runtime" in caplog.text
+
+
+def test_update_state_sets_trigger_source_none_and_work_mode_standby_when_docked():
+    """Idle/docked updates without trigger/mode should not stay unknown."""
+    ws = MagicMock()
+    ws.state = 3
+    ws.HasField.side_effect = lambda field: False
+
+    with (pytest.MonkeyPatch.context() as mp,):
+        mp.setattr(
+            "custom_components.robovac_mqtt.api.parser.decode",
+            lambda *_args, **_kwargs: ws,
+        )
+        new_state, changes = update_state(
+            VacuumState(work_mode="Room"),
+            {DEFAULT_DPS_MAP["WORK_STATUS"]: "AAAA"},
+        )
+
+    assert changes["trigger_source"] == "none"
+    assert changes["work_mode"] == "Standby"
+    assert new_state.trigger_source == "none"
+    assert new_state.work_mode == "Standby"
+
+
+def test_process_other_dps_parses_power_map_edit_and_multi_map_data():
+    """Power and multi-map diagnostics are surfaced from DPS 151/170/172."""
+    state = VacuumState()
+    changes: dict[str, object] = {}
+    map_edit = encode_message(
+        MapEditRequest(
+            method=MapEditRequest.SET_ROOMS_CUSTOM,
+            seq=183,
+            map_id=5,
+        )
+    )
+    multi_map = encode_message(
+        MultiMapsManageResponse(
+            method=MultiMapsManageRequest.MAP_LOAD,
+            seq=9,
+            result=MultiMapsManageResponse.SUCCESS,
+        )
+    )
+
+    _process_other_dps(
+        state,
+        {
+            DEFAULT_DPS_MAP["POWER"]: True,
+            DEFAULT_DPS_MAP["MAP_EDIT_REQUEST"]: map_edit,
+            DEFAULT_DPS_MAP["MULTI_MAP_MANAGE"]: multi_map,
+        },
+        changes,
+        DEFAULT_DPS_MAP,
+    )
+
+    assert changes["power"] is True
+    assert changes["map_edit_method"] == "SET_ROOMS_CUSTOM"
+    assert changes["map_edit_seq"] == 183
+    assert changes["map_edit_map_id"] == 5
+    assert changes["multi_map_method"] == "MAP_LOAD"
+    assert changes["multi_map_result"] == "SUCCESS"
+    assert changes["multi_map_seq"] == 9

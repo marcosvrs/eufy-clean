@@ -14,7 +14,7 @@ from custom_components.robovac_mqtt.descriptions.switch import (
 
 
 def test_sensor_description_count():
-    assert len(SENSOR_DESCRIPTIONS) == 60
+    assert len(SENSOR_DESCRIPTIONS) == 61
 
 
 def test_sensor_description_keys_unique():
@@ -27,7 +27,7 @@ def test_sensor_description_keys_non_empty():
 
 
 def test_binary_sensor_description_count():
-    assert len(BINARY_SENSOR_DESCRIPTIONS) == 14
+    assert len(BINARY_SENSOR_DESCRIPTIONS) == 15
 
 
 def test_binary_sensor_description_keys_unique():

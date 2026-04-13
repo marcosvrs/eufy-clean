@@ -284,7 +284,66 @@ class EUFY_CLEAN_CONTROL(int, Enum):
     START_MAPPING_THEN_CLEAN = 25
 
 
-EUFY_CLEAN_PROMPT_CODES: dict[int, str] = {}
+EUFY_CLEAN_PROMPT_CODES: dict[int, str] = {
+    0: "None",
+    1: "Start scheduled cleaning",
+    2: "Start scheduled cruise",
+    3: "Low battery, returning to base",
+    4: "Positioning failed, rebuilding map and starting new cleaning",
+    5: "Positioning failed, mission ended, returning to base",
+    6: "Some areas remain uncleaned because they were unreachable",
+    7: "Path planning failed, can't reach the designated area",
+    8: "Unable to reach the target point",
+    9: "Base station exploration failed, returned to the starting point",
+    10: "Base station exploration failed, machine stopped working",
+    24: "Network password error",
+    25: "Router is not connected to the internet",
+    31: "Positioning successful",
+    38: "Mop washing completed during task",
+    39: "Mop washing completed after task",
+    40: "Returned to base after task completed",
+    45: "Task completed",
+    61: "Low battery, recharge required",
+    65: "Battery too low, charge to 30% before starting",
+    66: "Battery too low, charge to 10% before starting",
+    76: "Cannot execute positioning or recharge while in base",
+    78: "Battery too low to start task",
+    79: "Low battery, recharging before resume",
+    83: "Child lock is enabled, positioning unavailable",
+    85: "Scheduled cleaning started",
+    87: "Map data updating, operation unavailable",
+    88: "Child lock is enabled, recharge unavailable",
+    90: "Mop wash button pressed inside base",
+    91: "Dust collection button pressed inside base",
+    1001: "Starting cleaning",
+    1002: "Cleaning paused",
+    1003: "Cleaning resumed",
+    1004: "Returning to dock",
+    1005: "Charging started",
+    1006: "Charging complete",
+    1007: "Error occurred",
+    1008: "Stuck, need help",
+    3024: "Cleaning complete",
+    5903: "Dust bin full",
+    5904: "Please empty dust bin",
+    5905: "Mop pad dirty",
+    5906: "Please clean mop pad",
+    5907: "Low clean water",
+    5908: "Please add clean water",
+    5909: "Waste water tank full",
+    5910: "Please empty waste water",
+    6117: "Battery too low to start dust collection",
+    6118: "Battery too low to start roller brush self-cleaning",
+    6300: "Hair cleaning in progress",
+    6301: "Battery too low to start hair cutting",
+    6310: "Power failure",
+    7020: "Positioning failed during global cleaning",
+    7021: "Positioning failed during targeted cleaning",
+    7050: "Cannot reach destination",
+    7051: "Schedule failed",
+    7052: "Path planning failed",
+    7054: "Smart follow target lost, following stopped",
+}
 
 EUFY_CLEAN_ERROR_CODES = {
     0: "NONE",
@@ -551,6 +610,7 @@ DEFAULT_DPS_MAP = {
     "LOG_DEBUG": "166",
     "UNSETTING": "176",
     "MAP_EDIT_REQUEST": "170",
+    "MULTI_MAP_CTRL": "171",
     "MULTI_MAP_MANAGE": "172",
     "APP_DEV_INFO": "169",
     "UNDISTURBED": "157",
@@ -582,6 +642,7 @@ CLOUD_CODE_TO_FUNC: dict[str, list[str]] = {
     "consumables": ["ACCESSORIES_STATUS"],
     "app_dev_info": ["APP_DEV_INFO"],
     "map_edit": ["MAP_EDIT_REQUEST"],
+    "multi_maps_ctrl": ["MULTI_MAP_CTRL"],
     "multi_maps_mng": ["MULTI_MAP_MANAGE"],
     "station": ["GO_HOME", "STATION_STATUS"],
     "unisetting": ["UNSETTING"],
@@ -636,10 +697,9 @@ def supported_dps_from_catalog(catalog: list[dict[str, object]]) -> frozenset[st
 KNOWN_UNPROCESSED_DPS: frozenset[str] = frozenset(
     {
         DPS_MAP["LOG_DEBUG"],  # 166 - log_debug: DebugRequest/DebugResponse
-        DPS_MAP["MAP_EDIT_REQUEST"],  # 170 - map_edit: MapEditRequest echo
+        "171",  # multi_maps_ctrl: raw multi-map control echo
         "150",  # proto: reserved, not used
         "162",  # user_language: LanguageRequest/LanguageResponse
-        "171",  # multi_maps_ctrl: MultiMapsCtrlRequest/Response
         "175",  # reserved3: reserved
     }
 )

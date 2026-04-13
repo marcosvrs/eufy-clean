@@ -34,6 +34,13 @@ BINARY_SENSOR_DESCRIPTIONS: tuple[RoboVacBinarySensorDescription, ...] = (
         value_fn=lambda s: s.charging,
     ),
     RoboVacBinarySensorDescription(
+        key="power",
+        device_class=BinarySensorDeviceClass.POWER,
+        entity_category=EntityCategory.DIAGNOSTIC,
+        value_fn=lambda s: s.power,
+        availability_fn=lambda s: "power" in s.received_fields,
+    ),
+    RoboVacBinarySensorDescription(
         key="upgrading",
         icon="mdi:update",
         entity_category=EntityCategory.DIAGNOSTIC,
@@ -123,4 +130,4 @@ BINARY_SENSOR_DESCRIPTIONS: tuple[RoboVacBinarySensorDescription, ...] = (
     ),
 )
 
-assert len(BINARY_SENSOR_DESCRIPTIONS) == 14
+assert len(BINARY_SENSOR_DESCRIPTIONS) == 15

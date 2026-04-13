@@ -150,6 +150,9 @@
       "last_notification": {
         "name": "Last Notification"
       },
+      "map_edit_state": {
+        "name": "Map Edit State"
+      },
       "cleaning_time": {
         "name": "Cleaning Time"
       },
@@ -262,6 +265,9 @@
     "binary_sensor": {
       "charging": {
         "name": "Charging"
+      },
+      "power": {
+        "name": "Power"
       },
       "upgrading": {
         "name": "Upgrading"

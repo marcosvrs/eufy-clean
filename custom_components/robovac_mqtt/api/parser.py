@@ -43,6 +43,7 @@ from ..proto.cloud.clean_statistics_pb2 import CleanStatistics
 from ..proto.cloud.consumable_pb2 import ConsumableResponse
 from ..proto.cloud.control_pb2 import ModeCtrlRequest
 from ..proto.cloud.error_code_pb2 import ErrorCode, PromptCode
+from ..proto.cloud.map_edit_pb2 import MapEditRequest
 from ..proto.cloud.media_manager_pb2 import MediaManagerResponse
 from ..proto.cloud.multi_maps_pb2 import MultiMapsManageResponse
 from ..proto.cloud.scene_pb2 import SceneResponse
@@ -546,6 +547,11 @@ def _process_work_status(
                 _LOGGER.debug("Trigger source inferred from mode: %s", trigger_source)
 
         changes["trigger_source"] = trigger_source
+        if trigger_source == "unknown" and changes.get("activity") in (
+            "docked",
+            "idle",
+        ):
+            changes["trigger_source"] = "none"
 
         # Extract Work Mode
         if work_status.HasField("mode"):
@@ -556,10 +562,13 @@ def _process_work_status(
             # If we don't know the mode yet but we are cleaning, default to Auto
             changes["work_mode"] = "Auto"
         elif changes.get("activity") not in ("cleaning", "returning"):
-            # If we are not cleaning or returning, reset to unknown
-            # This handles the case where a previous run's mode might stick around
-            if state.work_mode != "unknown":
-                changes["work_mode"] = "unknown"
+            new_mode = (
+                "Standby"
+                if changes.get("activity") in ("docked", "idle")
+                else "unknown"
+            )
+            if state.work_mode != new_mode:
+                changes["work_mode"] = new_mode
 
         # Fallback/Override if cleaning.scheduled_task is explicit
         if work_status.HasField("cleaning") and work_status.cleaning.scheduled_task:
@@ -833,6 +842,19 @@ def _process_other_dps(
                 changes["dynamic_values"] = new_dynamic
                 _track_field(state, changes, "battery_level")
 
+            elif key == dps_map["POWER"]:
+                parsed = (
+                    str(value).lower() == "true"
+                    if isinstance(value, str)
+                    else bool(value)
+                )
+                changes["power"] = parsed
+                _log_scalar_novelty("151", value)
+                new_dynamic = dict(changes.get("dynamic_values", state.dynamic_values))
+                new_dynamic[key] = parsed
+                changes["dynamic_values"] = new_dynamic
+                _track_field(state, changes, "power")
+
             elif key == dps_map["CLEAN_SPEED"]:
                 mapped = _map_clean_speed(value)
                 changes["fan_speed"] = mapped
@@ -971,11 +993,25 @@ def _process_other_dps(
                         changes["station_firmware"] = info.station.software
                     if info.station.hardware:
                         changes["station_hardware"] = info.station.hardware
+            elif key == dps_map["MAP_EDIT_REQUEST"]:
+                map_edit = _parse_map_edit(value)
+                if map_edit:
+                    changes.update(map_edit)
+                    _track_field(state, changes, "map_edit_method")
+
+            elif key == dps_map.get("MULTI_MAP_CTRL", "171"):
+                multi_map_ctrl = _parse_multi_map_ctrl(value)
+                if multi_map_ctrl:
+                    changes.update(multi_map_ctrl)
+                    _track_field(state, changes, "multi_map_ctrl")
             elif key == dps_map["MULTI_MAP_MANAGE"]:
                 if value is None:
                     _LOGGER.debug("DPS 172: None value (initial state)")
                 else:
-                    _parse_multi_map_response(value)
+                    multi_map = _parse_multi_map_response(value)
+                    if multi_map:
+                        changes.update(multi_map)
+                        _track_field(state, changes, "multi_map")
 
             elif key == dps_map["UNSETTING"]:
                 settings = decode(UnisettingResponse, value)
@@ -1479,9 +1515,105 @@ def _parse_multi_map_response(value: Any) -> dict[str, Any] | None:
     try:
         resp = decode(MultiMapsManageResponse, value)
         _log_proto_novelty("172", resp, value)
-        return None
+        method_enum = MultiMapsManageResponse.DESCRIPTOR.fields_by_name[
+            "method"
+        ].enum_type
+        method_name = (
+            method_enum.values_by_number.get(int(resp.method))
+            if method_enum
+            else None
+        )
+        result_enum = MultiMapsManageResponse.DESCRIPTOR.fields_by_name[
+            "result"
+        ].enum_type
+        result_name = (
+            result_enum.values_by_number.get(int(resp.result))
+            if result_enum
+            else None
+        )
+
+        parsed: dict[str, Any] = {
+            "multi_map_method": (
+                method_name.name if method_name else str(int(resp.method))
+            ),
+            "multi_map_result": (
+                result_name.name if result_name else str(int(resp.result))
+            ),
+            "multi_map_seq": resp.seq,
+        }
+
+        if resp.HasField("map_infos"):
+            parsed["multi_map_selected_id"] = resp.map_infos.map_id
+            parsed["multi_map_name"] = resp.map_infos.name
+
+        if resp.HasField("complete_maps"):
+            parsed["multi_map_count"] = len(resp.complete_maps.complete_map)
+            if (
+                not parsed.get("multi_map_selected_id")
+                and resp.complete_maps.complete_map
+            ):
+                parsed["multi_map_selected_id"] = resp.complete_maps.complete_map[
+                    0
+                ].map_id
+                parsed["multi_map_name"] = resp.complete_maps.complete_map[0].name
+
+        return parsed
     except Exception as e:
         _LOGGER.debug("Error parsing MultiMapsManageResponse: %s", e)
+        return None
+
+
+def _parse_map_edit(value: Any) -> dict[str, Any] | None:
+    """Parse MapEditRequest echo from DPS 170."""
+    try:
+        request = decode(MapEditRequest, value)
+        _log_proto_novelty("170", request, value)
+        method_enum = MapEditRequest.DESCRIPTOR.fields_by_name[
+            "method"
+        ].enum_type
+        method_name = (
+            method_enum.values_by_number.get(int(request.method))
+            if method_enum
+            else None
+        )
+        return {
+            "map_edit_method": (
+                method_name.name if method_name else str(int(request.method))
+            ),
+            "map_edit_seq": request.seq,
+            "map_edit_map_id": request.map_id,
+        }
+    except Exception as e:
+        _LOGGER.debug("Error parsing MapEditRequest: %s", e)
+        return None
+
+
+def _parse_multi_map_ctrl(value: Any) -> dict[str, Any] | None:
+    """Parse raw DPS 171 multi-map control echo.
+
+    No proto definition is available in this repo, so keep a minimal
+    schema-free parse of the leading varint fields for diagnostics.
+    """
+    if not isinstance(value, str) or not value:
+        return None
+
+    try:
+        raw = base64.b64decode(value)
+        if raw:
+            _, pos = _decode_varint(raw, 0)
+            if pos <= len(raw):
+                raw = raw[pos:]
+        fields = _decode_raw_varints(raw)
+        parsed: dict[str, Any] = {}
+        method = fields.get(1)
+        seq = fields.get(2)
+        if isinstance(method, int):
+            parsed["multi_map_ctrl_method"] = method
+        if isinstance(seq, int):
+            parsed["multi_map_ctrl_seq"] = seq
+        return parsed or None
+    except Exception as e:
+        _LOGGER.debug("Error parsing raw multi-map ctrl DPS 171: %s", e)
         return None
 
 

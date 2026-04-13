@@ -297,6 +297,18 @@ SENSOR_DESCRIPTIONS: tuple[RoboVacSensorDescription, ...] = (
         availability_fn=lambda s: "notification" in s.received_fields,
     ),
     RoboVacSensorDescription(
+        key="map_edit_state",
+        icon="mdi:map-edit",
+        entity_category=EntityCategory.DIAGNOSTIC,
+        exists_fn=lambda c: "MAP_EDIT_REQUEST" in c.supported_dps,
+        value_fn=lambda s: s.map_edit_method or None,
+        availability_fn=lambda s: "map_edit_method" in s.received_fields,
+        extra_state_attributes_fn=lambda s: {
+            "map_id": s.map_edit_map_id,
+            "seq": s.map_edit_seq,
+        },
+    ),
+    RoboVacSensorDescription(
         key="cleaning_time",
         device_class=SensorDeviceClass.DURATION,
         native_unit_of_measurement="s",
@@ -405,6 +417,16 @@ SENSOR_DESCRIPTIONS: tuple[RoboVacSensorDescription, ...] = (
         exists_fn=lambda c: "MULTI_MAP_MANAGE" in c.supported_dps,
         value_fn=lambda s: s.map_id,
         availability_fn=lambda s: "map_id" in s.received_fields,
+        extra_state_attributes_fn=lambda s: {
+            "multi_map_method": s.multi_map_method,
+            "multi_map_result": s.multi_map_result,
+            "multi_map_seq": s.multi_map_seq,
+            "multi_map_selected_id": s.multi_map_selected_id,
+            "multi_map_name": s.multi_map_name,
+            "multi_map_count": s.multi_map_count,
+            "multi_map_ctrl_method": s.multi_map_ctrl_method,
+            "multi_map_ctrl_seq": s.multi_map_ctrl_seq,
+        },
     ),
     RoboVacSensorDescription(
         key="wifi_signal",
@@ -515,4 +537,4 @@ SENSOR_DESCRIPTIONS: tuple[RoboVacSensorDescription, ...] = (
     _make_consumable_usage_desc("accessory_19_usage", "mdi:tools"),
 )
 
-assert len(SENSOR_DESCRIPTIONS) == 60
+assert len(SENSOR_DESCRIPTIONS) == 61

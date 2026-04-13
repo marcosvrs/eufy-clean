@@ -41,6 +41,19 @@ async def test_charging_sensor_propagates_none_state(mock_coordinator: MagicMock
 
 
 @pytest.mark.asyncio
+async def test_power_sensor_uses_received_field_gate(mock_coordinator: MagicMock):
+    """Power sensor stays unavailable until DPS 151 has been seen."""
+    mock_coordinator.data = VacuumState(power=True, received_fields=set())
+    entity = RoboVacBinarySensor(mock_coordinator, _description("power"))
+
+    assert entity.available is False
+    assert entity.is_on is True
+
+    mock_coordinator.data.received_fields.add("power")
+    assert entity.available is True
+
+
+@pytest.mark.asyncio
 async def test_live_map_sensor_is_off_when_bits_zero(mock_coordinator: MagicMock):
     """Live map sensor maps zero state bits to False once available."""
     mock_coordinator.data = VacuumState(

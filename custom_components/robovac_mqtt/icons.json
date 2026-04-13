@@ -177,6 +177,9 @@
       },
       "accessory_19_usage": {
         "default": "mdi:tools"
+      },
+      "battery_level": {
+        "default": "mdi:battery"
       }
     },
     "button": {

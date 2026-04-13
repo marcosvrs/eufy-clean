@@ -420,11 +420,6 @@ class RoboVacMQTTEntity(CoordinatorEntity[EufyCleanCoordinator], StateVacuumEnti
         return None
 
     @property
-    def battery_level(self) -> int | None:
-        """Return the battery level of the vacuum."""
-        return self.coordinator.data.battery_level or None
-
-    @property
     def fan_speed(self) -> str | None:
         """Return the fan speed of the vacuum."""
         return self.coordinator.data.fan_speed

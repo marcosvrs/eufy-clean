@@ -254,6 +254,9 @@
       },
       "accessory_19_usage": {
         "name": "Accessory 19 Usage"
+      },
+      "battery_level": {
+        "name": "Battery"
       }
     },
     "binary_sensor": {

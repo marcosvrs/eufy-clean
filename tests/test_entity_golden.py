@@ -27,6 +27,7 @@ EXPECTED_SENSOR_SUFFIXES = {
     "robot_position_y",
     "robotapp_state",
     "motion_state",
+    "battery_level",
     "battery_real_level",
     "battery_voltage",
     "battery_current",
@@ -162,11 +163,17 @@ EXPECTED_SENSOR_METADATA = {
         category=EntityCategory.DIAGNOSTIC,
     ),
     **_snapshot_entries(
+        {"battery_level"},
+        enabled=True,
+        category=None,
+    ),
+    **_snapshot_entries(
         EXPECTED_SENSOR_SUFFIXES
         - {
             "error_message",
             "task_status",
             "work_mode",
+            "battery_level",
             "water_level",
             "waste_water_level",
             "dock_status",
@@ -394,7 +401,7 @@ async def test_golden_sensor_unique_ids(
 
     _assert_snapshot(
         captured,
-        expected_count=59,
+        expected_count=60,
         expected_suffixes=EXPECTED_SENSOR_SUFFIXES,
         suffix_extractor=_sensor_suffix,
         metadata_map=EXPECTED_SENSOR_METADATA,
@@ -517,7 +524,7 @@ async def test_golden_sensor_snapshot_detects_suffix_change(
     with pytest.raises(AssertionError):
         _assert_snapshot(
             captured,
-            expected_count=59,
+            expected_count=60,
             expected_suffixes=(EXPECTED_SENSOR_SUFFIXES - {"error_message"})
             | {"error_message_renamed"},
             suffix_extractor=_sensor_suffix,

@@ -161,6 +161,13 @@ SENSOR_DESCRIPTIONS: tuple[RoboVacSensorDescription, ...] = (
         availability_fn=lambda s: "motion_state" in s.received_fields,
     ),
     RoboVacSensorDescription(
+        key="battery_level",
+        device_class=SensorDeviceClass.BATTERY,
+        native_unit_of_measurement=PERCENTAGE,
+        state_class=SensorStateClass.MEASUREMENT,
+        value_fn=lambda s: s.battery_level,
+    ),
+    RoboVacSensorDescription(
         key="battery_real_level",
         native_unit_of_measurement=PERCENTAGE,
         state_class=SensorStateClass.MEASUREMENT,
@@ -534,4 +541,4 @@ SENSOR_DESCRIPTIONS: tuple[RoboVacSensorDescription, ...] = (
     ),
 )
 
-assert len(SENSOR_DESCRIPTIONS) == 59
+assert len(SENSOR_DESCRIPTIONS) == 60

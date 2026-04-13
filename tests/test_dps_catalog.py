@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import pytest
 
-from custom_components.robovac_mqtt.models import EufyCleanData
 from custom_components.robovac_mqtt.const import (
     AUTO_ENTITY_OVERRIDES,
     CLOUD_CODE_TO_FUNC,
@@ -14,6 +13,7 @@ from custom_components.robovac_mqtt.const import (
     build_dps_map_from_catalog,
     supported_dps_from_catalog,
 )
+from custom_components.robovac_mqtt.models import EufyCleanData
 
 
 def test_dps_map_alias():
@@ -505,7 +505,6 @@ def _make_setup_coordinator(supported_dps=None, catalog_entries=None):
 async def test_sensor_entity_gating_excludes_station_sensors():
     from unittest.mock import MagicMock
 
-    from custom_components.robovac_mqtt.const import DOMAIN
     from custom_components.robovac_mqtt.sensor import async_setup_entry
 
     coord = _make_setup_coordinator(
@@ -531,7 +530,6 @@ async def test_sensor_entity_gating_excludes_station_sensors():
 async def test_select_entity_gating_excludes_scene_when_unsupported():
     from unittest.mock import MagicMock
 
-    from custom_components.robovac_mqtt.const import DOMAIN
     from custom_components.robovac_mqtt.select import async_setup_entry
 
     coord = _make_setup_coordinator(
@@ -555,7 +553,6 @@ async def test_select_entity_gating_excludes_scene_when_unsupported():
 async def test_switch_entity_gating_excludes_dock_switches():
     from unittest.mock import MagicMock
 
-    from custom_components.robovac_mqtt.const import DOMAIN
     from custom_components.robovac_mqtt.switch import async_setup_entry
 
     coord = _make_setup_coordinator(supported_dps={"PLAY_PAUSE", "WORK_STATUS"})
@@ -579,7 +576,6 @@ async def test_sensor_setup_includes_auto_sensors():
     from unittest.mock import MagicMock
 
     from custom_components.robovac_mqtt.auto_entities import AutoSensor
-    from custom_components.robovac_mqtt.const import DOMAIN
     from custom_components.robovac_mqtt.sensor import async_setup_entry
 
     coord = _make_setup_coordinator(
@@ -607,7 +603,6 @@ async def test_select_setup_includes_auto_selects():
     from unittest.mock import MagicMock
 
     from custom_components.robovac_mqtt.auto_entities import AutoSelect
-    from custom_components.robovac_mqtt.const import DOMAIN
     from custom_components.robovac_mqtt.select import async_setup_entry
 
     coord = _make_setup_coordinator(
@@ -635,7 +630,6 @@ async def test_switch_setup_includes_auto_switches():
     from unittest.mock import MagicMock
 
     from custom_components.robovac_mqtt.auto_entities import AutoSwitch
-    from custom_components.robovac_mqtt.const import DOMAIN
     from custom_components.robovac_mqtt.switch import async_setup_entry
 
     coord = _make_setup_coordinator(
@@ -669,7 +663,7 @@ async def test_auto_numbers_added_to_number_setup():
     from unittest.mock import MagicMock
 
     from custom_components.robovac_mqtt.auto_entities import AutoNumber
-    from custom_components.robovac_mqtt.const import DEFAULT_DPS_MAP, DOMAIN
+    from custom_components.robovac_mqtt.const import DEFAULT_DPS_MAP
     from custom_components.robovac_mqtt.models import VacuumState
     from custom_components.robovac_mqtt.number import async_setup_entry
 
@@ -700,7 +694,6 @@ async def test_dock_buttons_gated_when_station_status_missing():
     from unittest.mock import MagicMock
 
     from custom_components.robovac_mqtt.button import async_setup_entry
-    from custom_components.robovac_mqtt.const import DOMAIN
     from custom_components.robovac_mqtt.models import VacuumState
 
     coord = MagicMock()
@@ -727,7 +720,6 @@ async def test_accessory_reset_buttons_gated_when_accessories_missing():
     from unittest.mock import MagicMock
 
     from custom_components.robovac_mqtt.button import async_setup_entry
-    from custom_components.robovac_mqtt.const import DOMAIN
     from custom_components.robovac_mqtt.models import VacuumState
 
     coord = MagicMock()
@@ -758,7 +750,6 @@ async def test_binary_sensor_setup_includes_auto_binary_sensors():
 
     from custom_components.robovac_mqtt.auto_entities import AutoBinarySensor
     from custom_components.robovac_mqtt.binary_sensor import async_setup_entry
-    from custom_components.robovac_mqtt.const import DOMAIN
     from custom_components.robovac_mqtt.models import VacuumState
 
     coord = MagicMock()
@@ -787,7 +778,6 @@ async def test_binary_sensor_charging_always_created():
     from unittest.mock import MagicMock
 
     from custom_components.robovac_mqtt.binary_sensor import async_setup_entry
-    from custom_components.robovac_mqtt.const import DOMAIN
     from custom_components.robovac_mqtt.models import VacuumState
 
     coord = MagicMock()
@@ -812,7 +802,6 @@ async def test_binary_sensor_charging_always_created():
 async def test_time_gating_excludes_dnd_without_undisturbed():
     from unittest.mock import MagicMock
 
-    from custom_components.robovac_mqtt.const import DOMAIN
     from custom_components.robovac_mqtt.models import VacuumState
     from custom_components.robovac_mqtt.time import async_setup_entry
 

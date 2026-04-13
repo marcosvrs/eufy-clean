@@ -35,7 +35,6 @@ import uuid
 import aiomqtt
 import requests
 
-
 _PROTOS_AVAILABLE = False
 StationResponse = None
 UnisettingResponse = None

@@ -11,7 +11,7 @@ from dataclasses import replace
 import pytest
 from homeassistant.helpers import entity_registry as er
 
-from custom_components.robovac_mqtt.const import DOMAIN, DPS_MAP
+from custom_components.robovac_mqtt.const import DPS_MAP
 
 
 async def _enable_registry_entity(hass, setup_integration, entity_id: str):

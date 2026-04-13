@@ -4,9 +4,9 @@
 
 import asyncio
 import os
+import tempfile
 from collections.abc import AsyncIterator
 from types import SimpleNamespace
-import tempfile
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import aiomqtt

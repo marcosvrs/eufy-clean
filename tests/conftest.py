@@ -9,7 +9,7 @@ import pytest
 
 
 @pytest.fixture(autouse=True, scope="session")
-def allow_pycares_shutdown_thread() -> Generator[None, None, None]:
+def allow_pycares_shutdown_thread() -> Generator[None]:
     """Rename pycares shutdown thread so HA cleanup ignores it.
 
     pycares 4.11 starts a daemon thread named ``_run_safe_shutdown_loop`` the first
@@ -39,6 +39,6 @@ def allow_pycares_shutdown_thread() -> Generator[None, None, None]:
 @pytest.fixture(autouse=True)
 def auto_enable_custom_integrations(
     enable_custom_integrations,
-) -> Generator[None, None, None]:
+) -> Generator[None]:
     """Enable custom integrations defined in the test dir."""
     yield

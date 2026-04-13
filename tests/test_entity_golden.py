@@ -11,10 +11,8 @@ from custom_components.robovac_mqtt.binary_sensor import (
     async_setup_entry as binary_sensor_setup,
 )
 from custom_components.robovac_mqtt.button import async_setup_entry as button_setup
-from custom_components.robovac_mqtt.const import DOMAIN
 from custom_components.robovac_mqtt.coordinator import EufyCleanCoordinator
-from custom_components.robovac_mqtt.models import EufyCleanData
-from custom_components.robovac_mqtt.models import VacuumState
+from custom_components.robovac_mqtt.models import EufyCleanData, VacuumState
 from custom_components.robovac_mqtt.sensor import async_setup_entry as sensor_setup
 from custom_components.robovac_mqtt.switch import async_setup_entry as switch_setup
 

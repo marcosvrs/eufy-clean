@@ -7,21 +7,19 @@ from dataclasses import replace
 from typing import Any
 
 from homeassistant.components.switch import SwitchEntity
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .typing_defs import EufyCleanConfigEntry
 from .api.commands import build_command
 from .auto_entities import get_auto_switches
-from .const import DOMAIN
 from .coordinator import EufyCleanCoordinator
 from .descriptions.switch import (
     UNISETTING_SWITCH_DESCRIPTIONS,
     RoboVacUnisettingSwitchDescription,
 )
+from .typing_defs import EufyCleanConfigEntry
 
 PARALLEL_UPDATES = 1
 

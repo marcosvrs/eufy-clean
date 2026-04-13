@@ -8,16 +8,14 @@ from typing import Any
 
 from homeassistant.components import calendar as calendar_component
 from homeassistant.components.calendar import CalendarEntity, CalendarEvent
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.util import dt as dt_util
 
-from .typing_defs import EufyCleanConfigEntry
 from .api.commands import build_command
-from .const import DOMAIN
 from .coordinator import EufyCleanCoordinator
+from .typing_defs import EufyCleanConfigEntry
 
 PARALLEL_UPDATES = 1
 

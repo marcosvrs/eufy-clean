@@ -3,15 +3,12 @@ from __future__ import annotations
 import logging
 
 from homeassistant.components.button import ButtonEntity
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .typing_defs import EufyCleanConfigEntry
 from .api.commands import build_command
-from .const import DOMAIN
 from .coordinator import EufyCleanCoordinator
 from .descriptions.button import (
     DOCK_BUTTON_DESCRIPTIONS,
@@ -21,6 +18,7 @@ from .descriptions.button import (
     RoboVacButtonDescription,
     RoboVacResetButtonDescription,
 )
+from .typing_defs import EufyCleanConfigEntry
 
 PARALLEL_UPDATES = 1
 

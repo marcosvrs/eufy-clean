@@ -6,7 +6,6 @@ from homeassistant.config_entries import ConfigEntry
 
 if TYPE_CHECKING:
     from .coordinator import EufyCleanCoordinator
-    from .models import EufyCleanData
 
 
 class EufyDeviceInfo(TypedDict, total=False):

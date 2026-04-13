@@ -4,16 +4,14 @@ from dataclasses import replace
 from datetime import time as dt_time
 
 from homeassistant.components.time import TimeEntity
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .typing_defs import EufyCleanConfigEntry
 from .api.commands import build_command
-from .const import DOMAIN
 from .coordinator import EufyCleanCoordinator
+from .typing_defs import EufyCleanConfigEntry
 
 PARALLEL_UPDATES = 1
 

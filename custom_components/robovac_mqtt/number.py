@@ -6,17 +6,15 @@ from collections.abc import Callable
 from typing import Any
 
 from homeassistant.components.number import NumberEntity
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .typing_defs import EufyCleanConfigEntry
 from .api.commands import build_command
 from .auto_entities import get_auto_numbers
-from .const import DOMAIN
 from .coordinator import EufyCleanCoordinator
+from .typing_defs import EufyCleanConfigEntry
 
 PARALLEL_UPDATES = 1
 

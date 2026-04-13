@@ -7,17 +7,14 @@ from dataclasses import replace
 from typing import Any
 
 from homeassistant.components.select import SelectEntity
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .typing_defs import EufyCleanConfigEntry
 from .api.commands import build_command
 from .auto_entities import get_auto_selects
 from .const import (
-    DOMAIN,
     DRY_DURATION_MAP,
     EUFY_CLEAN_CARPET_STRATEGIES,
     EUFY_CLEAN_CLEANING_INTENSITIES,
@@ -27,6 +24,7 @@ from .const import (
     MEDIA_RESOLUTION_NAMES,
 )
 from .coordinator import EufyCleanCoordinator
+from .typing_defs import EufyCleanConfigEntry
 
 PARALLEL_UPDATES = 1
 

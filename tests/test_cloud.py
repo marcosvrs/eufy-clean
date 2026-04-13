@@ -2,10 +2,10 @@
 
 # pyright: reportUnknownParameterType=false, reportMissingParameterType=false, reportUnknownVariableType=false, reportUnknownMemberType=false, reportUnknownArgumentType=false, reportUnusedCallResult=false
 
-import aiohttp
 from typing import cast
 from unittest.mock import AsyncMock, MagicMock, patch
 
+import aiohttp
 import pytest  # pyright: ignore[reportMissingImports]
 
 from custom_components.robovac_mqtt.api.cloud import EufyLogin

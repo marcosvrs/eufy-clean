@@ -17,12 +17,12 @@ from unittest.mock import MagicMock
 import pytest
 from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
 
-# pyright: reportAny=false, reportPrivateUsage=false, reportUnknownParameterType=false
-
 from custom_components.robovac_mqtt.api.http import EufyConnectionError
 from custom_components.robovac_mqtt.coordinator import EufyCleanCoordinator
 from custom_components.robovac_mqtt.models import VacuumState
 from custom_components.robovac_mqtt.vacuum import RoboVacMQTTEntity
+
+# pyright: reportAny=false, reportPrivateUsage=false, reportUnknownParameterType=false
 
 
 def test_vacuum_unrecorded_attributes():

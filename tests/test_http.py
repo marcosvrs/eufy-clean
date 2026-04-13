@@ -4,10 +4,10 @@
 
 from __future__ import annotations
 
-import aiohttp
 import logging
 from unittest.mock import AsyncMock, MagicMock, patch
 
+import aiohttp
 import pytest
 
 from custom_components.robovac_mqtt.api.http import (

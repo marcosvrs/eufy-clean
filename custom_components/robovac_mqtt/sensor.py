@@ -4,17 +4,15 @@ import logging
 from typing import Any
 
 from homeassistant.components.sensor import SensorEntity
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .typing_defs import EufyCleanConfigEntry
 from .auto_entities import get_auto_sensors
-from .const import DOMAIN
 from .coordinator import EufyCleanCoordinator
 from .descriptions.sensor import SENSOR_DESCRIPTIONS, RoboVacSensorDescription
 from .models import VacuumState
+from .typing_defs import EufyCleanConfigEntry
 
 PARALLEL_UPDATES = 1
 

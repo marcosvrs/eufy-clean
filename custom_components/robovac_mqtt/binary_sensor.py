@@ -3,19 +3,17 @@ from __future__ import annotations
 import logging
 
 from homeassistant.components.binary_sensor import BinarySensorEntity
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .typing_defs import EufyCleanConfigEntry
 from .auto_entities import get_auto_binary_sensors
-from .const import DOMAIN
 from .coordinator import EufyCleanCoordinator
 from .descriptions.binary_sensor import (
     BINARY_SENSOR_DESCRIPTIONS,
     RoboVacBinarySensorDescription,
 )
+from .typing_defs import EufyCleanConfigEntry
 
 PARALLEL_UPDATES = 1
 

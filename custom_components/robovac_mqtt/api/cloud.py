@@ -107,8 +107,6 @@ class EufyLogin:
             sn = device["device_sn"]
             model_info = self.findModel(sn)
             product_code = device_models.get(sn, "")
-            device_model = model_info.get("deviceModel", "")
-            invalid = model_info.get("invalid", False)
             devices.append(
                 {
                     **model_info,

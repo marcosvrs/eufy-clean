@@ -18,11 +18,11 @@ from homeassistant.helpers.issue_registry import (
 )
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .typing_defs import EufyCleanConfigEntry
 from .api.commands import build_command
 from .api.http import EufyConnectionError
 from .const import DOMAIN, EUFY_CLEAN_NOVEL_CLEAN_SPEED
 from .coordinator import EufyCleanCoordinator
+from .typing_defs import EufyCleanConfigEntry
 
 PARALLEL_UPDATES = 1
 

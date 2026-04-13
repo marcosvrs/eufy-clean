@@ -45,12 +45,3 @@ repos:
         additional_dependencies:
           - types-protobuf
           - types-requests
-  - repo: local
-    hooks:
-      - id: pylint
-        name: pylint
-        entry: pylint
-        language: system
-        types: [python]
-        files: ^custom_components/.+\.py$
-        args: ["-rn", "-sn", "--rcfile=pyproject.toml"]

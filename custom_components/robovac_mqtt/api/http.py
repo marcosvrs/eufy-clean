@@ -131,7 +131,7 @@ class EufyHTTPClient:
                     if response.status in (401, 403):
                         raise EufyAuthError("Invalid credentials")
                     raise EufyConnectionError(f"Login failed: {response.status}")
-        except (aiohttp.ClientError, asyncio.TimeoutError) as err:
+        except (aiohttp.ClientError, TimeoutError) as err:
             raise EufyConnectionError(str(err)) from err
 
     async def get_user_info(self) -> dict[str, Any] | None:
@@ -175,7 +175,7 @@ class EufyHTTPClient:
                         response.status,
                     )
                     return None
-        except (aiohttp.ClientError, asyncio.TimeoutError) as err:
+        except (aiohttp.ClientError, TimeoutError) as err:
             raise EufyConnectionError(str(err)) from err
 
     async def get_device_list(self) -> list[dict[str, Any]]:
@@ -213,7 +213,7 @@ class EufyHTTPClient:
                         "get_device_list failed: status %s", response.status
                     )
                     return []
-        except (aiohttp.ClientError, asyncio.TimeoutError) as err:
+        except (aiohttp.ClientError, TimeoutError) as err:
             raise EufyConnectionError(str(err)) from err
 
     async def get_product_data_points(self, product_code: str) -> list[dict[str, Any]]:
@@ -250,7 +250,7 @@ class EufyHTTPClient:
                         response.status,
                     )
                     return []
-        except (aiohttp.ClientError, asyncio.TimeoutError) as exc:
+        except (aiohttp.ClientError, TimeoutError) as exc:
             raise EufyConnectionError(str(exc)) from exc
         except EufyAuthError:
             raise
@@ -288,7 +288,7 @@ class EufyHTTPClient:
                         "get_cloud_device_list failed: status %s", response.status
                     )
                     return []
-        except (aiohttp.ClientError, asyncio.TimeoutError) as err:
+        except (aiohttp.ClientError, TimeoutError) as err:
             raise EufyConnectionError(str(err)) from err
 
     async def get_mqtt_credentials(self) -> dict[str, Any] | None:
@@ -326,5 +326,5 @@ class EufyHTTPClient:
                         "get_mqtt_credentials failed: status %s", response.status
                     )
                     return None
-        except (aiohttp.ClientError, asyncio.TimeoutError) as err:
+        except (aiohttp.ClientError, TimeoutError) as err:
             raise EufyConnectionError(str(err)) from err

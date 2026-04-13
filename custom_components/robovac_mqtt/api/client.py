@@ -113,7 +113,7 @@ class EufyCleanClient:
         if not self._connected:
             try:
                 await asyncio.wait_for(self._connected_event.wait(), timeout=5.0)
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 _LOGGER.error("Cannot send command: MQTT not connected (timeout)")
                 return
 
@@ -178,7 +178,7 @@ class EufyCleanClient:
         self._listener_task = asyncio.create_task(self._run_listener())
         try:
             await asyncio.wait_for(self._connected_event.wait(), timeout=30.0)
-        except asyncio.TimeoutError:
+        except TimeoutError:
             _LOGGER.error("Initial MQTT connection timed out after 30s")
             raise
 
@@ -277,7 +277,7 @@ class EufyCleanClient:
         if not self._connected:
             try:
                 await asyncio.wait_for(self._connected_event.wait(), timeout=5.0)
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 _LOGGER.error("Cannot send message: MQTT not connected (timeout)")
                 return
 

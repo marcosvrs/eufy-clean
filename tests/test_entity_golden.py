@@ -56,7 +56,6 @@ EXPECTED_SENSOR_SUFFIXES = {
     "dock_status",
     "active_map",
     "wifi_signal",
-    "mop_state",
     "clean_strategy_version",
     "live_map_state_bits",
     "wifi_frequency",
@@ -95,6 +94,7 @@ EXPECTED_BINARY_SENSOR_SUFFIXES = {
     "mop_holder_r",
     "map_valid",
     "live_map",
+    "mop_state",
 }
 
 EXPECTED_SWITCH_SUFFIXES = {
@@ -394,7 +394,7 @@ async def test_golden_sensor_unique_ids(
 
     _assert_snapshot(
         captured,
-        expected_count=60,
+        expected_count=59,
         expected_suffixes=EXPECTED_SENSOR_SUFFIXES,
         suffix_extractor=_sensor_suffix,
         metadata_map=EXPECTED_SENSOR_METADATA,
@@ -419,7 +419,7 @@ async def test_golden_binary_sensor_unique_ids(
 
     _assert_snapshot(
         captured,
-        expected_count=13,
+        expected_count=14,
         expected_suffixes=EXPECTED_BINARY_SENSOR_SUFFIXES,
         suffix_extractor=_sensor_suffix,
         metadata_map=EXPECTED_BINARY_SENSOR_METADATA,
@@ -517,7 +517,7 @@ async def test_golden_sensor_snapshot_detects_suffix_change(
     with pytest.raises(AssertionError):
         _assert_snapshot(
             captured,
-            expected_count=60,
+            expected_count=59,
             expected_suffixes=(EXPECTED_SENSOR_SUFFIXES - {"error_message"})
             | {"error_message_renamed"},
             suffix_extractor=_sensor_suffix,

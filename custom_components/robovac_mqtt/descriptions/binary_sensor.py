@@ -114,6 +114,13 @@ BINARY_SENSOR_DESCRIPTIONS: tuple[RoboVacBinarySensorDescription, ...] = (
         value_fn=lambda s: bool(s.live_map_state_bits),
         availability_fn=lambda s: "live_map_state_bits" in s.received_fields,
     ),
+    RoboVacBinarySensorDescription(
+        key="mop_state",
+        entity_category=EntityCategory.DIAGNOSTIC,
+        exists_fn=lambda c: "UNSETTING" in c.supported_dps,
+        value_fn=lambda s: s.mop_state,
+        availability_fn=lambda s: "mop_state" in s.received_fields,
+    ),
 )
 
-assert len(BINARY_SENSOR_DESCRIPTIONS) == 13
+assert len(BINARY_SENSOR_DESCRIPTIONS) == 14

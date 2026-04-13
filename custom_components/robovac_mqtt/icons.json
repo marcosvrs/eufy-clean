@@ -1,145 +1,395 @@
 {
   "entity": {
     "sensor": {
-      "error_message": { "default": "mdi:alert-circle-outline" },
-      "task_status": { "default": "mdi:robot-vacuum" },
-      "work_mode": { "default": "mdi:cog-outline" },
-      "active_cleaning_target": { "default": "mdi:floor-plan" },
-      "robot_position_x": { "default": "mdi:crosshairs-gps" },
-      "robot_position_y": { "default": "mdi:crosshairs-gps" },
-      "robotapp_state": { "default": "mdi:state-machine" },
-      "motion_state": { "default": "mdi:motion" },
-      "battery_real_level": { "default": "mdi:battery-heart-variant" },
-      "battery_voltage": { "default": "mdi:flash-triangle-outline" },
-      "battery_current": { "default": "mdi:current-dc" },
-      "battery_temperature": { "default": "mdi:thermometer" },
-      "battery_show_level": { "default": "mdi:battery" },
-      "charging_state": { "default": "mdi:battery-charging" },
-      "go_wash_state": { "default": "mdi:water" },
-      "go_wash_mode": { "default": "mdi:water-sync" },
-      "mapping_state": { "default": "mdi:map" },
-      "mapping_mode": { "default": "mdi:map-clock" },
-      "cruise_state": { "default": "mdi:navigation" },
-      "cruise_mode": { "default": "mdi:navigation-variant" },
-      "smart_follow_state": { "default": "mdi:motion-sensor" },
-      "station_work_status": { "default": "mdi:robot-vacuum" },
-      "dust_collect_start_time": { "default": "mdi:clock-outline" },
-      "last_notification": { "default": "mdi:bell" },
-      "cleaning_time": { "default": "mdi:clock-outline" },
-      "cleaning_area": { "default": "mdi:floor-plan" },
-      "total_cleaning_time": { "default": "mdi:timer" },
-      "total_cleaning_area": { "default": "mdi:floor-plan" },
-      "total_cleaning_count": { "default": "mdi:counter" },
-      "user_total_cleaning_time": { "default": "mdi:timer-outline" },
-      "user_total_cleaning_area": { "default": "mdi:floor-plan" },
-      "user_total_cleaning_count": { "default": "mdi:counter" },
-      "water_level": { "default": "mdi:water" },
-      "waste_water_level": { "default": "mdi:water-minus" },
-      "dock_status": { "default": "mdi:home-variant" },
-      "active_map": { "default": "mdi:map-marker-path" },
-      "wifi_signal": { "default": "mdi:wifi" },
-      "mop_state": { "default": "mdi:mop" },
-      "clean_strategy_version": { "default": "mdi:strategy" },
-      "live_map_state_bits": { "default": "mdi:map-clock" },
-      "wifi_frequency": { "default": "mdi:wifi" },
-      "wifi_connection_result": { "default": "mdi:wifi-check" },
-      "wifi_connection_timestamp": { "default": "mdi:clock-outline" },
-      "wifi_ssid": { "default": "mdi:wifi" },
-      "wifi_ip": { "default": "mdi:ip-network" },
-      "ota_channel": { "default": "mdi:update" },
-      "last_capture": { "default": "mdi:camera" },
-      "filter_remaining": { "default": "mdi:air-filter" },
-      "rolling_brush_remaining": { "default": "mdi:broom" },
-      "side_brush_remaining": { "default": "mdi:broom" },
-      "sensor_remaining": { "default": "mdi:eye-outline" },
-      "cleaning_tray_remaining": { "default": "mdi:wiper" },
-      "mopping_cloth_remaining": { "default": "mdi:water" },
-      "dustbag_usage": { "default": "mdi:delete" },
-      "dirty_watertank_usage": { "default": "mdi:water-alert" },
-      "dirty_waterfilter_usage": { "default": "mdi:water-check" },
-      "accessory_12_usage": { "default": "mdi:tools" },
-      "accessory_13_usage": { "default": "mdi:tools" },
-      "accessory_15_usage": { "default": "mdi:tools" },
-      "accessory_19_usage": { "default": "mdi:tools" }
+      "error_message": {
+        "default": "mdi:alert-circle-outline"
+      },
+      "task_status": {
+        "default": "mdi:robot-vacuum"
+      },
+      "work_mode": {
+        "default": "mdi:cog-outline"
+      },
+      "active_cleaning_target": {
+        "default": "mdi:floor-plan"
+      },
+      "robot_position_x": {
+        "default": "mdi:crosshairs-gps"
+      },
+      "robot_position_y": {
+        "default": "mdi:crosshairs-gps"
+      },
+      "robotapp_state": {
+        "default": "mdi:state-machine"
+      },
+      "motion_state": {
+        "default": "mdi:motion"
+      },
+      "battery_real_level": {
+        "default": "mdi:battery-heart-variant"
+      },
+      "battery_voltage": {
+        "default": "mdi:flash-triangle-outline"
+      },
+      "battery_current": {
+        "default": "mdi:current-dc"
+      },
+      "battery_temperature": {
+        "default": "mdi:thermometer"
+      },
+      "battery_show_level": {
+        "default": "mdi:battery"
+      },
+      "charging_state": {
+        "default": "mdi:battery-charging"
+      },
+      "go_wash_state": {
+        "default": "mdi:water"
+      },
+      "go_wash_mode": {
+        "default": "mdi:water-sync"
+      },
+      "mapping_state": {
+        "default": "mdi:map"
+      },
+      "mapping_mode": {
+        "default": "mdi:map-clock"
+      },
+      "cruise_state": {
+        "default": "mdi:navigation"
+      },
+      "cruise_mode": {
+        "default": "mdi:navigation-variant"
+      },
+      "smart_follow_state": {
+        "default": "mdi:motion-sensor"
+      },
+      "station_work_status": {
+        "default": "mdi:robot-vacuum"
+      },
+      "dust_collect_start_time": {
+        "default": "mdi:clock-outline"
+      },
+      "last_notification": {
+        "default": "mdi:bell"
+      },
+      "cleaning_time": {
+        "default": "mdi:clock-outline"
+      },
+      "cleaning_area": {
+        "default": "mdi:floor-plan"
+      },
+      "total_cleaning_time": {
+        "default": "mdi:timer"
+      },
+      "total_cleaning_area": {
+        "default": "mdi:floor-plan"
+      },
+      "total_cleaning_count": {
+        "default": "mdi:counter"
+      },
+      "user_total_cleaning_time": {
+        "default": "mdi:timer-outline"
+      },
+      "user_total_cleaning_area": {
+        "default": "mdi:floor-plan"
+      },
+      "user_total_cleaning_count": {
+        "default": "mdi:counter"
+      },
+      "water_level": {
+        "default": "mdi:water"
+      },
+      "waste_water_level": {
+        "default": "mdi:water-minus"
+      },
+      "dock_status": {
+        "default": "mdi:home-variant"
+      },
+      "active_map": {
+        "default": "mdi:map-marker-path"
+      },
+      "wifi_signal": {
+        "default": "mdi:wifi"
+      },
+      "clean_strategy_version": {
+        "default": "mdi:strategy"
+      },
+      "live_map_state_bits": {
+        "default": "mdi:map-clock"
+      },
+      "wifi_frequency": {
+        "default": "mdi:wifi"
+      },
+      "wifi_connection_result": {
+        "default": "mdi:wifi-check"
+      },
+      "wifi_connection_timestamp": {
+        "default": "mdi:clock-outline"
+      },
+      "wifi_ssid": {
+        "default": "mdi:wifi"
+      },
+      "wifi_ip": {
+        "default": "mdi:ip-network"
+      },
+      "ota_channel": {
+        "default": "mdi:update"
+      },
+      "last_capture": {
+        "default": "mdi:camera"
+      },
+      "filter_remaining": {
+        "default": "mdi:air-filter"
+      },
+      "rolling_brush_remaining": {
+        "default": "mdi:broom"
+      },
+      "side_brush_remaining": {
+        "default": "mdi:broom"
+      },
+      "sensor_remaining": {
+        "default": "mdi:eye-outline"
+      },
+      "cleaning_tray_remaining": {
+        "default": "mdi:wiper"
+      },
+      "mopping_cloth_remaining": {
+        "default": "mdi:water"
+      },
+      "dustbag_usage": {
+        "default": "mdi:delete"
+      },
+      "dirty_watertank_usage": {
+        "default": "mdi:water-alert"
+      },
+      "dirty_waterfilter_usage": {
+        "default": "mdi:water-check"
+      },
+      "accessory_12_usage": {
+        "default": "mdi:tools"
+      },
+      "accessory_13_usage": {
+        "default": "mdi:tools"
+      },
+      "accessory_15_usage": {
+        "default": "mdi:tools"
+      },
+      "accessory_19_usage": {
+        "default": "mdi:tools"
+      }
     },
     "button": {
-      "dry_mop": { "default": "mdi:hair-dryer" },
-      "wash_mop": { "default": "mdi:water-sync" },
-      "empty_dust_bin": { "default": "mdi:delete-variant" },
-      "stop_dry_mop": { "default": "mdi:hair-dryer-off" },
-      "stop_return": { "default": "mdi:home-off" },
-      "map_then_clean": { "default": "mdi:map-plus" },
-      "global_cruise": { "default": "mdi:map-marker-path" },
-      "stop_smart_follow": { "default": "mdi:walk" },
-      "reset_filter": { "default": "mdi:air-filter" },
-      "reset_main_brush": { "default": "mdi:broom" },
-      "reset_side_brush": { "default": "mdi:broom" },
-      "reset_sensors": { "default": "mdi:eye-outline" },
-      "reset_scrape": { "default": "mdi:wiper" },
-      "reset_mop": { "default": "mdi:water" },
-      "media_capture": { "default": "mdi:camera" }
+      "dry_mop": {
+        "default": "mdi:hair-dryer"
+      },
+      "wash_mop": {
+        "default": "mdi:water-sync"
+      },
+      "empty_dust_bin": {
+        "default": "mdi:delete-variant"
+      },
+      "stop_dry_mop": {
+        "default": "mdi:hair-dryer-off"
+      },
+      "stop_return": {
+        "default": "mdi:home-off"
+      },
+      "map_then_clean": {
+        "default": "mdi:map-plus"
+      },
+      "global_cruise": {
+        "default": "mdi:map-marker-path"
+      },
+      "stop_smart_follow": {
+        "default": "mdi:walk"
+      },
+      "reset_filter": {
+        "default": "mdi:air-filter"
+      },
+      "reset_main_brush": {
+        "default": "mdi:broom"
+      },
+      "reset_side_brush": {
+        "default": "mdi:broom"
+      },
+      "reset_sensors": {
+        "default": "mdi:eye-outline"
+      },
+      "reset_scrape": {
+        "default": "mdi:wiper"
+      },
+      "reset_mop": {
+        "default": "mdi:water"
+      },
+      "media_capture": {
+        "default": "mdi:camera"
+      }
     },
     "switch": {
-      "ai_see": { "default": "mdi:eye" },
-      "pet_mode_sw": { "default": "mdi:paw" },
-      "poop_avoidance_sw": { "default": "mdi:emoticon-poop" },
-      "live_photo_sw": { "default": "mdi:camera" },
-      "deep_mop_corner_sw": { "default": "mdi:broom" },
-      "smart_follow_sw": { "default": "mdi:motion-sensor" },
-      "cruise_continue_sw": { "default": "mdi:refresh" },
-      "multi_map_sw": { "default": "mdi:map-plus" },
-      "suggest_restricted_zone_sw": { "default": "mdi:map-marker-off" },
-      "water_level_sw": { "default": "mdi:water-check" },
-      "auto_empty": { "default": "mdi:delete-restore" },
-      "auto_wash": { "default": "mdi:water-sync" },
-      "do_not_disturb": { "default": "mdi:minus-circle" },
-      "child_lock": { "default": "mdi:lock" },
-      "smart_mode": { "default": "mdi:auto-fix" },
-      "media_recording": { "default": "mdi:record-rec" },
-      "boost_iq": { "default": "mdi:car-turbocharger" },
-      "calling_robot": { "default": "mdi:magnify" }
+      "ai_see": {
+        "default": "mdi:eye"
+      },
+      "pet_mode_sw": {
+        "default": "mdi:paw"
+      },
+      "poop_avoidance_sw": {
+        "default": "mdi:emoticon-poop"
+      },
+      "live_photo_sw": {
+        "default": "mdi:camera"
+      },
+      "deep_mop_corner_sw": {
+        "default": "mdi:broom"
+      },
+      "smart_follow_sw": {
+        "default": "mdi:motion-sensor"
+      },
+      "cruise_continue_sw": {
+        "default": "mdi:refresh"
+      },
+      "multi_map_sw": {
+        "default": "mdi:map-plus"
+      },
+      "suggest_restricted_zone_sw": {
+        "default": "mdi:map-marker-off"
+      },
+      "water_level_sw": {
+        "default": "mdi:water-check"
+      },
+      "auto_empty": {
+        "default": "mdi:delete-restore"
+      },
+      "auto_wash": {
+        "default": "mdi:water-sync"
+      },
+      "do_not_disturb": {
+        "default": "mdi:minus-circle"
+      },
+      "child_lock": {
+        "default": "mdi:lock"
+      },
+      "smart_mode": {
+        "default": "mdi:auto-fix"
+      },
+      "media_recording": {
+        "default": "mdi:record-rec"
+      },
+      "boost_iq": {
+        "default": "mdi:car-turbocharger"
+      },
+      "calling_robot": {
+        "default": "mdi:magnify"
+      }
     },
     "binary_sensor": {
-      "charging": { "default": "mdi:battery-charging" },
-      "upgrading": { "default": "mdi:update" },
-      "relocating": { "default": "mdi:crosshairs-gps" },
-      "breakpoint_available": { "default": "mdi:map-marker-check" },
-      "roller_brush_cleaning": { "default": "mdi:brush" },
-      "water_tank_clear_adding": { "default": "mdi:water-plus" },
-      "water_tank_waste_recycling": { "default": "mdi:water-remove" },
-      "dock_connected": { "default": "mdi:connection" },
-      "dust_collect_result": { "default": "mdi:check-circle" },
-      "mop_holder_l": { "default": "mdi:mop" },
-      "mop_holder_r": { "default": "mdi:mop" },
-      "map_valid": { "default": "mdi:map-check" },
-      "live_map": { "default": "mdi:map-clock" }
+      "charging": {
+        "default": "mdi:battery-charging"
+      },
+      "upgrading": {
+        "default": "mdi:update"
+      },
+      "relocating": {
+        "default": "mdi:crosshairs-gps"
+      },
+      "breakpoint_available": {
+        "default": "mdi:map-marker-check"
+      },
+      "roller_brush_cleaning": {
+        "default": "mdi:brush"
+      },
+      "water_tank_clear_adding": {
+        "default": "mdi:water-plus"
+      },
+      "water_tank_waste_recycling": {
+        "default": "mdi:water-remove"
+      },
+      "dock_connected": {
+        "default": "mdi:connection"
+      },
+      "dust_collect_result": {
+        "default": "mdi:check-circle"
+      },
+      "mop_holder_l": {
+        "default": "mdi:mop"
+      },
+      "mop_holder_r": {
+        "default": "mdi:mop"
+      },
+      "map_valid": {
+        "default": "mdi:map-check"
+      },
+      "live_map": {
+        "default": "mdi:map-clock"
+      },
+      "mop_state": {
+        "default": "mdi:mop"
+      }
     },
     "select": {
-      "room_select": { "default": "mdi:door-open" },
-      "cleaning_mode": { "default": "mdi:spray-bottle" },
-      "water_level": { "default": "mdi:water" },
-      "mop_intensity": { "default": "mdi:water" },
-      "cleaning_intensity": { "default": "mdi:tune-vertical" },
-      "carpet_strategy": { "default": "mdi:rug" },
-      "corner_cleaning": { "default": "mdi:rounded-corner" },
-      "scene_select": { "default": "mdi:play-circle-outline" },
-      "wash_frequency_mode": { "default": "mdi:calendar-sync" },
-      "dry_duration": { "default": "mdi:timer-sand" },
-      "auto_empty_mode": { "default": "mdi:delete-restore" },
-      "media_recording_resolution": { "default": "mdi:video-high-definition" },
-      "suction_level": { "default": "mdi:fan" }
+      "room_select": {
+        "default": "mdi:door-open"
+      },
+      "cleaning_mode": {
+        "default": "mdi:spray-bottle"
+      },
+      "water_level": {
+        "default": "mdi:water"
+      },
+      "mop_intensity": {
+        "default": "mdi:water"
+      },
+      "cleaning_intensity": {
+        "default": "mdi:tune-vertical"
+      },
+      "carpet_strategy": {
+        "default": "mdi:rug"
+      },
+      "corner_cleaning": {
+        "default": "mdi:rounded-corner"
+      },
+      "scene_select": {
+        "default": "mdi:play-circle-outline"
+      },
+      "wash_frequency_mode": {
+        "default": "mdi:calendar-sync"
+      },
+      "dry_duration": {
+        "default": "mdi:timer-sand"
+      },
+      "auto_empty_mode": {
+        "default": "mdi:delete-restore"
+      },
+      "media_recording_resolution": {
+        "default": "mdi:video-high-definition"
+      },
+      "suction_level": {
+        "default": "mdi:fan"
+      }
     },
     "number": {
-      "wash_frequency_value": { "default": "mdi:clock-time-four-outline" },
-      "dust_full_remind": { "default": "mdi:delete-alert" },
-      "volume": { "default": "mdi:volume-high" }
+      "wash_frequency_value": {
+        "default": "mdi:clock-time-four-outline"
+      },
+      "dust_full_remind": {
+        "default": "mdi:delete-alert"
+      },
+      "volume": {
+        "default": "mdi:volume-high"
+      }
     },
     "event": {
-      "notification_event": { "default": "mdi:bell-ring" }
+      "notification_event": {
+        "default": "mdi:bell-ring"
+      }
     },
     "time": {
-      "do_not_disturb_start": { "default": "mdi:clock-start" },
-      "do_not_disturb_end": { "default": "mdi:clock-end" }
+      "do_not_disturb_start": {
+        "default": "mdi:clock-start"
+      },
+      "do_not_disturb_end": {
+        "default": "mdi:clock-end"
+      }
     }
   }
 }

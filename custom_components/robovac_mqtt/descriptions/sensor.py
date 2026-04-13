@@ -415,14 +415,6 @@ SENSOR_DESCRIPTIONS: tuple[RoboVacSensorDescription, ...] = (
         availability_fn=lambda s: "wifi_signal" in s.received_fields,
     ),
     RoboVacSensorDescription(
-        key="mop_state",
-        icon="mdi:mop",
-        entity_category=EntityCategory.DIAGNOSTIC,
-        exists_fn=lambda c: "UNSETTING" in c.supported_dps,
-        value_fn=lambda s: s.mop_state,
-        availability_fn=lambda s: "mop_state" in s.received_fields,
-    ),
-    RoboVacSensorDescription(
         key="clean_strategy_version",
         icon="mdi:strategy",
         entity_category=EntityCategory.DIAGNOSTIC,
@@ -542,4 +534,4 @@ SENSOR_DESCRIPTIONS: tuple[RoboVacSensorDescription, ...] = (
     ),
 )
 
-assert len(SENSOR_DESCRIPTIONS) == 60
+assert len(SENSOR_DESCRIPTIONS) == 59

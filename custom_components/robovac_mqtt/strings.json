@@ -37,7 +37,7 @@
       }
     },
     "error": {
-      "invalid_auth": "Invalid authentication — check your email and password",
+      "invalid_auth": "Invalid authentication \u2014 check your email and password",
       "cannot_connect": "Failed to connect to Eufy servers. Check your network connection.",
       "unknown": "An unknown error occurred"
     },
@@ -78,151 +78,405 @@
   },
   "entity": {
     "sensor": {
-      "error_message": { "name": "Error Message" },
-      "task_status": { "name": "Task Status" },
-      "work_mode": { "name": "Work Mode" },
-      "active_cleaning_target": { "name": "Active Cleaning Target" },
-      "robot_position_x": { "name": "Robot Position X (raw)" },
-      "robot_position_y": { "name": "Robot Position Y (raw)" },
-      "robotapp_state": { "name": "Robot App State" },
-      "motion_state": { "name": "Motion State" },
-      "battery_real_level": { "name": "Battery Real Level" },
-      "battery_voltage": { "name": "Battery Voltage" },
-      "battery_current": { "name": "Battery Current" },
-      "battery_temperature": { "name": "Battery Temperature" },
-      "battery_show_level": { "name": "Battery Display Level" },
-      "charging_state": { "name": "Charging State" },
-      "go_wash_state": { "name": "Go Wash State" },
-      "go_wash_mode": { "name": "Go Wash Mode" },
-      "mapping_state": { "name": "Mapping State" },
-      "mapping_mode": { "name": "Mapping Mode" },
-      "cruise_state": { "name": "Cruise State" },
-      "cruise_mode": { "name": "Cruise Mode" },
-      "smart_follow_state": { "name": "Smart Follow State" },
-      "station_work_status": { "name": "Station Work Status" },
-      "dust_collect_start_time": { "name": "Last Dust Collection" },
-      "last_notification": { "name": "Last Notification" },
-      "cleaning_time": { "name": "Cleaning Time" },
-      "cleaning_area": { "name": "Cleaning Area" },
-      "total_cleaning_time": { "name": "Total Cleaning Time" },
-      "total_cleaning_area": { "name": "Total Cleaning Area" },
-      "total_cleaning_count": { "name": "Total Cleaning Count" },
-      "user_total_cleaning_time": { "name": "User Total Cleaning Time" },
-      "user_total_cleaning_area": { "name": "User Total Cleaning Area" },
-      "user_total_cleaning_count": { "name": "User Total Cleaning Count" },
-      "water_level": { "name": "Water Level" },
-      "waste_water_level": { "name": "Waste Water Level" },
-      "dock_status": { "name": "Dock Status" },
-      "active_map": { "name": "Active Map" },
-      "wifi_signal": { "name": "WiFi Signal Strength" },
-      "mop_state": { "name": "Mop State" },
-      "clean_strategy_version": { "name": "Clean Strategy Version" },
-      "live_map_state_bits": { "name": "Live Map State" },
-      "wifi_frequency": { "name": "WiFi Frequency" },
-      "wifi_connection_result": { "name": "WiFi Connection Result" },
-      "wifi_connection_timestamp": { "name": "WiFi Connection Timestamp" },
-      "wifi_ssid": { "name": "WiFi SSID" },
-      "wifi_ip": { "name": "IP Address" },
-      "ota_channel": { "name": "OTA Channel" },
-      "last_capture": { "name": "Last Capture" },
-      "filter_remaining": { "name": "Filter Remaining" },
-      "main_brush_remaining": { "name": "Rolling Brush Remaining" },
-      "side_brush_remaining": { "name": "Side Brush Remaining" },
-      "sensor_remaining": { "name": "Sensor Remaining" },
-      "scrape_remaining": { "name": "Cleaning Tray Remaining" },
-      "mop_remaining": { "name": "Mopping Cloth Remaining" },
-      "dustbag_usage": { "name": "Dustbag Usage" },
-      "dirty_watertank_usage": { "name": "Waste Water Tank Usage" },
-      "dirty_waterfilter_usage": { "name": "Water Filter Usage" },
-      "accessory_12_usage": { "name": "Accessory 12 Usage" },
-      "accessory_13_usage": { "name": "Accessory 13 Usage" },
-      "accessory_15_usage": { "name": "Accessory 15 Usage" },
-      "accessory_19_usage": { "name": "Accessory 19 Usage" }
+      "error_message": {
+        "name": "Error Message"
+      },
+      "task_status": {
+        "name": "Task Status"
+      },
+      "work_mode": {
+        "name": "Work Mode"
+      },
+      "active_cleaning_target": {
+        "name": "Active Cleaning Target"
+      },
+      "robot_position_x": {
+        "name": "Robot Position X (raw)"
+      },
+      "robot_position_y": {
+        "name": "Robot Position Y (raw)"
+      },
+      "robotapp_state": {
+        "name": "Robot App State"
+      },
+      "motion_state": {
+        "name": "Motion State"
+      },
+      "battery_real_level": {
+        "name": "Battery Real Level"
+      },
+      "battery_voltage": {
+        "name": "Battery Voltage"
+      },
+      "battery_current": {
+        "name": "Battery Current"
+      },
+      "battery_temperature": {
+        "name": "Battery Temperature"
+      },
+      "battery_show_level": {
+        "name": "Battery Display Level"
+      },
+      "charging_state": {
+        "name": "Charging State"
+      },
+      "go_wash_state": {
+        "name": "Go Wash State"
+      },
+      "go_wash_mode": {
+        "name": "Go Wash Mode"
+      },
+      "mapping_state": {
+        "name": "Mapping State"
+      },
+      "mapping_mode": {
+        "name": "Mapping Mode"
+      },
+      "cruise_state": {
+        "name": "Cruise State"
+      },
+      "cruise_mode": {
+        "name": "Cruise Mode"
+      },
+      "smart_follow_state": {
+        "name": "Smart Follow State"
+      },
+      "station_work_status": {
+        "name": "Station Work Status"
+      },
+      "dust_collect_start_time": {
+        "name": "Last Dust Collection"
+      },
+      "last_notification": {
+        "name": "Last Notification"
+      },
+      "cleaning_time": {
+        "name": "Cleaning Time"
+      },
+      "cleaning_area": {
+        "name": "Cleaning Area"
+      },
+      "total_cleaning_time": {
+        "name": "Total Cleaning Time"
+      },
+      "total_cleaning_area": {
+        "name": "Total Cleaning Area"
+      },
+      "total_cleaning_count": {
+        "name": "Total Cleaning Count"
+      },
+      "user_total_cleaning_time": {
+        "name": "User Total Cleaning Time"
+      },
+      "user_total_cleaning_area": {
+        "name": "User Total Cleaning Area"
+      },
+      "user_total_cleaning_count": {
+        "name": "User Total Cleaning Count"
+      },
+      "water_level": {
+        "name": "Water Level"
+      },
+      "waste_water_level": {
+        "name": "Waste Water Level"
+      },
+      "dock_status": {
+        "name": "Dock Status"
+      },
+      "active_map": {
+        "name": "Active Map"
+      },
+      "wifi_signal": {
+        "name": "WiFi Signal Strength"
+      },
+      "clean_strategy_version": {
+        "name": "Clean Strategy Version"
+      },
+      "live_map_state_bits": {
+        "name": "Live Map State"
+      },
+      "wifi_frequency": {
+        "name": "WiFi Frequency"
+      },
+      "wifi_connection_result": {
+        "name": "WiFi Connection Result"
+      },
+      "wifi_connection_timestamp": {
+        "name": "WiFi Connection Timestamp"
+      },
+      "wifi_ssid": {
+        "name": "WiFi SSID"
+      },
+      "wifi_ip": {
+        "name": "IP Address"
+      },
+      "ota_channel": {
+        "name": "OTA Channel"
+      },
+      "last_capture": {
+        "name": "Last Capture"
+      },
+      "filter_remaining": {
+        "name": "Filter Remaining"
+      },
+      "main_brush_remaining": {
+        "name": "Rolling Brush Remaining"
+      },
+      "side_brush_remaining": {
+        "name": "Side Brush Remaining"
+      },
+      "sensor_remaining": {
+        "name": "Sensor Remaining"
+      },
+      "scrape_remaining": {
+        "name": "Cleaning Tray Remaining"
+      },
+      "mop_remaining": {
+        "name": "Mopping Cloth Remaining"
+      },
+      "dustbag_usage": {
+        "name": "Dustbag Usage"
+      },
+      "dirty_watertank_usage": {
+        "name": "Waste Water Tank Usage"
+      },
+      "dirty_waterfilter_usage": {
+        "name": "Water Filter Usage"
+      },
+      "accessory_12_usage": {
+        "name": "Accessory 12 Usage"
+      },
+      "accessory_13_usage": {
+        "name": "Accessory 13 Usage"
+      },
+      "accessory_15_usage": {
+        "name": "Accessory 15 Usage"
+      },
+      "accessory_19_usage": {
+        "name": "Accessory 19 Usage"
+      }
     },
     "binary_sensor": {
-      "charging": { "name": "Charging" },
-      "upgrading": { "name": "Upgrading" },
-      "relocating": { "name": "Relocating" },
-      "breakpoint_available": { "name": "Breakpoint Available" },
-      "roller_brush_cleaning": { "name": "Roller Brush Cleaning" },
-      "water_tank_clear_adding": { "name": "Water Tank Adding" },
-      "water_tank_waste_recycling": { "name": "Water Tank Recycling" },
-      "dock_connected": { "name": "Dock Connected" },
-      "dust_collect_result": { "name": "Last Dust Collection Success" },
-      "mop_holder_l": { "name": "Mop Holder Left" },
-      "mop_holder_r": { "name": "Mop Holder Right" },
-      "map_valid": { "name": "Map Valid" },
-      "live_map": { "name": "Live Map" }
+      "charging": {
+        "name": "Charging"
+      },
+      "upgrading": {
+        "name": "Upgrading"
+      },
+      "relocating": {
+        "name": "Relocating"
+      },
+      "breakpoint_available": {
+        "name": "Breakpoint Available"
+      },
+      "roller_brush_cleaning": {
+        "name": "Roller Brush Cleaning"
+      },
+      "water_tank_clear_adding": {
+        "name": "Water Tank Adding"
+      },
+      "water_tank_waste_recycling": {
+        "name": "Water Tank Recycling"
+      },
+      "dock_connected": {
+        "name": "Dock Connected"
+      },
+      "dust_collect_result": {
+        "name": "Last Dust Collection Success"
+      },
+      "mop_holder_l": {
+        "name": "Mop Holder Left"
+      },
+      "mop_holder_r": {
+        "name": "Mop Holder Right"
+      },
+      "map_valid": {
+        "name": "Map Valid"
+      },
+      "live_map": {
+        "name": "Live Map"
+      },
+      "mop_state": {
+        "name": "Mop State"
+      }
     },
     "button": {
-      "dry_mop": { "name": "Dry Mop" },
-      "wash_mop": { "name": "Wash Mop" },
-      "empty_dust_bin": { "name": "Empty Dust Bin" },
-      "stop_dry_mop": { "name": "Stop Dry Mop" },
-      "stop_return": { "name": "Stop Return" },
-      "map_then_clean": { "name": "Map Then Clean" },
-      "global_cruise": { "name": "Global Cruise" },
-      "stop_smart_follow": { "name": "Stop Smart Follow" },
-      "reset_filter": { "name": "Reset Filter" },
-      "reset_main_brush": { "name": "Reset Rolling Brush" },
-      "reset_side_brush": { "name": "Reset Side Brush" },
-      "reset_sensors": { "name": "Reset Sensors" },
-      "reset_scrape": { "name": "Reset Cleaning Tray" },
-      "reset_mop": { "name": "Reset Mopping Cloth" },
-      "media_capture": { "name": "Capture Photo" },
-      "restart": { "name": "Restart" },
-      "resume_from_breakpoint": { "name": "Resume from Breakpoint" },
-      "rc_enter": { "name": "Enter RC Mode" },
-      "rc_exit": { "name": "Exit RC Mode" }
+      "dry_mop": {
+        "name": "Dry Mop"
+      },
+      "wash_mop": {
+        "name": "Wash Mop"
+      },
+      "empty_dust_bin": {
+        "name": "Empty Dust Bin"
+      },
+      "stop_dry_mop": {
+        "name": "Stop Dry Mop"
+      },
+      "stop_return": {
+        "name": "Stop Return"
+      },
+      "map_then_clean": {
+        "name": "Map Then Clean"
+      },
+      "global_cruise": {
+        "name": "Global Cruise"
+      },
+      "stop_smart_follow": {
+        "name": "Stop Smart Follow"
+      },
+      "reset_filter": {
+        "name": "Reset Filter"
+      },
+      "reset_main_brush": {
+        "name": "Reset Rolling Brush"
+      },
+      "reset_side_brush": {
+        "name": "Reset Side Brush"
+      },
+      "reset_sensors": {
+        "name": "Reset Sensors"
+      },
+      "reset_scrape": {
+        "name": "Reset Cleaning Tray"
+      },
+      "reset_mop": {
+        "name": "Reset Mopping Cloth"
+      },
+      "media_capture": {
+        "name": "Capture Photo"
+      },
+      "restart": {
+        "name": "Restart"
+      },
+      "resume_from_breakpoint": {
+        "name": "Resume from Breakpoint"
+      },
+      "rc_enter": {
+        "name": "Enter RC Mode"
+      },
+      "rc_exit": {
+        "name": "Exit RC Mode"
+      }
     },
     "switch": {
-      "auto_empty": { "name": "Auto Empty" },
-      "auto_wash": { "name": "Auto Wash" },
-      "do_not_disturb": { "name": "Do Not Disturb" },
-      "child_lock": { "name": "Child Lock" },
-      "smart_mode": { "name": "Smart Mode" },
-      "media_recording": { "name": "Recording" },
-      "ai_see": { "name": "AI See" },
-      "pet_mode_sw": { "name": "Pet Mode" },
-      "poop_avoidance_sw": { "name": "Poop Avoidance" },
-      "live_photo_sw": { "name": "Live Photo" },
-      "deep_mop_corner_sw": { "name": "Deep Mop Corner" },
-      "smart_follow_sw": { "name": "Smart Follow" },
-      "cruise_continue_sw": { "name": "Cruise Continue" },
-      "multi_map_sw": { "name": "Multi Map" },
-      "suggest_restricted_zone_sw": { "name": "Suggest Restricted Zone" },
-      "water_level_sw": { "name": "Water Level Monitor" }
+      "auto_empty": {
+        "name": "Auto Empty"
+      },
+      "auto_wash": {
+        "name": "Auto Wash"
+      },
+      "do_not_disturb": {
+        "name": "Do Not Disturb"
+      },
+      "child_lock": {
+        "name": "Child Lock"
+      },
+      "smart_mode": {
+        "name": "Smart Mode"
+      },
+      "media_recording": {
+        "name": "Recording"
+      },
+      "ai_see": {
+        "name": "AI See"
+      },
+      "pet_mode_sw": {
+        "name": "Pet Mode"
+      },
+      "poop_avoidance_sw": {
+        "name": "Poop Avoidance"
+      },
+      "live_photo_sw": {
+        "name": "Live Photo"
+      },
+      "deep_mop_corner_sw": {
+        "name": "Deep Mop Corner"
+      },
+      "smart_follow_sw": {
+        "name": "Smart Follow"
+      },
+      "cruise_continue_sw": {
+        "name": "Cruise Continue"
+      },
+      "multi_map_sw": {
+        "name": "Multi Map"
+      },
+      "suggest_restricted_zone_sw": {
+        "name": "Suggest Restricted Zone"
+      },
+      "water_level_sw": {
+        "name": "Water Level Monitor"
+      }
     },
     "select": {
-      "room_select": { "name": "Clean Room" },
-      "scene_select": { "name": "Scene" },
-      "cleaning_mode": { "name": "Cleaning Mode" },
-      "water_level": { "name": "Water Level" },
-      "mop_intensity": { "name": "Mop Intensity" },
-      "cleaning_intensity": { "name": "Cleaning Intensity" },
-      "carpet_strategy": { "name": "Carpet Strategy" },
-      "corner_cleaning": { "name": "Corner Cleaning" },
-      "wash_frequency_mode": { "name": "Wash Frequency Mode" },
-      "dry_duration": { "name": "Dry Duration" },
-      "auto_empty_mode": { "name": "Auto Empty Mode" },
-      "media_recording_resolution": { "name": "Recording Resolution" }
+      "room_select": {
+        "name": "Clean Room"
+      },
+      "scene_select": {
+        "name": "Scene"
+      },
+      "cleaning_mode": {
+        "name": "Cleaning Mode"
+      },
+      "water_level": {
+        "name": "Water Level"
+      },
+      "mop_intensity": {
+        "name": "Mop Intensity"
+      },
+      "cleaning_intensity": {
+        "name": "Cleaning Intensity"
+      },
+      "carpet_strategy": {
+        "name": "Carpet Strategy"
+      },
+      "corner_cleaning": {
+        "name": "Corner Cleaning"
+      },
+      "wash_frequency_mode": {
+        "name": "Wash Frequency Mode"
+      },
+      "dry_duration": {
+        "name": "Dry Duration"
+      },
+      "auto_empty_mode": {
+        "name": "Auto Empty Mode"
+      },
+      "media_recording_resolution": {
+        "name": "Recording Resolution"
+      }
     },
     "number": {
-      "wash_frequency_value": { "name": "Wash Frequency Value (Time)" },
-      "dust_full_remind": { "name": "Dust Full Remind" }
+      "wash_frequency_value": {
+        "name": "Wash Frequency Value (Time)"
+      },
+      "dust_full_remind": {
+        "name": "Dust Full Remind"
+      }
     },
     "vacuum": {
-      "eufy_vacuum": { "name": "Vacuum" }
+      "eufy_vacuum": {
+        "name": "Vacuum"
+      }
     },
     "event": {
-      "notification_event": { "name": "Notification Event" }
+      "notification_event": {
+        "name": "Notification Event"
+      }
     },
     "calendar": {
-      "cleaning_schedule": { "name": "Cleaning Schedule" }
+      "cleaning_schedule": {
+        "name": "Cleaning Schedule"
+      }
     },
     "time": {
-      "do_not_disturb_start": { "name": "Do Not Disturb Start" },
-      "do_not_disturb_end": { "name": "Do Not Disturb End" }
+      "do_not_disturb_start": {
+        "name": "Do Not Disturb Start"
+      },
+      "do_not_disturb_end": {
+        "name": "Do Not Disturb End"
+      }
     }
   }
 }

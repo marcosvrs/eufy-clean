@@ -298,6 +298,11 @@ class EufyCleanCoordinator(DataUpdateCoordinator[VacuumState]):
             # Filter non-DPS protocol messages (cloud handshake/sync)
             protocol = payload_data.get("protocol")
             if protocol in (4, 5, 7):
+                _LOGGER.debug(
+                    "MQTT_FILTERED | device=%s | protocol=%s | skipping non-DPS message",
+                    self.device_name,
+                    protocol,
+                )
                 return
 
             if dps := payload_data.get("data"):
@@ -419,6 +424,14 @@ class EufyCleanCoordinator(DataUpdateCoordinator[VacuumState]):
 
                 if save_novelty:
                     self.hass.async_create_task(self._async_save_novelty())
+
+            else:
+                _LOGGER.debug(
+                    "MQTT_NO_DPS | device=%s | protocol=%s | payload_keys=%s",
+                    self.device_name,
+                    protocol,
+                    sorted(payload_data.keys()) if isinstance(payload_data, dict) else type(payload_data).__name__,
+                )
 
         except Exception as e:
             _LOGGER.warning("Error handling MQTT message: %s", e)

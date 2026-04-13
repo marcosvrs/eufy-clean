@@ -127,6 +127,7 @@ class EufyCleanCoordinator(DataUpdateCoordinator[VacuumState]):
         self._catalog_refresh_cancel: CALLBACK_TYPE | None = None
         self._timer_inquiry_cancel: CALLBACK_TYPE | None = None
         self._enable_new_entities_cancel: CALLBACK_TYPE | None = None
+        self._state_dump_cancel: CALLBACK_TYPE | None = None
         self._current_session: CleaningSession | None = None
         self._cleaning_history: list[dict[str, object]] = []
         self._prev_task_status: str = ""
@@ -254,6 +255,12 @@ class EufyCleanCoordinator(DataUpdateCoordinator[VacuumState]):
                 timedelta(hours=24),
             )
 
+            self._state_dump_cancel = async_track_time_interval(
+                self.hass,
+                self._async_dump_state,
+                timedelta(minutes=30),
+            )
+
             if "TIMING" in self.supported_dps:
                 self._timer_inquiry_cancel = async_call_later(
                     self.hass, 5.0, self._async_request_schedules
@@ -294,6 +301,13 @@ class EufyCleanCoordinator(DataUpdateCoordinator[VacuumState]):
                 return
 
             if dps := payload_data.get("data"):
+                _LOGGER.debug(
+                    "MQTT_INBOUND | device=%s | dps_keys=%s | raw_payload_size=%d",
+                    self.device_name,
+                    sorted(dps.keys()),
+                    len(payload),
+                )
+
                 # Calculate new state based on connection
                 new_state, changes = update_state(
                     self.data,
@@ -302,6 +316,19 @@ class EufyCleanCoordinator(DataUpdateCoordinator[VacuumState]):
                     catalog_types=self.catalog_types,
                     dps_catalog=self.dps_catalog,
                 )
+
+                if changes:
+                    log_changes = {
+                        k: v
+                        for k, v in changes.items()
+                        if k not in ("received_fields", "dynamic_values")
+                    }
+                    if log_changes:
+                        _LOGGER.debug(
+                            "STATE_DIFF | device=%s | changes=%s",
+                            self.device_name,
+                            log_changes,
+                        )
 
                 # Only consider debounce if dock_status was explicitly set in this message
                 # This prevents messages without dock info (like DPS 154) from
@@ -452,6 +479,26 @@ class EufyCleanCoordinator(DataUpdateCoordinator[VacuumState]):
         async_dispatcher_send(self.hass, f"{DOMAIN}_{self.device_id}_rooms_updated")
 
     @callback
+    def _async_dump_state(self, _now: Any) -> None:
+        """Periodic state dump for debugging."""
+        if not self.data:
+            return
+        try:
+            state_dict = asdict(self.data)
+            state_dict.pop("received_fields", None)
+            state_dict.pop("dynamic_values", None)
+            _LOGGER.debug(
+                "STATE_DUMP | device=%s | state=%s",
+                self.device_name,
+                state_dict,
+            )
+        except Exception:
+            _LOGGER.debug(
+                "STATE_DUMP | device=%s | failed to serialize state",
+                self.device_name,
+            )
+
+    @callback
     def _track_cleaning_session(self, state: VacuumState) -> None:
         """Track cleaning session start/end based on task_status transitions."""
         new_status = state.task_status
@@ -555,6 +602,9 @@ class EufyCleanCoordinator(DataUpdateCoordinator[VacuumState]):
         if self._enable_new_entities_cancel:
             self._enable_new_entities_cancel()
             self._enable_new_entities_cancel = None
+        if self._state_dump_cancel:
+            self._state_dump_cancel()
+            self._state_dump_cancel = None
 
     @callback
     def _async_request_schedules(self, _now: Any) -> None:

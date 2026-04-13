@@ -279,6 +279,14 @@ def _scan_unknown_tags_recursive(
         _seen_recursive_tags[cache_key] = prev | new_unknown
         global _novelty_dirty
         _novelty_dirty = True
+    elif unknown:
+        label = f"{type(proto_msg).__name__}" + (f".{path}" if path else "")
+        _LOGGER.debug(
+            "PROTO_UNKNOWN_TAGS_REPEAT | dps=%s | location=%s | tag_count=%d",
+            dps_key,
+            label,
+            len(unknown),
+        )
 
     for fn, raw_sub in ld_fields.items():
         fd = proto_msg.DESCRIPTOR.fields_by_number.get(fn)
@@ -1150,13 +1158,45 @@ def _process_other_dps(
                     )
 
             elif key in KNOWN_UNPROCESSED_DPS:
-                _LOGGER.debug(
-                    "KNOWN_UNPROCESSED_DPS | key=%s | value=%s | value_type=%s | %s",
-                    key,
-                    _truncate_value(value),
-                    type(value).__name__,
-                    _catalog_summary(key, dps_catalog),
-                )
+                cat_type = catalog_types.get(key, "") if catalog_types else ""
+                if cat_type == "Raw" and isinstance(value, str) and value:
+                    try:
+                        raw_bytes = base64.b64decode(value)
+                        if raw_bytes:
+                            try:
+                                size, pos = _decode_varint(raw_bytes, 0)
+                                if pos + size == len(raw_bytes):
+                                    raw_bytes = raw_bytes[pos:]
+                            except Exception:
+                                pass
+                        hex_dump = (
+                            raw_bytes.hex()
+                            if len(raw_bytes) <= 64
+                            else raw_bytes[:64].hex() + f"...({len(raw_bytes)}b)"
+                        )
+                        _LOGGER.debug(
+                            "KNOWN_UNPROCESSED_DPS | key=%s | value=%s | hex=%s | %s",
+                            key,
+                            _truncate_value(value),
+                            hex_dump,
+                            _catalog_summary(key, dps_catalog),
+                        )
+                    except Exception:
+                        _LOGGER.debug(
+                            "KNOWN_UNPROCESSED_DPS | key=%s | value=%s | value_type=%s | %s",
+                            key,
+                            _truncate_value(value),
+                            type(value).__name__,
+                            _catalog_summary(key, dps_catalog),
+                        )
+                else:
+                    _LOGGER.debug(
+                        "KNOWN_UNPROCESSED_DPS | key=%s | value=%s | value_type=%s | %s",
+                        key,
+                        _truncate_value(value),
+                        type(value).__name__,
+                        _catalog_summary(key, dps_catalog),
+                    )
 
             else:
                 _LOGGER.debug(

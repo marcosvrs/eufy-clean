@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import logging
-from typing import Any
+from typing import Any, cast
 
 import aiohttp
 
@@ -57,7 +57,7 @@ class EufyLogin:
             raise EufyLoginError("Login failed")
 
         self.mqtt_credentials = eufy_login["mqtt"]
-        creds = self.mqtt_credentials or {}
+        creds = cast(dict[str, Any], self.mqtt_credentials or {})
         _LOGGER.debug(
             "Retrieved MQTT credentials (endpoint: %s)",
             creds.get("endpoint_addr", "unknown"),
@@ -97,7 +97,9 @@ class EufyLogin:
             try:
                 catalogs[code] = await self.eufyApi.get_product_data_points(code)
             except Exception as exc:
-                _LOGGER.warning("Unexpected error fetching catalog for %s: %s", code, exc)
+                _LOGGER.warning(
+                    "Unexpected error fetching catalog for %s: %s", code, exc
+                )
                 catalogs[code] = []
 
         devices: list[EufyDeviceInfo] = []
@@ -105,6 +107,8 @@ class EufyLogin:
             sn = device["device_sn"]
             model_info = self.findModel(sn)
             product_code = device_models.get(sn, "")
+            device_model = model_info.get("deviceModel", "")
+            invalid = model_info.get("invalid", False)
             devices.append(
                 {
                     **model_info,
@@ -118,7 +122,7 @@ class EufyLogin:
                 }
             )
 
-        self.mqtt_devices = [d for d in devices if not d["invalid"]]
+        self.mqtt_devices = [d for d in devices if not d.get("invalid", False)]
         _LOGGER.debug(
             "Cloud returned %d device(s), %d MQTT-capable",
             len(raw_devices),
@@ -140,12 +144,19 @@ class EufyLogin:
 
         if device:
             product = device.get("product", {})
-            product_code = product.get("product_code", "") if isinstance(product, dict) else ""
+            product_code = (
+                product.get("product_code", "") if isinstance(product, dict) else ""
+            )
             product_name = product.get("name") if isinstance(product, dict) else None
-            device_name = device.get("alias_name") or device.get("device_name") or device.get("name")
+            device_name = (
+                device.get("alias_name")
+                or device.get("device_name")
+                or device.get("name")
+            )
             return {
                 "deviceId": deviceId,
-                "deviceModel": str(product_code)[:5] or str(device.get("device_model", ""))[:5],
+                "deviceModel": str(product_code)[:5]
+                or str(device.get("device_model", ""))[:5],
                 "deviceName": str(device_name or ""),
                 "deviceModelName": str(product_name or ""),
                 "invalid": False,

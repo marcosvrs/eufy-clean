@@ -40,7 +40,9 @@ async def async_get_config_entry_diagnostics(
             "device_model": coordinator.device_model,
             "device_name": coordinator.device_name,
             "firmware_version": coordinator.firmware_version,
-            "mqtt_connected": coordinator.client.connected if coordinator.client else False,
+            "mqtt_connected": (
+                coordinator.client.connected if coordinator.client else False
+            ),
             "last_update_success": coordinator.last_update_success,
         }
 

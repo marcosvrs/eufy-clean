@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 import random
 import string
-from datetime import timedelta
+from datetime import datetime, timedelta
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME, Platform
@@ -77,7 +77,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: EufyCleanConfigEntry) ->
             device_id,
         )
 
-        coordinator = EufyCleanCoordinator(hass, eufy_login, device_info, config_entry=entry)
+        coordinator = EufyCleanCoordinator(
+            hass, eufy_login, device_info, config_entry=entry
+        )
         try:
             await coordinator.initialize()
 
@@ -148,12 +150,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: EufyCleanConfigEntry) ->
 
     entry.async_on_unload(entry.add_update_listener(update_listener))
 
+    async def _check_new_devices_interval(_now: datetime) -> None:
+        await _async_check_new_devices(hass, entry)
+
     entry.async_on_unload(
-        async_track_time_interval(
-            hass,
-            lambda _now: hass.async_create_task(_async_check_new_devices(hass, entry)),
-            timedelta(hours=1),
-        )
+        async_track_time_interval(hass, _check_new_devices_interval, timedelta(hours=1))
     )
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
@@ -176,11 +177,17 @@ async def async_unload_entry(hass: HomeAssistant, entry: EufyCleanConfigEntry) -
 
 
 async def async_remove_config_entry_device(
-    hass: HomeAssistant, config_entry: EufyCleanConfigEntry, device_entry: dr.DeviceEntry
+    hass: HomeAssistant,
+    config_entry: EufyCleanConfigEntry,
+    device_entry: dr.DeviceEntry,
 ) -> bool:
     """Remove a config entry device — only allow if device is not in cloud list."""
     eufy_id = next(
-        (identifier[1] for identifier in device_entry.identifiers if identifier[0] == DOMAIN),
+        (
+            identifier[1]
+            for identifier in device_entry.identifiers
+            if identifier[0] == DOMAIN
+        ),
         None,
     )
     if not eufy_id:

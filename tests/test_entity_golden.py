@@ -341,7 +341,9 @@ def mock_hass_data(mock_coordinator: MagicMock) -> tuple[MagicMock, MagicMock]:
     hass = MagicMock()
     entry = MagicMock()
     entry.entry_id = "test_entry"
-    entry.runtime_data = EufyCleanData(coordinators={mock_coordinator.device_id: mock_coordinator}, cloud=MagicMock())
+    entry.runtime_data = EufyCleanData(
+        coordinators={mock_coordinator.device_id: mock_coordinator}, cloud=MagicMock()
+    )
     return hass, entry
 
 

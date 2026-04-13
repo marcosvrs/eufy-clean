@@ -5,3 +5,4 @@ types-requests
 types-setuptools
 protobuf
 pytest-cov
+aiomqtt>=2.5.0

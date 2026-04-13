@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 from base64 import b64decode, b64encode
-from typing import Any, TypeVar
+from typing import Any, TypeVar, cast
 
 from google.protobuf.message import Message
 
@@ -29,7 +29,7 @@ def decode(to_type: type[T], b64_data: str, has_length: bool = True) -> T:
             pos += 1
             data = data[pos:]
 
-        return to_type().FromString(data)
+        return cast(T, to_type().FromString(data))
     except Exception as err:
         _LOGGER.warning("Failed to decode protobuf %s: %s", to_type.__name__, err)
         raise

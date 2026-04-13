@@ -57,7 +57,9 @@ async def test_dnd_end_time_parses_last_minute_of_day(mock_coordinator: MagicMoc
 
 
 @pytest.mark.asyncio
-async def test_dnd_start_time_update_preserves_end_schedule(mock_coordinator: MagicMock):
+async def test_dnd_start_time_update_preserves_end_schedule(
+    mock_coordinator: MagicMock,
+):
     """Updating start time keeps the existing end time in the outgoing command."""
     entity = DoNotDisturbStartTimeEntity(mock_coordinator)
 
@@ -81,7 +83,9 @@ async def test_dnd_start_time_update_preserves_end_schedule(mock_coordinator: Ma
 
 
 @pytest.mark.asyncio
-async def test_dnd_end_time_update_preserves_start_schedule(mock_coordinator: MagicMock):
+async def test_dnd_end_time_update_preserves_start_schedule(
+    mock_coordinator: MagicMock,
+):
     """Updating end time keeps the existing start time in the outgoing command."""
     entity = DoNotDisturbEndTimeEntity(mock_coordinator)
 
@@ -104,7 +108,9 @@ async def test_dnd_end_time_update_preserves_start_schedule(mock_coordinator: Ma
 
 
 @pytest.mark.asyncio
-async def test_dnd_time_unavailable_without_received_marker(mock_coordinator: MagicMock):
+async def test_dnd_time_unavailable_without_received_marker(
+    mock_coordinator: MagicMock,
+):
     """DND time entities stay unavailable until the field has been reported."""
     mock_coordinator.data = VacuumState(received_fields=set())
     entity = DoNotDisturbStartTimeEntity(mock_coordinator)

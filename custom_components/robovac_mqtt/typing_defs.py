@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, TypedDict
+from typing import TYPE_CHECKING, Any, TypeAlias, TypedDict
 
 from homeassistant.config_entries import ConfigEntry
 
 if TYPE_CHECKING:
-    from .api.cloud import EufyLogin
     from .coordinator import EufyCleanCoordinator
+    from .models import EufyCleanData
 
 
 class EufyDeviceInfo(TypedDict, total=False):
@@ -35,18 +35,14 @@ class MqttCredentials(TypedDict):
     endpoint_addr: str
 
 
-type CoordinatorMap = dict[str, EufyCleanCoordinator]
+CoordinatorMap: TypeAlias = dict[str, "EufyCleanCoordinator"]
 
 
 class EufyCleanRuntimeData(TypedDict):
     """Typed view of runtime data if needed outside dataclass usage."""
 
     coordinators: CoordinatorMap
-    cloud: EufyLogin
+    cloud: Any
 
 
-type EufyCleanConfigEntry = ConfigEntry["EufyCleanData"]
-
-
-if TYPE_CHECKING:
-    from .models import EufyCleanData
+EufyCleanConfigEntry: TypeAlias = ConfigEntry[Any]

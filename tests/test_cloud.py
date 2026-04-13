@@ -20,7 +20,9 @@ def _make_login(
     with patch(
         "custom_components.robovac_mqtt.api.cloud.EufyHTTPClient", autospec=True
     ) as mock_http_client:
-        login = EufyLogin("user@example.com", "password123", "open-udid", session=session)
+        login = EufyLogin(
+            "user@example.com", "password123", "open-udid", session=session
+        )
     if session is not None:
         mock_http_client.assert_called_once_with(
             "user@example.com", "password123", "open-udid", session=session

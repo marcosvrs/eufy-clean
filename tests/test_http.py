@@ -347,10 +347,14 @@ async def test_login_uses_injected_session_without_creating_client_session():
 
     mqtt_response = AsyncMock()
     mqtt_response.status = 200
-    mqtt_response.json = AsyncMock(return_value={"data": {"endpoint": "mqtt.example.com"}})
+    mqtt_response.json = AsyncMock(
+        return_value={"data": {"endpoint": "mqtt.example.com"}}
+    )
 
     injected_session = _make_injected_session(login_response)
-    injected_session.get.return_value = _make_injected_session(user_response).get.return_value
+    injected_session.get.return_value = _make_injected_session(
+        user_response
+    ).get.return_value
     injected_session.post.side_effect = [
         _make_injected_session(login_response).post.return_value,
         _make_injected_session(mqtt_response).post.return_value,

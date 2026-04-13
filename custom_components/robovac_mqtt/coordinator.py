@@ -65,6 +65,9 @@ _DOCK_VISIT_STATUSES = frozenset(
 class EufyCleanCoordinator(DataUpdateCoordinator[VacuumState]):
     """Coordinator to manage Eufy Clean device connection and state."""
 
+    last_update_success: bool
+    _has_received_first_state: bool
+
     @callback
     def async_set_updated_data(self, data: VacuumState) -> None:
         """Update data and notify listeners without noisy debug logging."""
@@ -87,9 +90,7 @@ class EufyCleanCoordinator(DataUpdateCoordinator[VacuumState]):
         """Mark coordinator unavailable and log non-MQTT availability flips."""
         was_available = self.last_update_success
         if was_available and str(err) != "MQTT disconnected":
-            _LOGGER.warning(
-                "Device unavailable for %s: %s", self.device_name, err
-            )
+            _LOGGER.warning("Device unavailable for %s: %s", self.device_name, err)
         super().async_set_update_error(err)
 
     def __init__(
@@ -135,7 +136,9 @@ class EufyCleanCoordinator(DataUpdateCoordinator[VacuumState]):
         self._store_lock = asyncio.Lock()
         self._pending_dock_status: str | None = None
         self.last_seen_segments: list[dict[str, Any]] | None = None
-        self._store: Store[dict[str, Any]] = Store(hass, 1, f"{DOMAIN}.{self.device_id}")
+        self._store: Store[dict[str, Any]] = Store(
+            hass, 1, f"{DOMAIN}.{self.device_id}"
+        )
 
         catalog = device_info.get("dps_catalog", [])
         self._raw_catalog: list[dict[str, object]] = catalog
@@ -275,13 +278,17 @@ class EufyCleanCoordinator(DataUpdateCoordinator[VacuumState]):
     @callback
     def _on_mqtt_disconnect(self) -> None:
         """Handle MQTT disconnect and mark entities unavailable."""
-        _LOGGER.warning("MQTT disconnected for %s; marking device unavailable", self.device_name)
+        _LOGGER.warning(
+            "MQTT disconnected for %s; marking device unavailable", self.device_name
+        )
         self.async_set_update_error(ConnectionError("MQTT disconnected"))
 
     @callback
     def _on_mqtt_reconnect(self) -> None:
         """Handle MQTT reconnect and restore entity availability."""
-        _LOGGER.info("MQTT reconnected for %s; restoring device availability", self.device_name)
+        _LOGGER.info(
+            "MQTT reconnected for %s; restoring device availability", self.device_name
+        )
         self.async_set_updated_data(self.data)
 
     @callback
@@ -373,7 +380,10 @@ class EufyCleanCoordinator(DataUpdateCoordinator[VacuumState]):
                     new_state, dock_status=effective_current_status
                 )
 
-                if "activity" in changes and self.data.activity != state_to_publish.activity:
+                if (
+                    "activity" in changes
+                    and self.data.activity != state_to_publish.activity
+                ):
                     _LOGGER.info(
                         "Activity transition for %s: %s → %s",
                         self.device_name,
@@ -430,7 +440,11 @@ class EufyCleanCoordinator(DataUpdateCoordinator[VacuumState]):
                     "MQTT_NO_DPS | device=%s | protocol=%s | payload_keys=%s",
                     self.device_name,
                     protocol,
-                    sorted(payload_data.keys()) if isinstance(payload_data, dict) else type(payload_data).__name__,
+                    (
+                        sorted(payload_data.keys())
+                        if isinstance(payload_data, dict)
+                        else type(payload_data).__name__
+                    ),
                 )
 
         except Exception as e:
@@ -554,7 +568,11 @@ class EufyCleanCoordinator(DataUpdateCoordinator[VacuumState]):
                 self._current_session.dock_visits,
             )
             self._cleaning_history.append(asdict(self._current_session))
-            max_history = self.config_entry.options.get("max_cleaning_history", 100) if self.config_entry else 100
+            max_history = (
+                self.config_entry.options.get("max_cleaning_history", 100)
+                if self.config_entry
+                else 100
+            )
             self._cleaning_history = self._cleaning_history[-max_history:]
             self._current_session = None
             self.hass.async_create_task(self._async_save_cleaning_history())
@@ -576,7 +594,11 @@ class EufyCleanCoordinator(DataUpdateCoordinator[VacuumState]):
                 state.cleaning_area,
             )
             self._cleaning_history.append(asdict(self._current_session))
-            max_history = self.config_entry.options.get("max_cleaning_history", 100) if self.config_entry else 100
+            max_history = (
+                self.config_entry.options.get("max_cleaning_history", 100)
+                if self.config_entry
+                else 100
+            )
             self._cleaning_history = self._cleaning_history[-max_history:]
             self._current_session = None
             self.hass.async_create_task(self._async_save_cleaning_history())
@@ -751,7 +773,11 @@ class EufyCleanCoordinator(DataUpdateCoordinator[VacuumState]):
                             entry,
                         )
                 self._cleaning_history = valid
-            max_history = self.config_entry.options.get("max_cleaning_history", 100) if self.config_entry else 100
+            max_history = (
+                self.config_entry.options.get("max_cleaning_history", 100)
+                if self.config_entry
+                else 100
+            )
             self._cleaning_history = self._cleaning_history[-max_history:]
             _LOGGER.debug(
                 "Loaded storage for %s: segments=%s, catalog=%s, history=%d",

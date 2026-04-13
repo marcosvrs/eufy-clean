@@ -86,9 +86,7 @@ class TestBuildSetUnisettingCommand:
 
 
 def _sw_desc(field_name, icon):
-    return RoboVacUnisettingSwitchDescription(
-        field_name=field_name, icon=icon
-    )
+    return RoboVacUnisettingSwitchDescription(field_name=field_name, icon=icon)
 
 
 class TestUnisettingSwitch:

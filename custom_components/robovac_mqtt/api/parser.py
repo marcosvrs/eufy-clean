@@ -1164,9 +1164,13 @@ def _process_other_dps(
                         raw_bytes = base64.b64decode(value)
                         if raw_bytes:
                             try:
-                                size, pos = _decode_varint(raw_bytes, 0)
-                                if pos + size == len(raw_bytes):
-                                    raw_bytes = raw_bytes[pos:]
+                                size_raw: int
+                                pos_raw: int
+                                size_raw, pos_raw = _decode_varint(raw_bytes, 0)
+                                size_index: int = size_raw
+                                start_index: int = pos_raw
+                                if start_index + size_index == len(raw_bytes):
+                                    raw_bytes = raw_bytes[start_index:]
                             except Exception:
                                 pass
                         hex_dump = (

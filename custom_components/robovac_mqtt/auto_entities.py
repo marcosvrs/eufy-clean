@@ -343,7 +343,9 @@ def get_auto_selects(
                 options_map = _parse_enum_options(entry)
                 if not options_map:
                     continue
-                override = cast(dict[str, Any], {**override, "options_map": options_map})
+                override = cast(
+                    dict[str, Any], {**override, "options_map": options_map}
+                )
             entities.append(AutoSelect(coordinator, dp_id_str, code, override))
     return entities
 

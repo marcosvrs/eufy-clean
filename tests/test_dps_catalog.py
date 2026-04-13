@@ -514,7 +514,9 @@ async def test_sensor_entity_gating_excludes_station_sensors():
     hass = MagicMock()
     config_entry = MagicMock()
     config_entry.entry_id = "test_entry"
-    config_entry.runtime_data = EufyCleanData(coordinators={coord.device_id: coord}, cloud=MagicMock())
+    config_entry.runtime_data = EufyCleanData(
+        coordinators={coord.device_id: coord}, cloud=MagicMock()
+    )
 
     added = []
     await async_setup_entry(hass, config_entry, lambda ents: added.extend(ents))
@@ -538,7 +540,9 @@ async def test_select_entity_gating_excludes_scene_when_unsupported():
     hass = MagicMock()
     config_entry = MagicMock()
     config_entry.entry_id = "test_entry"
-    config_entry.runtime_data = EufyCleanData(coordinators={coord.device_id: coord}, cloud=MagicMock())
+    config_entry.runtime_data = EufyCleanData(
+        coordinators={coord.device_id: coord}, cloud=MagicMock()
+    )
 
     added = []
     await async_setup_entry(hass, config_entry, lambda ents: added.extend(ents))
@@ -558,7 +562,9 @@ async def test_switch_entity_gating_excludes_dock_switches():
     hass = MagicMock()
     config_entry = MagicMock()
     config_entry.entry_id = "test_entry"
-    config_entry.runtime_data = EufyCleanData(coordinators={coord.device_id: coord}, cloud=MagicMock())
+    config_entry.runtime_data = EufyCleanData(
+        coordinators={coord.device_id: coord}, cloud=MagicMock()
+    )
 
     added = []
     await async_setup_entry(hass, config_entry, lambda ents: added.extend(ents))
@@ -584,7 +590,9 @@ async def test_sensor_setup_includes_auto_sensors():
     hass = MagicMock()
     config_entry = MagicMock()
     config_entry.entry_id = "test_entry"
-    config_entry.runtime_data = EufyCleanData(coordinators={coord.device_id: coord}, cloud=MagicMock())
+    config_entry.runtime_data = EufyCleanData(
+        coordinators={coord.device_id: coord}, cloud=MagicMock()
+    )
 
     added = []
     await async_setup_entry(hass, config_entry, lambda ents: added.extend(ents))
@@ -610,7 +618,9 @@ async def test_select_setup_includes_auto_selects():
     hass = MagicMock()
     config_entry = MagicMock()
     config_entry.entry_id = "test_entry"
-    config_entry.runtime_data = EufyCleanData(coordinators={coord.device_id: coord}, cloud=MagicMock())
+    config_entry.runtime_data = EufyCleanData(
+        coordinators={coord.device_id: coord}, cloud=MagicMock()
+    )
 
     added = []
     await async_setup_entry(hass, config_entry, lambda ents: added.extend(ents))
@@ -637,7 +647,9 @@ async def test_switch_setup_includes_auto_switches():
     hass = MagicMock()
     config_entry = MagicMock()
     config_entry.entry_id = "test_entry"
-    config_entry.runtime_data = EufyCleanData(coordinators={coord.device_id: coord}, cloud=MagicMock())
+    config_entry.runtime_data = EufyCleanData(
+        coordinators={coord.device_id: coord}, cloud=MagicMock()
+    )
 
     added = []
     await async_setup_entry(hass, config_entry, lambda ents: added.extend(ents))
@@ -673,7 +685,9 @@ async def test_auto_numbers_added_to_number_setup():
     hass = MagicMock()
     config_entry = MagicMock()
     config_entry.entry_id = "test_entry"
-    config_entry.runtime_data = EufyCleanData(coordinators={coord.device_id: coord}, cloud=MagicMock())
+    config_entry.runtime_data = EufyCleanData(
+        coordinators={coord.device_id: coord}, cloud=MagicMock()
+    )
     added = []
     await async_setup_entry(hass, config_entry, lambda ents: added.extend(ents))
     auto_numbers = [e for e in added if isinstance(e, AutoNumber)]
@@ -699,7 +713,9 @@ async def test_dock_buttons_gated_when_station_status_missing():
     hass = MagicMock()
     config_entry = MagicMock()
     config_entry.entry_id = "test_entry"
-    config_entry.runtime_data = EufyCleanData(coordinators={coord.device_id: coord}, cloud=MagicMock())
+    config_entry.runtime_data = EufyCleanData(
+        coordinators={coord.device_id: coord}, cloud=MagicMock()
+    )
     added = []
     await async_setup_entry(hass, config_entry, lambda ents: added.extend(ents))
     unique_ids = [getattr(e, "_attr_unique_id", "") for e in added]
@@ -724,7 +740,9 @@ async def test_accessory_reset_buttons_gated_when_accessories_missing():
     hass = MagicMock()
     config_entry = MagicMock()
     config_entry.entry_id = "test_entry"
-    config_entry.runtime_data = EufyCleanData(coordinators={coord.device_id: coord}, cloud=MagicMock())
+    config_entry.runtime_data = EufyCleanData(
+        coordinators={coord.device_id: coord}, cloud=MagicMock()
+    )
     added = []
     await async_setup_entry(hass, config_entry, lambda ents: added.extend(ents))
     unique_ids = [getattr(e, "_attr_unique_id", "") for e in added]
@@ -754,7 +772,9 @@ async def test_binary_sensor_setup_includes_auto_binary_sensors():
     hass = MagicMock()
     config_entry = MagicMock()
     config_entry.entry_id = "test_entry"
-    config_entry.runtime_data = EufyCleanData(coordinators={coord.device_id: coord}, cloud=MagicMock())
+    config_entry.runtime_data = EufyCleanData(
+        coordinators={coord.device_id: coord}, cloud=MagicMock()
+    )
     added = []
     await async_setup_entry(hass, config_entry, lambda ents: added.extend(ents))
     auto_bs = [e for e in added if isinstance(e, AutoBinarySensor)]
@@ -779,7 +799,9 @@ async def test_binary_sensor_charging_always_created():
     hass = MagicMock()
     config_entry = MagicMock()
     config_entry.entry_id = "test_entry"
-    config_entry.runtime_data = EufyCleanData(coordinators={coord.device_id: coord}, cloud=MagicMock())
+    config_entry.runtime_data = EufyCleanData(
+        coordinators={coord.device_id: coord}, cloud=MagicMock()
+    )
     added = []
     await async_setup_entry(hass, config_entry, lambda ents: added.extend(ents))
     unique_ids = [getattr(e, "_attr_unique_id", "") for e in added]
@@ -803,7 +825,9 @@ async def test_time_gating_excludes_dnd_without_undisturbed():
     hass = MagicMock()
     config_entry = MagicMock()
     config_entry.entry_id = "test_entry"
-    config_entry.runtime_data = EufyCleanData(coordinators={coord.device_id: coord}, cloud=MagicMock())
+    config_entry.runtime_data = EufyCleanData(
+        coordinators={coord.device_id: coord}, cloud=MagicMock()
+    )
     added = []
     await async_setup_entry(hass, config_entry, lambda ents: added.extend(ents))
     assert len(added) == 0

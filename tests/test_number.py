@@ -60,7 +60,9 @@ async def test_dock_number_native_value_returns_none_on_getter_error(
 
 
 @pytest.mark.asyncio
-async def test_dock_number_set_value_preserves_existing_config(mock_coordinator: MagicMock):
+async def test_dock_number_set_value_preserves_existing_config(
+    mock_coordinator: MagicMock,
+):
     """Updating the number deep-copies dock config before mutation."""
     original_cfg = {
         "wash": {"wash_freq": {"time_or_area": {"value": 15}}},

@@ -174,7 +174,9 @@ async def test_connect_starts_listener_and_waits_for_connection() -> None:
         client._connected = True
         client._connected_event.set()
 
-    with patch.object(client, "_run_listener", new=AsyncMock(side_effect=_fake_run_listener)):
+    with patch.object(
+        client, "_run_listener", new=AsyncMock(side_effect=_fake_run_listener)
+    ):
         await client.connect()
 
     assert client._listener_task is not None
@@ -200,7 +202,9 @@ async def test_build_tls_params_passes_expected_tls_settings() -> None:
 async def test_run_listener_connects_subscribes_and_receives_messages() -> None:
     """Listener configures aiomqtt, subscribes, and forwards payloads."""
     client = _make_client()
-    on_message = MagicMock(side_effect=lambda payload: setattr(client, "_shutdown", True))
+    on_message = MagicMock(
+        side_effect=lambda payload: setattr(client, "_shutdown", True)
+    )
     on_connect = MagicMock()
     client.set_on_message(on_message)
     client.set_on_connect(on_connect)
@@ -209,7 +213,10 @@ async def test_run_listener_connects_subscribes_and_receives_messages() -> None:
 
     with (
         patch.object(client, "_build_tls_params", return_value="tls-params"),
-        patch("custom_components.robovac_mqtt.api.client.aiomqtt.Client", return_value=fake_mqtt_client) as mock_client,
+        patch(
+            "custom_components.robovac_mqtt.api.client.aiomqtt.Client",
+            return_value=fake_mqtt_client,
+        ) as mock_client,
     ):
         await client._run_listener()
 
@@ -241,7 +248,9 @@ async def test_send_bytes_publishes_when_connected() -> None:
 
 
 @pytest.mark.asyncio
-async def test_run_listener_marks_disconnected_and_reconnects_after_mqtt_error() -> None:
+async def test_run_listener_marks_disconnected_and_reconnects_after_mqtt_error() -> (
+    None
+):
     """MQTT errors clear connection state and trigger reconnect delay."""
     client = _make_client()
     client._client_id = "client-123"
@@ -253,7 +262,9 @@ async def test_run_listener_marks_disconnected_and_reconnects_after_mqtt_error()
             "custom_components.robovac_mqtt.api.client.aiomqtt.Client",
             side_effect=[mqtt_error, asyncio.CancelledError()],
         ),
-        patch("custom_components.robovac_mqtt.api.client.asyncio.sleep", new=AsyncMock()) as mock_sleep,
+        patch(
+            "custom_components.robovac_mqtt.api.client.asyncio.sleep", new=AsyncMock()
+        ) as mock_sleep,
         patch.object(client, "_mark_disconnected") as mock_mark,
     ):
         with pytest.raises(asyncio.CancelledError):

@@ -117,8 +117,10 @@ class EufyHTTPClient:
                             "Failed to parse login response as JSON", exc_info=True
                         )
 
-                    if response.status == 200 and response_json and response_json.get(
-                        "access_token"
+                    if (
+                        response.status == 200
+                        and response_json
+                        and response_json.get("access_token")
                     ):
                         _LOGGER.debug("eufyLogin successful")
                         self.session = _as_dict(response_json)
@@ -207,7 +209,9 @@ class EufyHTTPClient:
                         return [device["device"] for device in devices]
                     if response.status in (401, 403):
                         raise EufyAuthError("Authentication failed")
-                    _LOGGER.warning("get_device_list failed: status %s", response.status)
+                    _LOGGER.warning(
+                        "get_device_list failed: status %s", response.status
+                    )
                     return []
         except (aiohttp.ClientError, asyncio.TimeoutError) as err:
             raise EufyConnectionError(str(err)) from err
@@ -234,8 +238,10 @@ class EufyHTTPClient:
                     json={"product_code": product_code, "code": product_code},
                 ) as response:
                     if response.status == 200:
-                         data = _as_dict(await response.json())
-                         return _as_list_of_dicts(data.get("data", {}).get("data_point_list", []))
+                        data = _as_dict(await response.json())
+                        return _as_list_of_dicts(
+                            data.get("data", {}).get("data_point_list", [])
+                        )
                     if response.status in (401, 403):
                         raise EufyAuthError("Authentication failed")
                     _LOGGER.warning(

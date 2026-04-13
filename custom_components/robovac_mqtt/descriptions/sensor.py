@@ -36,9 +36,7 @@ class RoboVacSensorDescription(SensorEntityDescription):
     enabled_default: bool = True
 
 
-def _make_accessory_remaining_desc(
-    attr: str, icon: str
-) -> RoboVacSensorDescription:
+def _make_accessory_remaining_desc(attr: str, icon: str) -> RoboVacSensorDescription:
     key = attr.replace("_usage", "_remaining")
     max_life = ACCESSORY_MAX_LIFE.get(attr, 0)
     return RoboVacSensorDescription(
@@ -60,9 +58,7 @@ def _make_accessory_remaining_desc(
     )
 
 
-def _make_consumable_usage_desc(
-    attr: str, icon: str
-) -> RoboVacSensorDescription:
+def _make_consumable_usage_desc(attr: str, icon: str) -> RoboVacSensorDescription:
     return RoboVacSensorDescription(
         key=attr,
         device_class=SensorDeviceClass.DURATION,
@@ -504,41 +500,19 @@ SENSOR_DESCRIPTIONS: tuple[RoboVacSensorDescription, ...] = (
         value_fn=lambda s: s.media_last_capture_path or None,
         availability_fn=lambda s: "media_last_capture" in s.received_fields,
     ),
-    _make_accessory_remaining_desc(
-        "filter_usage", "mdi:air-filter"
-    ),
-    _make_accessory_remaining_desc(
-        "main_brush_usage", "mdi:broom"
-    ),
-    _make_accessory_remaining_desc(
-        "side_brush_usage", "mdi:broom"
-    ),
-    _make_accessory_remaining_desc(
-        "sensor_usage", "mdi:eye-outline"
-    ),
-    _make_accessory_remaining_desc(
-        "scrape_usage", "mdi:wiper"
-    ),
+    _make_accessory_remaining_desc("filter_usage", "mdi:air-filter"),
+    _make_accessory_remaining_desc("main_brush_usage", "mdi:broom"),
+    _make_accessory_remaining_desc("side_brush_usage", "mdi:broom"),
+    _make_accessory_remaining_desc("sensor_usage", "mdi:eye-outline"),
+    _make_accessory_remaining_desc("scrape_usage", "mdi:wiper"),
     _make_accessory_remaining_desc("mop_usage", "mdi:water"),
     _make_consumable_usage_desc("dustbag_usage", "mdi:delete"),
-    _make_consumable_usage_desc(
-        "dirty_watertank_usage", "mdi:water-alert"
-    ),
-    _make_consumable_usage_desc(
-        "dirty_waterfilter_usage", "mdi:water-check"
-    ),
-    _make_consumable_usage_desc(
-        "accessory_12_usage", "mdi:tools"
-    ),
-    _make_consumable_usage_desc(
-        "accessory_13_usage", "mdi:tools"
-    ),
-    _make_consumable_usage_desc(
-        "accessory_15_usage", "mdi:tools"
-    ),
-    _make_consumable_usage_desc(
-        "accessory_19_usage", "mdi:tools"
-    ),
+    _make_consumable_usage_desc("dirty_watertank_usage", "mdi:water-alert"),
+    _make_consumable_usage_desc("dirty_waterfilter_usage", "mdi:water-check"),
+    _make_consumable_usage_desc("accessory_12_usage", "mdi:tools"),
+    _make_consumable_usage_desc("accessory_13_usage", "mdi:tools"),
+    _make_consumable_usage_desc("accessory_15_usage", "mdi:tools"),
+    _make_consumable_usage_desc("accessory_19_usage", "mdi:tools"),
 )
 
 assert len(SENSOR_DESCRIPTIONS) == 60

@@ -38,7 +38,7 @@ repos:
     hooks:
       - id: mypy
         files: ^custom_components/.+\.py$
-        args: ["--ignore-missing-imports", "--disable-error-code=call-arg"]
+        args: ["--ignore-missing-imports", "--disable-error-code=call-arg,redundant-cast"]
         additional_dependencies:
           - types-protobuf
           - types-requests

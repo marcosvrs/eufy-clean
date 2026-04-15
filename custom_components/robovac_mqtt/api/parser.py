@@ -1805,24 +1805,34 @@ def _parse_analysis_response(
 
     if analysis.HasField("statistics") and analysis.statistics.HasField("battery_info"):
         bat = analysis.statistics.battery_info
-        if bat.real_level is not None:
-            changes["battery_real_level"] = bat.real_level
-            _track_field(state, changes, "battery_real_level")
-        if bat.voltage is not None:
-            changes["battery_voltage"] = bat.voltage
-            _track_field(state, changes, "battery_voltage")
-        if bat.current is not None:
-            changes["battery_current"] = bat.current
-            _track_field(state, changes, "battery_current")
-        if bat.temperature:
-            changes["battery_temperature"] = round(bat.temperature[0] / 1000.0, 1)
-            _track_field(state, changes, "battery_temperature")
-        if bat.show_level is not None:
-            changes["battery_show_level"] = bat.show_level
-            _track_field(state, changes, "battery_show_level")
-        if bat.update_time:
-            changes["battery_update_time"] = bat.update_time
-            _track_field(state, changes, "battery_update_time")
+        # Guard: the device periodically sends a "heartbeat" analysis message
+        # with ALL battery fields zeroed out, immediately followed by a real
+        # message with actual values. Accepting the zeroed message causes the
+        # battery sensors to flicker 0→real→0→real every ~10 seconds, which
+        # floods any below-threshold automations.  Discard when all key
+        # indicators are simultaneously zero (real_level, voltage, current).
+        _is_empty_heartbeat = (
+            bat.real_level == 0 and bat.voltage == 0 and bat.current == 0
+        )
+        if not _is_empty_heartbeat:
+            if bat.real_level is not None:
+                changes["battery_real_level"] = bat.real_level
+                _track_field(state, changes, "battery_real_level")
+            if bat.voltage is not None:
+                changes["battery_voltage"] = bat.voltage
+                _track_field(state, changes, "battery_voltage")
+            if bat.current is not None:
+                changes["battery_current"] = bat.current
+                _track_field(state, changes, "battery_current")
+            if bat.temperature:
+                changes["battery_temperature"] = round(bat.temperature[0] / 1000.0, 1)
+                _track_field(state, changes, "battery_temperature")
+            if bat.show_level is not None:
+                changes["battery_show_level"] = bat.show_level
+                _track_field(state, changes, "battery_show_level")
+            if bat.update_time:
+                changes["battery_update_time"] = bat.update_time
+                _track_field(state, changes, "battery_update_time")
 
     if analysis.HasField("statistics"):
         stats = analysis.statistics

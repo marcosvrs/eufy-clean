@@ -77,6 +77,9 @@ async def async_setup_entry(
 
         entities.extend(get_auto_switches(coordinator))
 
+        for schedule in coordinator.data.schedules:
+            entities.append(ScheduleSwitchEntity(coordinator, schedule))
+
     async_add_entities(entities)
 
 
@@ -409,3 +412,51 @@ class MediaRecordingSwitchEntity(CoordinatorEntity[EufyCleanCoordinator], Switch
         self.coordinator.async_set_updated_data(
             replace(self.coordinator.data, media_recording=state)
         )
+
+
+class ScheduleSwitchEntity(CoordinatorEntity[EufyCleanCoordinator], SwitchEntity):
+
+    def __init__(
+        self,
+        coordinator: EufyCleanCoordinator,
+        schedule: dict[str, Any],
+    ) -> None:
+        super().__init__(coordinator)
+        self._schedule_id: int = schedule.get("id", 0)
+        label = schedule.get("action_label", f"Schedule {self._schedule_id}")
+        slug = label.lower().replace(" ", "_").replace(":", "")
+        self._attr_unique_id = f"{coordinator.device_id}_schedule_{self._schedule_id}"
+        self._attr_has_entity_name = True
+        self._attr_name = f"Schedule: {label}"
+        self._attr_icon = "mdi:calendar-clock"
+        self._attr_entity_category = EntityCategory.CONFIG
+        self._attr_device_info = coordinator.device_info
+
+    @property
+    def is_on(self) -> bool | None:
+        for s in self.coordinator.data.schedules:
+            if s.get("id") == self._schedule_id:
+                return s.get("enabled", False)
+        return None
+
+    @property
+    def available(self) -> bool:
+        return super().available and any(
+            s.get("id") == self._schedule_id for s in self.coordinator.data.schedules
+        )
+
+    async def async_turn_on(self, **kwargs: Any) -> None:
+        cmd = build_command(
+            "timer_open",
+            dps_map=self.coordinator.dps_map,
+            timer_id=self._schedule_id,
+        )
+        await self.coordinator.async_send_command(cmd)
+
+    async def async_turn_off(self, **kwargs: Any) -> None:
+        cmd = build_command(
+            "timer_close",
+            dps_map=self.coordinator.dps_map,
+            timer_id=self._schedule_id,
+        )
+        await self.coordinator.async_send_command(cmd)

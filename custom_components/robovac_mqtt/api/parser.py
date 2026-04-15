@@ -1519,17 +1519,13 @@ def _parse_multi_map_response(value: Any) -> dict[str, Any] | None:
             "method"
         ].enum_type
         method_name = (
-            method_enum.values_by_number.get(int(resp.method))
-            if method_enum
-            else None
+            method_enum.values_by_number.get(int(resp.method)) if method_enum else None
         )
         result_enum = MultiMapsManageResponse.DESCRIPTOR.fields_by_name[
             "result"
         ].enum_type
         result_name = (
-            result_enum.values_by_number.get(int(resp.result))
-            if result_enum
-            else None
+            result_enum.values_by_number.get(int(resp.result)) if result_enum else None
         )
 
         parsed: dict[str, Any] = {
@@ -1568,9 +1564,7 @@ def _parse_map_edit(value: Any) -> dict[str, Any] | None:
     try:
         request = decode(MapEditRequest, value)
         _log_proto_novelty("170", request, value)
-        method_enum = MapEditRequest.DESCRIPTOR.fields_by_name[
-            "method"
-        ].enum_type
+        method_enum = MapEditRequest.DESCRIPTOR.fields_by_name["method"].enum_type
         method_name = (
             method_enum.values_by_number.get(int(request.method))
             if method_enum

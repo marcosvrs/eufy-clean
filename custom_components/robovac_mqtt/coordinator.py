@@ -494,9 +494,9 @@ class EufyCleanCoordinator(DataUpdateCoordinator[VacuumState]):
             _LOGGER.warning("Pending dock status was None when timer fired!")
             return
 
-        # Apply the final dock status to the current data
+        if final_dock != self.data.dock_status:
+            _LOGGER.info("Dock status committed: %s for %s", final_dock, self.device_name)
         committed_state = replace(self.data, dock_status=final_dock)
-        _LOGGER.info("Dock status committed: %s for %s", final_dock, self.device_name)
         self.async_set_updated_data(committed_state)
 
     @callback

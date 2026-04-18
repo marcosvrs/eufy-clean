@@ -297,6 +297,7 @@ class EufyCleanCalendar(CoordinatorEntity[EufyCleanCoordinator], CalendarEntity)
         | _CALENDAR_ENTITY_FEATURE.DELETE_EVENT
         | _CALENDAR_ENTITY_FEATURE.UPDATE_EVENT
     )
+    _last_event_count: int | None = None
 
     def __init__(self, coordinator: EufyCleanCoordinator) -> None:
         super().__init__(coordinator)
@@ -463,12 +464,14 @@ class EufyCleanCalendar(CoordinatorEntity[EufyCleanCoordinator], CalendarEntity)
                 events.append(sched_ev)
 
         events.sort(key=lambda e: e.start)
-        _LOGGER.debug(
-            "Calendar expanded %d events (history=%d, schedules=%d)",
-            len(events),
-            len(self.coordinator.cleaning_history),
-            len(self.coordinator.data.schedules),
-        )
+        if len(events) != self._last_event_count:
+            _LOGGER.debug(
+                "Calendar expanded %d events (history=%d, schedules=%d)",
+                len(events),
+                len(self.coordinator.cleaning_history),
+                len(self.coordinator.data.schedules),
+            )
+            self._last_event_count = len(events)
         return events
 
     @staticmethod

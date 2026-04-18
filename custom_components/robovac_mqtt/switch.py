@@ -424,7 +424,6 @@ class ScheduleSwitchEntity(CoordinatorEntity[EufyCleanCoordinator], SwitchEntity
         super().__init__(coordinator)
         self._schedule_id: int = schedule.get("id", 0)
         label = schedule.get("action_label", f"Schedule {self._schedule_id}")
-        slug = label.lower().replace(" ", "_").replace(":", "")
         self._attr_unique_id = f"{coordinator.device_id}_schedule_{self._schedule_id}"
         self._attr_has_entity_name = True
         self._attr_name = f"Schedule: {label}"

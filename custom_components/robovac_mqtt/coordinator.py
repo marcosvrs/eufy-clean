@@ -495,7 +495,9 @@ class EufyCleanCoordinator(DataUpdateCoordinator[VacuumState]):
             return
 
         if final_dock != self.data.dock_status:
-            _LOGGER.info("Dock status committed: %s for %s", final_dock, self.device_name)
+            _LOGGER.info(
+                "Dock status committed: %s for %s", final_dock, self.device_name
+            )
         committed_state = replace(self.data, dock_status=final_dock)
         self.async_set_updated_data(committed_state)
 

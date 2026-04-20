@@ -1,66 +1,86 @@
-# DPS 179 — Robot Telemetry
+# DPS 179 — Robot Telemetry (AnalysisResponse)
 
-DPS 179 is an unhandled Data Point Service that provides **high-fidelity, real-time robot telemetry**. DPS 179 fires approximately every **2 seconds** during active operations.
+DPS 179 provides real-time robot telemetry including position tracking, battery analysis, cleaning session records, and go-home results. It fires approximately every **2 seconds** during active operations and every **15-20 seconds** while idle.
 
 > [!NOTE]
-> This analysis is based on payloads captured from a T2351 (X10 Pro Omni). Field patterns suggest a consolidated telemetry format designed specifically for live path tracking and session reporting.
+> This analysis is based on payloads captured from a T2351 (X10 Pro Omni). All fields described below are fully parsed by the integration.
 
-## Message Structure
+## Parsed Fields
 
-All payloads are **length-prefixed protobuf** messages. The telemetry data is typically wrapped in field 7 (positional) or field 2/11/13 (summaries).
+### Position Tracking (`status`)
+| Field | VacuumState | Type | Description |
+|-------|------------|------|-------------|
+| `status.robot_position_x` | `robot_position_x` | int | X coordinate (device-relative units) |
+| `status.robot_position_y` | `robot_position_y` | int | Y coordinate (device-relative units) |
+| `status.robotapp_state` | `robotapp_state` | str | Application state string |
+| `status.motion_state` | `motion_state` | str | Motion state string |
 
-### 1. Real-Time Position Telemetry (~28 bytes)
-Broadcast every 2s while `state` is `CLEANING` or `GO_HOME`.
+### Battery Analysis (`statistics.battery_info`)
+| Field | VacuumState | Type | Description |
+|-------|------------|------|-------------|
+| `battery_info.real_level` | `battery_real_level` | int | Actual battery percentage (0-100) |
+| `battery_info.show_level` | `battery_show_level` | int | Smoothed display percentage |
+| `battery_info.voltage` | `battery_voltage` | int | Battery voltage in mV (~13900-16500) |
+| `battery_info.current` | `battery_current` | int | Current draw in mA (negative = discharging) |
+| `battery_info.temperature` | `battery_temperature` | float | Battery temperature in °C |
+| `battery_info.update_time` | `battery_update_time` | int | Unix timestamp of reading |
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `f7.f1` | uint32 | Unix Timestamp (seconds) |
-| `f7.f2` | uint32 | Battery Level (%) |
-| `f7.f4` | sint32 | **X Coordinate** (ZigZag encoded) |
-| `f5.f2` | sint32 | **Y Coordinate** (ZigZag encoded) |
+**Battery Heartbeat Guard**: The device sends a zeroed `battery_info` heartbeat every ~10 seconds with `real_level=0, voltage=0, current=0`. The integration discards these to prevent battery sensors from flickering 0→real→0→real, which would flood below-threshold automations.
 
-> [!CAUTION]
-> These coordinates are **relative** and currently "blind". Without a corresponding map reference point (typically found in **DPS 165**, which hasn't been observed yet for this model), these values cannot be accurately mapped to a floor plan. They are effectively offsets from an unknown origin.
+### Cleaning Session Records (`statistics.clean`)
+| Field | VacuumState | Type | Description |
+|-------|------------|------|-------------|
+| `clean.clean_area` | `last_clean_area` | int | Area cleaned (m²) |
+| `clean.clean_time` | `last_clean_time` | int | Duration (seconds, excludes pauses/washes) |
+| `clean.mode` | `last_clean_mode` | int | 0=AUTO, 1=ROOMS, 2=ZONES, 3=SPOT, 4=FAST_MAP |
+| `clean.start_time` | `last_clean_start` | int | Unix timestamp |
+| `clean.end_time` | `last_clean_end` | int | Unix timestamp |
+| `clean.result` | `last_clean_result` | bool | true=success, false=failure |
+| `clean.fail_code` | `last_clean_fail_code` | int | 0=UNKNOWN, 1=ROBOT_FAULT, 2=ROBOT_ALERT, 3=MANUAL_BREAK |
+| **Field 14** (firmware extension) | `last_clean_abort_error` | int | Error code that caused the session to abort (e.g., 7033) |
 
-**Visual Confirmation**: Logged coordinates oscillate precisely according to the robot's horizontal zigzag pattern across rectangular rooms.
+**Field 14**: This is a firmware extension not present in the proto definition. It contains the specific error code that caused a cleaning session to abort. The integration extracts it from protobuf UnknownFields. Observed with value `7033` (STATION EXPLORATION FAILED) during a failed cleaning session.
 
-#### Sample Telemetry Log (Active Cleaning)
-Captured at `08:07:01` — `08:07:09` during a Kitchen clean:
+### Go-Home Records (`statistics.gohome`)
+| Field | VacuumState | Type | Description |
+|-------|------------|------|-------------|
+| `gohome.result` | `last_gohome_result` | bool | true=docked, false=failed |
+| `gohome.fail_code` | `last_gohome_fail_code` | int | 0=UNKNOWN, 1=MANUAL_BREAK, 2=NAVIGATE_FAIL, 3=ENTER_HOME_FAIL |
+| `gohome.start_time` | `last_gohome_start` | int | Unix timestamp |
+| `gohome.end_time` | `last_gohome_end` | int | Unix timestamp |
 
-| Time | Raw Payload (Base64) | X (f7.f4) | Y (f7.f5) |
-|------|----------------------|-----------|-----------|
-| 01.6s | `HBIaOhgIlrujzgYQYxhiIPx9KIcOMgbO3QKg6gI=` | -8062 | 412200 |
-| 03.5s | `HBIaOhgIl7ujzgYQYxhiIP19KJcOMgbk3gK+6wI=` | -8125 | 412250 |
-| 05.4s | `HBIaOhgImrujzgYQYxhiIIB+KPENMgaA3gKg6gI=` | +8201 | 412416 |
-| 07.5s | `HBIaOhgInLujzgYQYxhiIPV9KO0OMgay3gKI6wI=` | -8053 | 412496 |
-| 09.0s | `HBIaOhgInbujzgYQYxhiIP99KO0NMgbk3gK+6wI=` | -8127 | 412573 |
+### Dust Collection (`statistics.dust_collect`)
+| Field | VacuumState | Type | Description |
+|-------|------------|------|-------------|
+| `dust_collect.result` | `dust_collect_result` | bool | true=success |
+| `dust_collect.start_time` | `dust_collect_start_time` | int | Unix timestamp |
+
+### Other Tracked Fields
+| Field | VacuumState | Description |
+|-------|------------|-------------|
+| `statistics.battery_curve` | `battery_discharge_curve` | Discharge curve data (logged, not surfaced) |
+| `statistics.ctrl_event` | `ctrl_event_type/source/timestamp` | Control events |
+| Various status flags | `upgrading`, `mapping_state`, `relocating`, etc. | Device status indicators |
+
+## Observed Battery Death Sequence (T2351)
+
+Captured during a controlled battery drain on 2026-04-20. The robot was stranded off-dock after a failed exploration (error 7033) and drained to 0%:
+
+| Time | DPS 163 (shown) | Real Level | Voltage (mV) | Current (mA) | Temp (°C) |
+|------|----------------|-----------|-------------|-------------|----------|
+| 09:49 | 7% | 7 | 14,106 | -146 | 19.4 |
+| 10:04 | 5% | 6 | 14,085 | -146 | 19.2 |
+| 10:38 | 4% | 4 | 14,034 | -148 | 18.9 |
+| 10:54 | 3% | 3 | 14,007 | -152 | 18.8 |
+| 11:09 | 2% | 2 | 13,982 | -145 | 18.7 |
+| 11:24 | 1% | 1 | 13,952 | -146 | 18.6 |
+| 11:24 | — | — | — | — | — |
+
+**Final message**: Error `5014` (DOCKING STATION POWER OFF) appeared in DPS 177. The robot's `power` field remained `True` until MQTT connection was lost — no graceful shutdown message.
+
+**Idle drain rate**: ~1% every 15 minutes at room temperature (18-19°C). Current draw: ~145-150 mA.
+
+## Visual Reference
 
 ![Cleaning Pattern](./cleaning_pattern.jpg)
 *Figure 1: Observed horizontal zigzag pattern in the Eufy Clean app (T2351).*
-
-### 2. End-of-Clean Summaries (22–107 bytes)
-Sent only when the robot reaches the `CHARGING` state after completing a task.
-
-- **Short Summary (f2)**: Contains lifetime statistics and session timestamps.
-- **Detailed Summary (f11/f13)**: Contains per-room cleaning records, including durations and possibly area coverage.
-
-#### Preliminary Correlation (Experimental)
-A single simultaneous capture of DPS 167 (Standard) and DPS 179 (High-Res) suggested the following relationship. **Note: These coefficients are hypothetical and require a larger sample set for verification.**
-
-| Metric | DPS 167 (Standard) | DPS 179 (High-Res) | Observed Ratio / Unit |
-|--------|----------------|----------------|-------------------------|
-| **Duration** | 1050s (17m 30s) | 1744 | **Centiminutes?**: `1744 / 100 = 17.44 min` (~17m 26s). |
-| **Area** | 8 m² | 1533 | **Scale?**: `1533 / 191.6 ≈ 8 m²`. |
-
-> [!WARNING]
-> These values are based on a **sample size of 1**. The exact scaling factors and units are speculative and may vary based on map resolution, cleaning mode, or firmware version. Further captures are required to confirm the linear relationship.
-
----
-
-### 3. Cleanup/Reset Payload (35 bytes)
-Sent during the `DRYING` phase (docked). 
-`IxIhggEeEhwKGgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA`
-- Contains a sequence of null bytes.
-- Likely signals the end of the telemetry session and resets the local buffer.
-
----

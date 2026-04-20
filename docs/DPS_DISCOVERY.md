@@ -1,6 +1,6 @@
 # Eufy X10 Pro Omni (T2351) — Cloud API DPS Discovery
 
-## Date: 2026-04-06
+## Date: 2026-04-20 (updated)
 
 ## Source
 
@@ -17,35 +17,35 @@ Auth headers: `x-auth-token` (user_center_token), `gtoken` (md5 of user_center_i
 | DPS | Cloud Code | Mode | Type | Description (translated) | Integration Status |
 |-----|-----------|------|------|--------------------------|-------------------|
 | 150 | proto | rw | String | Reserved. Not used. | Skipped ✅ |
-| 151 | power | rw | Bool | Send: false=shutdown. Report: false=shutting down, true=just booted and connected | **NOT PARSED** |
+| 151 | power | rw | Bool | Send: false=shutdown. Report: false=shutting down, true=just booted and connected | Parsed ✅ — Binary sensor (power) |
 | 152 | mode_ctrl | rw | Raw | Send: ModeCtrlRequest. Report: ModeCtrlResponse | Parsed ✅ |
 | 153 | work_status | rw | Raw | Send: None. Report: WorkStatus | Parsed ✅ |
 | 154 | clean_params | rw | Raw | Send: CleanParamRequest. Report: CleanParamResponse | Parsed ✅ |
-| 155 | remote_ctrl | rw | Enum | Remote control. App enters RC mode via ModeCtrlRequest | **MISLABELED as DIRECTION** |
-| 156 | pause_job | rw | Bool | Pause current job | **MISLABELED as MULTI_MAP_SW** |
-| 157 | dnd | rw | Raw | Send: UndisturbedRequest. Report: UndisturbedResponse | **NOT PARSED — Do Not Disturb** |
+| 155 | remote_ctrl | rw | Enum | Remote control. App enters RC mode via ModeCtrlRequest | Logged (UNHANDLED — RC state derived from WorkStatus) |
+| 156 | pause_job | rw | Bool | Pause current job | Logged (UNHANDLED — pause derived from WorkStatus) |
+| 157 | dnd | rw | Raw | Send: UndisturbedRequest. Report: UndisturbedResponse | Parsed ✅ — DND switch + time entities |
 | 158 | suction_level | rw | Enum | Suction level setting | Parsed ✅ |
-| 159 | boost_iq | rw | Bool | Boost IQ (auto-boost on carpet) | **NOT PARSED — Switch candidate** |
+| 159 | boost_iq | rw | Bool | Boost IQ (auto-boost on carpet) | Parsed ✅ — Switch entity |
 | 160 | calling_robot | rw | Bool | Find robot / locate | Parsed ✅ |
-| 161 | volume | rw | Value | Voice volume. Range: 0-100, step: 1 | **NOT PARSED — Number candidate** |
-| 162 | user_language | rw | Raw | Send: LanguageRequest. Report: LanguageResponse | **NOT PARSED** |
-| 163 | bat_level | ro | Value | Battery level percentage | Parsed ✅ |
-| 164 | timing | rw | Raw | Send: TimerRequest. Report: TimerResponse | **MISLABELED as MAP_EDIT** |
-| 165 | reserved2 | rw | Raw | Reserved (NOT map data for T2351!) | **MISLABELED as MAP_DATA** |
-| 166 | log_debug | rw | Raw | Send: DebugRequest. Report: DebugResponse | **MISLABELED as MAP_STREAM** |
+| 161 | volume | rw | Value | Voice volume. Range: 0-100, step: 1 | Parsed ✅ — Number entity |
+| 162 | user_language | rw | Raw | Send: LanguageRequest. Report: LanguageResponse | Skipped (low value — language config) |
+| 163 | bat_level | ro | Value | Battery level percentage | Parsed ✅ — Sensor (SensorDeviceClass.BATTERY) |
+| 164 | timing | rw | Raw | Send: TimerRequest. Report: TimerResponse | Parsed ✅ — Schedule calendar + switch entities |
+| 165 | reserved2 | rw | Raw | Reserved (NOT map data for T2351!) — Room segments via RoomParams | Parsed ✅ — Room segments |
+| 166 | log_debug | rw | Raw | Send: DebugRequest. Report: DebugResponse | Skipped (debug protocol, low value) |
 | 167 | clean_statistics | rw | Raw | Send: None. Report: CleanStatistics | Parsed ✅ |
 | 168 | consumables | w | Raw | Send: ConsumableRequest. Report: ConsumableRuntime | Parsed ✅ |
-| 169 | app_dev_info | rw | Raw | Send: AppInfo. Report: DeviceInfo | Parsed (partially) ✅ |
-| 170 | map_edit | rw | Raw | Send: MapEditRequest. Report: MapEditResponse | Parsed ✅ |
-| 171 | multi_maps_ctrl | rw | Raw | Send: MultiMapsCtrlRequest. Report: MultiMapsCtrlResponse | **NOT PARSED — Multi-map control** |
-| 172 | multi_maps_mng | rw | Raw | Send: MultiMapsManageRequest. Report: MultiMapsManageResponse | **NOT PARSED — Multi-map management** |
+| 169 | app_dev_info | rw | Raw | Send: AppInfo. Report: DeviceInfo | Parsed ✅ — Device info, firmware, WiFi |
+| 170 | map_edit | rw | Raw | Send: MapEditRequest. Report: MapEditResponse | Parsed ✅ — Map edit diagnostic sensor |
+| 171 | multi_maps_ctrl | rw | Raw | Send: MultiMapsCtrlRequest. Report: MultiMapsCtrlResponse | Parsed ✅ — Multi-map diagnostic |
+| 172 | multi_maps_mng | rw | Raw | Send: MultiMapsManageRequest. Report: MultiMapsManageResponse | Parsed ✅ — Multi-map management diagnostic |
 | 173 | station | rw | Raw | Send: StationRequest. Report: StationResponse | Parsed ✅ |
-| 174 | media_manager | rw | Raw | Send: MediaManagerRequest. Report: MediaManagerResponse | **NOT PARSED — Media management** |
+| 174 | media_manager | rw | Raw | Send: MediaManagerRequest. Report: MediaManagerResponse | Parsed ✅ — Media capture, record, resolution |
 | 175 | reserved3 | rw | String | Reserved | Skipped ✅ |
-| 176 | unisetting | rw | Raw | Universal device settings | Parsed (partially) ✅ |
-| 177 | error_warning | rw | Raw | Send: ErrorCode (suppression list). Report: ErrorCode | Parsed ✅ |
-| 178 | toast | rw | Raw | Send: PromptCode (suppression list). Report: PromptCode | **MISLABELED as keepalive** |
-| 179 | analysis | rw | Raw | Send: AnalysisRequest. Report: AnalysisResponse | Parsed (telemetry) ✅ |
+| 176 | unisetting | rw | Raw | Universal device settings | Parsed ✅ — Switches (AI, pet mode, child lock, etc.) |
+| 177 | error_warning | rw | Raw | Send: ErrorCode (suppression list). Report: ErrorCode | Parsed ✅ — Error sensor + new_code parsing |
+| 178 | toast | rw | Raw | Send: PromptCode (suppression list). Report: PromptCode | Parsed ✅ — Notification sensor (58 mapped codes) |
+| 179 | analysis | rw | Raw | Send: AnalysisRequest. Report: AnalysisResponse | Parsed ✅ — Position, battery, clean records, go-home |
 | 180 | scenes | w | Raw | Send: SceneRequest. Report: SceneResponse | Parsed ✅ |
 
 ## Critical DPS Naming Discrepancies
@@ -65,39 +65,24 @@ The integration's `const.py` DPS_MAP was built from older Eufy models. For the T
 
 ## New Feature Opportunities
 
-### Tier 1: Already in VacuumState, Just Need HA Entities
+### Tier 1: Remaining Unparsed DPS Keys
 
-These fields are already parsed from MQTT into VacuumState but have no corresponding HA entity:
+Only 3 DPS keys remain unprocessed (all low value):
 
-| Feature | VacuumState Field | Suggested Entity | Notes |
-|---------|------------------|-----------------|-------|
-| Waste water tank level | `station_waste_water` | Sensor (%) | Shows dock dirty water level |
-| Trigger source | `trigger_source` | Sensor | "app", "button", "schedule", "robot", "remote_control" |
-| Carpet strategy | `carpet_strategy` | Select | "Auto Raise", "Avoid", "Ignore" |
-| Corner cleaning | `corner_cleaning` | Select | "Normal", "Deep" |
-| Smart mode | `smart_mode` | Switch | Intelligent cleaning toggle |
+| DPS | Cloud Code | Reason |
+|-----|-----------|--------|
+| 150 | proto | Reserved, always None |
+| 162 | user_language | Language config — not useful for HA |
+| 166 | log_debug | Debug protocol — not useful for HA |
 
-### Tier 2: New DPS Keys to Parse + Expose
+DPS 155 (remote_ctrl) and 156 (pause_job) are logged as UNHANDLED because their state is already derived from WorkStatus (DPS 153).
 
-These DPS keys arrive via MQTT but are not parsed at all:
+### Tier 2: Remaining Investigation Targets
 
-| DPS | Feature | Entity Type | Protobuf | Effort |
-|-----|---------|------------|----------|--------|
-| 157 | Do Not Disturb | Switch + Time config | UndisturbedRequest/Response | Medium |
-| 159 | Boost IQ | Switch | Bool (simple) | Low |
-| 161 | Volume | Number (0-100) | Value (simple) | Low |
-| 151 | Power state | Binary Sensor | Bool (simple) | Low |
-| 156 | Pause job | Switch | Bool (simple) | Low |
-
-### Tier 3: Advanced Features (Need Investigation)
-
-| DPS | Feature | Notes |
-|-----|---------|-------|
-| 171 | Multi-map control | Switch between saved floor maps |
-| 172 | Multi-map management | Rename/delete saved maps |
-| 174 | Media manager | Unknown purpose — needs capture + decode |
-| 162 | Language setting | Change voice language |
-| 178 | Toast/prompts | Notification messages from device |
+| Feature | Notes |
+|---------|-------|
+| Map data (MEGA API) | Requires `X-Encryption-Info` header — needs app traffic capture |
+| S3 map storage | Requires different auth — `get_oss_config` returns 401 |
 
 ## Cloud API Endpoints Discovered
 

@@ -868,6 +868,12 @@ def _process_other_dps(
                 error_proto = decode(ErrorCode, value)
                 _log_proto_novelty("177", error_proto, value)
                 all_codes = list(error_proto.error) + list(error_proto.warn)
+                if error_proto.HasField("new_code"):
+                    new_errors = list(error_proto.new_code.error)
+                    new_warns = list(error_proto.new_code.warn)
+                    for nc in new_errors + new_warns:
+                        if nc not in all_codes:
+                            all_codes.append(nc)
                 changes["error_codes_all"] = all_codes
                 changes["error_messages_all"] = [
                     EUFY_CLEAN_ERROR_CODES.get(c, f"Unknown ({c})") for c in all_codes

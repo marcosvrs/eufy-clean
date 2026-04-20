@@ -217,6 +217,9 @@ class VacuumState:
     last_clean_mode: int = 0
     last_clean_start: int = 0
     last_clean_end: int = 0
+    last_clean_result: bool = True
+    last_clean_fail_code: int = 0
+    last_clean_abort_error: int = 0
     last_gohome_result: bool = False
     last_gohome_fail_code: int = 0
     last_gohome_start: int = 0

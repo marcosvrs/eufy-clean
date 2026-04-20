@@ -1844,6 +1844,22 @@ def _parse_analysis_response(
             changes["last_clean_mode"] = int(c.mode)
             changes["last_clean_start"] = c.start_time
             changes["last_clean_end"] = c.end_time
+            changes["last_clean_result"] = c.result
+            changes["last_clean_fail_code"] = int(c.fail_code)
+            # Field 14 (abort error code) is a firmware extension not in the
+            # compiled proto. Extract from raw unknown fields.
+            abort_error = 0
+            for uf in c.UnknownFields():
+                if uf.field_number == 14:
+                    abort_error = uf.data
+                    break
+            changes["last_clean_abort_error"] = abort_error
+            if abort_error:
+                _LOGGER.info(
+                    "Cleaning session abort error: %s (%d)",
+                    EUFY_CLEAN_ERROR_CODES.get(abort_error, f"Unknown ({abort_error})"),
+                    abort_error,
+                )
             _track_field(state, changes, "last_clean_stats")
 
         if stats.HasField("gohome"):
